@@ -9,6 +9,7 @@
  */
 #include <linux/clk.h>
 #include <linux/completion.h>
+#include <linux/debugfs.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
@@ -681,6 +682,8 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 	struct device *dev = camss->dev;
 	int ret = 0;
 
+	mutex_lock(&csid->mutex);
+
 	if (on) {
 		/*
 		 * From SDM845 onwards, the VFE needs to be powered on before
@@ -689,17 +692,17 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 		 */
 		ret = csid->res->parent_dev_ops->get(camss, csid->id);
 		if (ret < 0)
-			return ret;
+			goto error;
 
 		ret = pm_runtime_resume_and_get(dev);
 		if (ret < 0)
-			return ret;
+			goto error;
 
 		ret = regulator_bulk_enable(csid->num_supplies,
 					    csid->supplies);
 		if (ret < 0) {
 			pm_runtime_put_sync(dev);
-			return ret;
+			goto error;
 		}
 
 		ret = csid_set_clock_rates(csid);
@@ -707,7 +710,7 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 			regulator_bulk_disable(csid->num_supplies,
 					       csid->supplies);
 			pm_runtime_put_sync(dev);
-			return ret;
+			goto error;
 		}
 
 		ret = camss_enable_clocks(csid->nclocks, csid->clock, dev);
@@ -715,7 +718,7 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 			regulator_bulk_disable(csid->num_supplies,
 					       csid->supplies);
 			pm_runtime_put_sync(dev);
-			return ret;
+			goto error;
 		}
 
 		csid->phy.need_vc_update = true;
@@ -729,11 +732,13 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 			regulator_bulk_disable(csid->num_supplies,
 					       csid->supplies);
 			pm_runtime_put_sync(dev);
-			return ret;
+			goto error;
 		}
 
 		csid->res->hw_ops->hw_version(csid);
+		csid->active = true;
 	} else {
+		csid->active = false;
 		disable_irq(csid->irq);
 		camss_disable_clocks(csid->nclocks, csid->clock);
 		regulator_bulk_disable(csid->num_supplies,
@@ -742,6 +747,8 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 		csid->res->parent_dev_ops->put(camss, csid->id);
 	}
 
+error:
+	mutex_unlock(&csid->mutex);
 	return ret;
 }
 
@@ -1341,6 +1348,40 @@ static const struct media_entity_operations csid_media_ops = {
 	.link_validate = v4l2_subdev_link_validate,
 };
 
+static ssize_t read_file_csid_dump_regs(struct file *file,
+					char __user *user_buf,
+					size_t count, loff_t *ppos)
+{
+	struct csid_device *csid = file->private_data;
+	size_t len = 0, buf_len = 2048;
+	char *buf;
+	int ret;
+
+	buf = kzalloc(buf_len, GFP_KERNEL);
+	if (!buf)
+		return -ENOMEM;
+
+	mutex_lock(&csid->mutex);
+
+	if (csid->active)
+		len = csid->res->hw_ops->dump_regs(csid, buf, buf_len);
+	else
+		len = scnprintf(buf + len, buf_len - len, "%s %s\n",
+				csid->irq_name,
+				csid->active ? "active" : "inactive");
+	ret = simple_read_from_buffer(user_buf, count, ppos, buf, len);
+	kfree(buf);
+
+	mutex_unlock(&csid->mutex);
+
+	return ret;
+}
+
+static const struct file_operations fops_csid_dump_regs = {
+	.open = simple_open,
+	.read = read_file_csid_dump_regs,
+};
+
 /*
  * msm_csid_register_entity - Register subdev node for CSID module
  * @csid: CSID device
@@ -1357,6 +1398,7 @@ int msm_csid_register_entity(struct csid_device *csid,
 	int i;
 	int ret;
 
+	mutex_init(&csid->mutex);
 	v4l2_subdev_init(sd, &csid_v4l2_ops);
 	sd->internal_ops = &csid_v4l2_internal_ops;
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
@@ -1409,6 +1451,12 @@ int msm_csid_register_entity(struct csid_device *csid,
 	if (ret < 0) {
 		dev_err(dev, "Failed to register subdev: %d\n", ret);
 		goto media_cleanup;
+	}
+
+	if (csid->camss->debugfs_rootdir) {
+		debugfs_create_file(csid->irq_name, 0200,
+				    csid->camss->debugfs_rootdir, csid,
+				    &fops_csid_dump_regs);
 	}
 
 	return 0;
