@@ -74,6 +74,7 @@
 	regulator-name = "BUCK8_P3V3";
 	regulator-min-microvolt = <3300000>;
 	regulator-max-microvolt = <3300000>;
+	maxim,ena-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
 };
 
 /* VDDQ for MSHC (eMMC card) */
