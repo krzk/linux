@@ -11,10 +11,9 @@
 #include <linux/err.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/pwrseq.h>
 
 #include <linux/mmc/host.h>
-
-#include "pwrseq.h"
 
 static DEFINE_MUTEX(pwrseq_list_mutex);
 static LIST_HEAD(pwrseq_list);
@@ -51,6 +50,7 @@ int mmc_pwrseq_alloc(struct mmc_host *host)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(mmc_pwrseq_alloc);
 
 void mmc_pwrseq_pre_power_on(struct mmc_host *host)
 {
@@ -59,6 +59,7 @@ void mmc_pwrseq_pre_power_on(struct mmc_host *host)
 	if (pwrseq && pwrseq->ops->pre_power_on)
 		pwrseq->ops->pre_power_on(host);
 }
+EXPORT_SYMBOL_GPL(mmc_pwrseq_pre_power_on);
 
 void mmc_pwrseq_post_power_on(struct mmc_host *host)
 {
@@ -67,6 +68,7 @@ void mmc_pwrseq_post_power_on(struct mmc_host *host)
 	if (pwrseq && pwrseq->ops->post_power_on)
 		pwrseq->ops->post_power_on(host);
 }
+EXPORT_SYMBOL_GPL(mmc_pwrseq_post_power_on);
 
 void mmc_pwrseq_power_off(struct mmc_host *host)
 {
@@ -75,6 +77,7 @@ void mmc_pwrseq_power_off(struct mmc_host *host)
 	if (pwrseq && pwrseq->ops->power_off)
 		pwrseq->ops->power_off(host);
 }
+EXPORT_SYMBOL_GPL(mmc_pwrseq_power_off);
 
 void mmc_pwrseq_free(struct mmc_host *host)
 {
@@ -85,6 +88,7 @@ void mmc_pwrseq_free(struct mmc_host *host)
 		host->pwrseq = NULL;
 	}
 }
+EXPORT_SYMBOL_GPL(mmc_pwrseq_free);
 
 int mmc_pwrseq_register(struct mmc_pwrseq *pwrseq)
 {

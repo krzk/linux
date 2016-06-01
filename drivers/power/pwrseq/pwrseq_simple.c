@@ -16,10 +16,9 @@
 #include <linux/device.h>
 #include <linux/err.h>
 #include <linux/gpio/consumer.h>
+#include <linux/pwrseq.h>
 
 #include <linux/mmc/host.h>
-
-#include "pwrseq.h"
 
 struct mmc_pwrseq_simple {
 	struct mmc_pwrseq pwrseq;

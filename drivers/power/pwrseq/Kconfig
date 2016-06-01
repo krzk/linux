@@ -1,7 +1,13 @@
-#
-# MMC core configuration
-#
-config PWRSEQ_EMMC
+menuconfig POWER_SEQ
+	default y if OF
+	bool "Hardware reset support for specific devices"
+	help
+	  Provides drivers that implements specific power sequences for chips,
+	  using the generic power sequence management interface.
+
+if POWER_SEQ
+
+config POWER_SEQ_EMMC
 	tristate "HW reset support for eMMC"
 	default y
 	depends on OF
@@ -12,7 +18,7 @@ config PWRSEQ_EMMC
 	  This driver can also be built as a module. If so, the module
 	  will be called pwrseq_emmc.
 
-config PWRSEQ_SIMPLE
+config POWER_SEQ_SIMPLE
 	tristate "Simple HW reset support for MMC"
 	default y
 	depends on OF
@@ -22,3 +28,5 @@ config PWRSEQ_SIMPLE
 
 	  This driver can also be built as a module. If so, the module
 	  will be called pwrseq_simple.
+
+endif

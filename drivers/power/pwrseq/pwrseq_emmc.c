@@ -17,10 +17,9 @@
 #include <linux/err.h>
 #include <linux/gpio/consumer.h>
 #include <linux/reboot.h>
+#include <linux/pwrseq.h>
 
 #include <linux/mmc/host.h>
-
-#include "pwrseq.h"
 
 struct mmc_pwrseq_emmc {
 	struct mmc_pwrseq pwrseq;

@@ -23,7 +23,7 @@ struct mmc_pwrseq {
 	struct module *owner;
 };
 
-#ifdef CONFIG_OF
+#ifdef CONFIG_POWER_SEQ
 
 int mmc_pwrseq_register(struct mmc_pwrseq *pwrseq);
 void mmc_pwrseq_unregister(struct mmc_pwrseq *pwrseq);
@@ -34,7 +34,7 @@ void mmc_pwrseq_post_power_on(struct mmc_host *host);
 void mmc_pwrseq_power_off(struct mmc_host *host);
 void mmc_pwrseq_free(struct mmc_host *host);
 
-#else
+#else /* CONFIG_POWER_SEQ */
 
 static inline int mmc_pwrseq_register(struct mmc_pwrseq *pwrseq)
 {
@@ -47,6 +47,6 @@ static inline void mmc_pwrseq_post_power_on(struct mmc_host *host) {}
 static inline void mmc_pwrseq_power_off(struct mmc_host *host) {}
 static inline void mmc_pwrseq_free(struct mmc_host *host) {}
 
-#endif
+#endif /* CONFIG_POWER_SEQ */
 
 #endif
