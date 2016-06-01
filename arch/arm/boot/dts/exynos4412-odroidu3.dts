@@ -99,11 +99,15 @@
 	clock-names = "refclk";
 	clocks = <&pmu_system_controller 0>;
 	refclk-frequency = <24000000>;
+
+	power-sequence;
+	vdd-supply = <&buck8_reg>;
 };
 
 &ehci {
 	port@1 {
 		status = "okay";
+		usb-pwrseq = <&usb3503>;
 	};
 	port@2 {
 		status = "okay";
