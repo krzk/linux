@@ -27,6 +27,7 @@
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
 #include <linux/platform_data/usb3503.h>
+#include <linux/pwrseq.h>
 #include <linux/regmap.h>
 
 #define USB3503_VIDL		0x00
@@ -56,6 +57,7 @@
 
 struct usb3503 {
 	enum usb3503_mode	mode;
+	struct pwrseq		pwrseq;
 	struct regmap		*regmap;
 	struct device		*dev;
 	struct clk		*clk;
@@ -166,6 +168,14 @@ static const struct regmap_config usb3503_regmap_config = {
 	.val_bits = 8,
 
 	.max_register = USB3503_RESET,
+};
+
+static const struct pwrseq_ops usb3503_pwrseq_ops = {
+	/*
+	.pre_power_on = mmc_pwrseq_simple_pre_power_on,
+	.post_power_on = mmc_pwrseq_simple_post_power_on,
+	.power_off = mmc_pwrseq_simple_power_off,
+	*/
 };
 
 static int usb3503_probe(struct usb3503 *hub)
@@ -299,6 +309,19 @@ static int usb3503_probe(struct usb3503 *hub)
 			return err;
 		}
 	}
+
+	/* TODO: make it optional? */
+	hub->pwrseq.dev = dev;
+	hub->pwrseq.ops = &usb3503_pwrseq_ops;
+	hub->pwrseq.owner = THIS_MODULE;
+
+	/*
+	err = pwrseq_register(&hub->pwrseq);
+	if (err) {
+		dev_err(dev, "unable to register as pwrseq (%d)\n", err);
+		return err;
+	}
+	*/
 
 	usb3503_switch_mode(hub, hub->mode);
 
