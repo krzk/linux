@@ -52,32 +52,26 @@ int mmc_pwrseq_alloc(struct mmc_host *host)
 }
 EXPORT_SYMBOL_GPL(mmc_pwrseq_alloc);
 
-void mmc_pwrseq_pre_power_on(struct mmc_host *host)
+void pwrseq_pre_power_on(struct pwrseq *pwrseq)
 {
-	struct pwrseq *pwrseq = host->pwrseq;
-
 	if (pwrseq && pwrseq->ops->pre_power_on)
-		pwrseq->ops->pre_power_on(host);
+		pwrseq->ops->pre_power_on(pwrseq);
 }
-EXPORT_SYMBOL_GPL(mmc_pwrseq_pre_power_on);
+EXPORT_SYMBOL_GPL(pwrseq_pre_power_on);
 
-void mmc_pwrseq_post_power_on(struct mmc_host *host)
+void pwrseq_post_power_on(struct pwrseq *pwrseq)
 {
-	struct pwrseq *pwrseq = host->pwrseq;
-
 	if (pwrseq && pwrseq->ops->post_power_on)
-		pwrseq->ops->post_power_on(host);
+		pwrseq->ops->post_power_on(pwrseq);
 }
-EXPORT_SYMBOL_GPL(mmc_pwrseq_post_power_on);
+EXPORT_SYMBOL_GPL(pwrseq_post_power_on);
 
-void mmc_pwrseq_power_off(struct mmc_host *host)
+void pwrseq_power_off(struct pwrseq *pwrseq)
 {
-	struct pwrseq *pwrseq = host->pwrseq;
-
 	if (pwrseq && pwrseq->ops->power_off)
-		pwrseq->ops->power_off(host);
+		pwrseq->ops->power_off(pwrseq);
 }
-EXPORT_SYMBOL_GPL(mmc_pwrseq_power_off);
+EXPORT_SYMBOL_GPL(pwrseq_power_off);
 
 void mmc_pwrseq_free(struct mmc_host *host)
 {

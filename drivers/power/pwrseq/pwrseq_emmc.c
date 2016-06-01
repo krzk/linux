@@ -19,8 +19,6 @@
 #include <linux/reboot.h>
 #include <linux/pwrseq.h>
 
-#include <linux/mmc/host.h>
-
 struct mmc_pwrseq_emmc {
 	struct pwrseq pwrseq;
 	struct notifier_block reset_nb;
@@ -37,9 +35,9 @@ static void __mmc_pwrseq_emmc_reset(struct mmc_pwrseq_emmc *pwrseq)
 	udelay(200);
 }
 
-static void mmc_pwrseq_emmc_reset(struct mmc_host *host)
+static void mmc_pwrseq_emmc_reset(struct pwrseq *_pwrseq)
 {
-	struct mmc_pwrseq_emmc *pwrseq =  to_pwrseq_emmc(host->pwrseq);
+	struct mmc_pwrseq_emmc *pwrseq = to_pwrseq_emmc(_pwrseq);
 
 	__mmc_pwrseq_emmc_reset(pwrseq);
 }

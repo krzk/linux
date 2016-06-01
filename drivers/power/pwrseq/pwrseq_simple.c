@@ -18,8 +18,6 @@
 #include <linux/gpio/consumer.h>
 #include <linux/pwrseq.h>
 
-#include <linux/mmc/host.h>
-
 struct mmc_pwrseq_simple {
 	struct pwrseq pwrseq;
 	bool clk_enabled;
@@ -46,9 +44,9 @@ static void mmc_pwrseq_simple_set_gpios_value(struct mmc_pwrseq_simple *pwrseq,
 	}
 }
 
-static void mmc_pwrseq_simple_pre_power_on(struct mmc_host *host)
+static void mmc_pwrseq_simple_pre_power_on(struct pwrseq *_pwrseq)
 {
-	struct mmc_pwrseq_simple *pwrseq = to_pwrseq_simple(host->pwrseq);
+	struct mmc_pwrseq_simple *pwrseq = to_pwrseq_simple(_pwrseq);
 
 	if (!IS_ERR(pwrseq->ext_clk) && !pwrseq->clk_enabled) {
 		clk_prepare_enable(pwrseq->ext_clk);
@@ -58,16 +56,16 @@ static void mmc_pwrseq_simple_pre_power_on(struct mmc_host *host)
 	mmc_pwrseq_simple_set_gpios_value(pwrseq, 1);
 }
 
-static void mmc_pwrseq_simple_post_power_on(struct mmc_host *host)
+static void mmc_pwrseq_simple_post_power_on(struct pwrseq *_pwrseq)
 {
-	struct mmc_pwrseq_simple *pwrseq = to_pwrseq_simple(host->pwrseq);
+	struct mmc_pwrseq_simple *pwrseq = to_pwrseq_simple(_pwrseq);
 
 	mmc_pwrseq_simple_set_gpios_value(pwrseq, 0);
 }
 
-static void mmc_pwrseq_simple_power_off(struct mmc_host *host)
+static void mmc_pwrseq_simple_power_off(struct pwrseq *_pwrseq)
 {
-	struct mmc_pwrseq_simple *pwrseq = to_pwrseq_simple(host->pwrseq);
+	struct mmc_pwrseq_simple *pwrseq = to_pwrseq_simple(_pwrseq);
 
 	mmc_pwrseq_simple_set_gpios_value(pwrseq, 1);
 
