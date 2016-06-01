@@ -24,6 +24,8 @@
 #include <linux/usb/hcd.h>
 #include "usb.h"
 
+struct pwrseq;
+
 struct usb_hub {
 	struct device		*intfdev;	/* the "interface" device */
 	struct usb_device	*hdev;
@@ -101,6 +103,7 @@ struct usb_port {
 	struct usb_dev_state *port_owner;
 	struct usb_port *peer;
 	struct dev_pm_qos_request *req;
+	struct pwrseq *pwrseq;
 	enum usb_port_connect_type connect_type;
 	usb_port_location_t location;
 	struct mutex status_lock;

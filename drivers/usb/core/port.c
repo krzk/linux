@@ -18,6 +18,8 @@
 
 #include <linux/slab.h>
 #include <linux/pm_qos.h>
+#include <linux/pwrseq.h>
+#include <linux/usb/of.h>
 
 #include "hub.h"
 
@@ -526,6 +528,15 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
 		return retval;
 	}
 
+	port_dev->dev.of_node = usb_of_get_child_node(hdev->dev.parent->of_node,
+						      port1);
+	port_dev->pwrseq = pwrseq_alloc(&port_dev->dev, "usb-pwrseq");
+	if (IS_ERR(port_dev->pwrseq)) {
+		retval = PTR_ERR(port_dev->pwrseq);
+		device_unregister(&port_dev->dev);
+		return retval;
+	}
+
 	find_and_link_peer(hub, port1);
 
 	/*
@@ -567,8 +578,13 @@ void usb_hub_remove_port_device(struct usb_hub *hub, int port1)
 	struct usb_port *port_dev = hub->ports[port1 - 1];
 	struct usb_port *peer;
 
+	pwrseq_power_off(port_dev->pwrseq);
+
 	peer = port_dev->peer;
 	if (peer)
 		unlink_peers(port_dev, peer);
+
+	pwrseq_free(port_dev->pwrseq);
+	port_dev->pwrseq = NULL;
 	device_unregister(&port_dev->dev);
 }
