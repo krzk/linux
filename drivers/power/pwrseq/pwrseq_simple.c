@@ -21,7 +21,7 @@
 #include <linux/mmc/host.h>
 
 struct mmc_pwrseq_simple {
-	struct mmc_pwrseq pwrseq;
+	struct pwrseq pwrseq;
 	bool clk_enabled;
 	struct clk *ext_clk;
 	struct gpio_descs *reset_gpios;
@@ -77,7 +77,7 @@ static void mmc_pwrseq_simple_power_off(struct mmc_host *host)
 	}
 }
 
-static const struct mmc_pwrseq_ops mmc_pwrseq_simple_ops = {
+static const struct pwrseq_ops mmc_pwrseq_simple_ops = {
 	.pre_power_on = mmc_pwrseq_simple_pre_power_on,
 	.post_power_on = mmc_pwrseq_simple_post_power_on,
 	.power_off = mmc_pwrseq_simple_power_off,
@@ -115,14 +115,14 @@ static int mmc_pwrseq_simple_probe(struct platform_device *pdev)
 	pwrseq->pwrseq.owner = THIS_MODULE;
 	platform_set_drvdata(pdev, pwrseq);
 
-	return mmc_pwrseq_register(&pwrseq->pwrseq);
+	return pwrseq_register(&pwrseq->pwrseq);
 }
 
 static int mmc_pwrseq_simple_remove(struct platform_device *pdev)
 {
 	struct mmc_pwrseq_simple *pwrseq = platform_get_drvdata(pdev);
 
-	mmc_pwrseq_unregister(&pwrseq->pwrseq);
+	pwrseq_unregister(&pwrseq->pwrseq);
 
 	return 0;
 }

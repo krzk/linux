@@ -22,7 +22,7 @@
 #include <linux/mmc/host.h>
 
 struct mmc_pwrseq_emmc {
-	struct mmc_pwrseq pwrseq;
+	struct pwrseq pwrseq;
 	struct notifier_block reset_nb;
 	struct gpio_desc *reset_gpio;
 };
@@ -54,7 +54,7 @@ static int mmc_pwrseq_emmc_reset_nb(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static const struct mmc_pwrseq_ops mmc_pwrseq_emmc_ops = {
+static const struct pwrseq_ops mmc_pwrseq_emmc_ops = {
 	.post_power_on = mmc_pwrseq_emmc_reset,
 };
 
@@ -85,7 +85,7 @@ static int mmc_pwrseq_emmc_probe(struct platform_device *pdev)
 	pwrseq->pwrseq.owner = THIS_MODULE;
 	platform_set_drvdata(pdev, pwrseq);
 
-	return mmc_pwrseq_register(&pwrseq->pwrseq);
+	return pwrseq_register(&pwrseq->pwrseq);
 }
 
 static int mmc_pwrseq_emmc_remove(struct platform_device *pdev)
@@ -93,7 +93,7 @@ static int mmc_pwrseq_emmc_remove(struct platform_device *pdev)
 	struct mmc_pwrseq_emmc *pwrseq = platform_get_drvdata(pdev);
 
 	unregister_restart_handler(&pwrseq->reset_nb);
-	mmc_pwrseq_unregister(&pwrseq->pwrseq);
+	pwrseq_unregister(&pwrseq->pwrseq);
 
 	return 0;
 }

@@ -21,7 +21,7 @@ static LIST_HEAD(pwrseq_list);
 int mmc_pwrseq_alloc(struct mmc_host *host)
 {
 	struct device_node *np;
-	struct mmc_pwrseq *p;
+	struct pwrseq *p;
 
 	np = of_parse_phandle(host->parent->of_node, "mmc-pwrseq", 0);
 	if (!np)
@@ -54,7 +54,7 @@ EXPORT_SYMBOL_GPL(mmc_pwrseq_alloc);
 
 void mmc_pwrseq_pre_power_on(struct mmc_host *host)
 {
-	struct mmc_pwrseq *pwrseq = host->pwrseq;
+	struct pwrseq *pwrseq = host->pwrseq;
 
 	if (pwrseq && pwrseq->ops->pre_power_on)
 		pwrseq->ops->pre_power_on(host);
@@ -63,7 +63,7 @@ EXPORT_SYMBOL_GPL(mmc_pwrseq_pre_power_on);
 
 void mmc_pwrseq_post_power_on(struct mmc_host *host)
 {
-	struct mmc_pwrseq *pwrseq = host->pwrseq;
+	struct pwrseq *pwrseq = host->pwrseq;
 
 	if (pwrseq && pwrseq->ops->post_power_on)
 		pwrseq->ops->post_power_on(host);
@@ -72,7 +72,7 @@ EXPORT_SYMBOL_GPL(mmc_pwrseq_post_power_on);
 
 void mmc_pwrseq_power_off(struct mmc_host *host)
 {
-	struct mmc_pwrseq *pwrseq = host->pwrseq;
+	struct pwrseq *pwrseq = host->pwrseq;
 
 	if (pwrseq && pwrseq->ops->power_off)
 		pwrseq->ops->power_off(host);
@@ -81,7 +81,7 @@ EXPORT_SYMBOL_GPL(mmc_pwrseq_power_off);
 
 void mmc_pwrseq_free(struct mmc_host *host)
 {
-	struct mmc_pwrseq *pwrseq = host->pwrseq;
+	struct pwrseq *pwrseq = host->pwrseq;
 
 	if (pwrseq) {
 		module_put(pwrseq->owner);
@@ -90,7 +90,7 @@ void mmc_pwrseq_free(struct mmc_host *host)
 }
 EXPORT_SYMBOL_GPL(mmc_pwrseq_free);
 
-int mmc_pwrseq_register(struct mmc_pwrseq *pwrseq)
+int pwrseq_register(struct pwrseq *pwrseq)
 {
 	if (!pwrseq || !pwrseq->ops || !pwrseq->dev)
 		return -EINVAL;
@@ -101,9 +101,9 @@ int mmc_pwrseq_register(struct mmc_pwrseq *pwrseq)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(mmc_pwrseq_register);
+EXPORT_SYMBOL_GPL(pwrseq_register);
 
-void mmc_pwrseq_unregister(struct mmc_pwrseq *pwrseq)
+void pwrseq_unregister(struct pwrseq *pwrseq)
 {
 	if (pwrseq) {
 		mutex_lock(&pwrseq_list_mutex);
@@ -111,4 +111,4 @@ void mmc_pwrseq_unregister(struct mmc_pwrseq *pwrseq)
 		mutex_unlock(&pwrseq_list_mutex);
 	}
 }
-EXPORT_SYMBOL_GPL(mmc_pwrseq_unregister);
+EXPORT_SYMBOL_GPL(pwrseq_unregister);
