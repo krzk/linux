@@ -350,3 +350,89 @@ struct regulator_init_data *regulator_of_get_init_data(struct device *dev,
 
 	return init_data;
 }
+
+/**
+ * devm_of_regulator_all_get - get all regulator consumers
+ *
+ * @dev:           Device to supply
+ * @num_consumers  Number of consumers registered (only on success)
+ * @consumers:     Configuration of consumers; names of supplies and clients
+ *                 are stored here; allocated only on success (NULL otherwise);
+ *
+ * @return 0 on success, an errno on failure.
+ *
+ * This helper function allows drivers to get all regulator consumers
+ * for given device in one operation.  The names of regulator supplies
+ * do not have to be provided.  If any of the regulators cannot be
+ * acquired then any regulators that were allocated will be freed
+ * before returning to the caller.
+ */
+int devm_of_regulator_all_get(struct device *dev, unsigned int *num_consumers,
+			      struct regulator_bulk_data **consumers)
+{
+	struct device_node *np = dev->of_node;
+	struct regulator_bulk_data *bulk;
+	unsigned int count = 0, i = 0;
+	struct property *prop;
+	const char *p;
+	int ret;
+
+	if (!np) {
+		ret = 0;
+		goto err; /* Not really an error */
+	}
+
+	/* Count the number of regulator supplies */
+	for_each_property_of_node(np, prop) {
+		p = strstr(prop->name, "-supply");
+		if (p && p != prop->name)
+			count++;
+	}
+
+	if (!count) {
+		ret = 0;
+		goto err; /* Not really an error */
+	}
+
+	bulk = devm_kcalloc(dev, count, sizeof(**consumers), GFP_KERNEL);
+	if (!bulk) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	/* Get all the names for supplies */
+	for_each_property_of_node(np, prop) {
+		char *name;
+		int len;
+
+		p = strstr(prop->name, "-supply");
+		if (!p || p == prop->name)
+			continue;
+
+		len = strlen(prop->name) - strlen("-supply") + 1;
+		name = devm_kzalloc(dev, len, GFP_KERNEL);
+		if (!name) {
+			ret = -ENOMEM;
+			goto err;
+		}
+
+		strlcpy(name, prop->name, len);
+		bulk[i++].supply = name;
+	}
+
+	ret = devm_regulator_bulk_get(dev, i, bulk);
+	if (ret)
+		goto err;
+
+	*consumers = bulk;
+	*num_consumers = i;
+
+	return 0;
+
+err:
+	*num_consumers = 0;
+	*consumers = NULL;
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(devm_of_regulator_all_get);
