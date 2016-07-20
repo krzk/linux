@@ -282,6 +282,33 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usb_otg1_id>;
 	status = "okay";
+
+	genesys: hub@1 {
+		compatible = "usb5e3,608";
+		reg = <1>;
+
+		reset-gpios = <&gpio4 5 GPIO_ACTIVE_LOW>; /* hub reset pin */
+		reset-duration-us = <10>;
+		clocks = <&clks IMX6SX_CLK_USBOH3>;
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+		asix_1: ethernet@1 {
+			compatible = "usbb95,1780";
+			reg = <1>;
+
+			clocks = <&clks IMX6SX_CLK_IPG>;
+			reset-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>; /* hub reset pin */
+			reset-duration-us = <15>;
+		};
+
+		asix_2: ethernet@2 {
+			compatible = "usbb95,772b";
+			reg = <2>;
+
+			clocks = <&clks IMX6SX_CLK_CKO>;
+		};
+	};
 };
 
 &usbotg2 {
