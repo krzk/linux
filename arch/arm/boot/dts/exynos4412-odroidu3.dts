@@ -86,8 +86,21 @@
 	regulator-max-microvolt = <2800000>;
 };
 
+&max77686 {
+	pinctrl-0 = <&max77686_irq &max77686_enb8>;
+};
+
 &mshc_0 {
 	vqmmc-supply = <&ldo22_reg>;
+};
+
+&pinctrl_0 {
+	max77686_enb8: max77686-enb8 {
+		samsung,pins = "gpa1-1";
+		samsung,pin-function = <EXYNOS_PIN_FUNC_OUTPUT>;
+		samsung,pin-pud = <EXYNOS_PIN_PULL_DOWN>;
+		samsung,pin-drv = <EXYNOS4_PIN_DRV_LV1>;
+	};
 };
 
 &pwm {
@@ -102,8 +115,6 @@
 	clocks = <&pmu_system_controller 0>;
 	refclk-frequency = <24000000>;
 
-	pinctrl-0 = <&max77686_enb8>;
-	pinctrl-names = "default";
 };
 
 &ehci {
