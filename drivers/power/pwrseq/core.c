@@ -161,6 +161,7 @@ EXPORT_SYMBOL_GPL(of_pwrseq_on);
  */
 void of_pwrseq_off(struct pwrseq *pwrseq)
 {
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	pwrseq_off(pwrseq);
 	pwrseq_put(pwrseq);
 }
@@ -216,12 +217,15 @@ void of_pwrseq_off_list(struct list_head *head)
 	struct pwrseq *pwrseq;
 	struct pwrseq_list_per_dev *pwrseq_list_node, *tmp_node;
 
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	list_for_each_entry_safe(pwrseq_list_node, tmp_node, head, list) {
 		pwrseq = pwrseq_list_node->pwrseq;
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 		of_pwrseq_off(pwrseq);
 		list_del(&pwrseq_list_node->list);
 		kfree(pwrseq_list_node);
 	}
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 }
 EXPORT_SYMBOL_GPL(of_pwrseq_off_list);
 

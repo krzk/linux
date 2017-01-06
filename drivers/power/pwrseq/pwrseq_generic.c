@@ -100,8 +100,10 @@ static void pwrseq_generic_off(struct pwrseq *pwrseq)
 	struct pwrseq_generic *pwrseq_gen = to_generic_pwrseq(pwrseq);
 	int clk;
 
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	if (pwrseq_gen->suspended)
 		return;
+	pr_info("%s\n", __func__);
 
 	for (clk = PWRSEQ_MAX_CLKS - 1; clk >= 0; clk--)
 		clk_disable_unprepare(pwrseq_gen->clks[clk]);
@@ -148,6 +150,7 @@ static int pwrseq_generic_get(struct device_node *np, struct pwrseq *pwrseq)
 	enum of_gpio_flags flags;
 	int reset_gpio, clk, ret = 0;
 
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	for (clk = 0; clk < PWRSEQ_MAX_CLKS; clk++) {
 		pwrseq_gen->clks[clk] = of_clk_get(np, clk);
 		if (IS_ERR(pwrseq_gen->clks[clk])) {
@@ -205,6 +208,7 @@ static int pwrseq_generic_alloc_instance(void)
 {
 	struct pwrseq_generic *pwrseq_gen;
 
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	pwrseq_gen = kzalloc(sizeof(*pwrseq_gen), GFP_KERNEL);
 	if (!pwrseq_gen)
 		return -ENOMEM;
