@@ -61,7 +61,7 @@ struct usb3503 {
 	struct clk		*clk;
 	u8	port_off_mask;
 	int	gpio_intn;
-	int	gpio_reset;
+	int	gpio_reset[2];
 	int	gpio_connect;
 	bool	secondary_ref_clk;
 };
@@ -71,8 +71,10 @@ static int usb3503_reset(struct usb3503 *hub, int state)
 	if (!state && gpio_is_valid(hub->gpio_connect))
 		gpio_set_value_cansleep(hub->gpio_connect, 0);
 
-	if (gpio_is_valid(hub->gpio_reset))
-		gpio_set_value_cansleep(hub->gpio_reset, state);
+	pr_err("AAA usb3503 resetting end of %d\n", hub->gpio_reset[0]);
+	if (gpio_is_valid(hub->gpio_reset[0]))
+		gpio_set_value_cansleep(hub->gpio_reset[0], state);
+
 
 	/* Wait T_HUBINIT == 4ms for hub logic to stabilize */
 	if (state)
@@ -131,6 +133,10 @@ static int usb3503_connect(struct usb3503 *hub)
 	if (gpio_is_valid(hub->gpio_connect))
 		gpio_set_value_cansleep(hub->gpio_connect, 1);
 
+	pr_err("AAA usb3503 resetting end of %d\n", hub->gpio_reset[1]);
+	if (gpio_is_valid(hub->gpio_reset[1]))
+		gpio_set_value_cansleep(hub->gpio_reset[1], 1);
+
 	hub->mode = USB3503_MODE_HUB;
 	dev_info(dev, "switched to HUB mode\n");
 
@@ -182,7 +188,8 @@ static int usb3503_probe(struct usb3503 *hub)
 		hub->port_off_mask	= pdata->port_off_mask;
 		hub->gpio_intn		= pdata->gpio_intn;
 		hub->gpio_connect	= pdata->gpio_connect;
-		hub->gpio_reset		= pdata->gpio_reset;
+		hub->gpio_reset[0]	= pdata->gpio_reset;
+		hub->gpio_reset[1]	= -ENODEV;
 		hub->mode		= pdata->initial_mode;
 	} else if (np) {
 		struct clk *clk;
@@ -255,8 +262,11 @@ static int usb3503_probe(struct usb3503 *hub)
 		hub->gpio_connect = of_get_named_gpio(np, "connect-gpios", 0);
 		if (hub->gpio_connect == -EPROBE_DEFER)
 			return -EPROBE_DEFER;
-		hub->gpio_reset = of_get_named_gpio(np, "reset-gpios", 0);
-		if (hub->gpio_reset == -EPROBE_DEFER)
+		hub->gpio_reset[0] = of_get_named_gpio(np, "reset-gpios", 0);
+		if (hub->gpio_reset[0] == -EPROBE_DEFER)
+			return -EPROBE_DEFER;
+		hub->gpio_reset[1] = of_get_named_gpio(np, "reset-gpios", 1);
+		if (hub->gpio_reset[1] == -EPROBE_DEFER)
 			return -EPROBE_DEFER;
 		of_property_read_u32(np, "initial-mode", &mode);
 		hub->mode = mode;
@@ -289,13 +299,24 @@ static int usb3503_probe(struct usb3503 *hub)
 		}
 	}
 
-	if (gpio_is_valid(hub->gpio_reset)) {
-		err = devm_gpio_request_one(dev, hub->gpio_reset,
-				GPIOF_OUT_INIT_LOW, "usb3503 reset");
+	if (gpio_is_valid(hub->gpio_reset[0])) {
+		err = devm_gpio_request_one(dev, hub->gpio_reset[0],
+				GPIOF_OUT_INIT_LOW, "usb3503 reset[0]");
 		if (err) {
 			dev_err(dev,
 				"unable to request GPIO %d as reset pin (%d)\n",
-				hub->gpio_reset, err);
+				hub->gpio_reset[0], err);
+			return err;
+		}
+	}
+
+	if (gpio_is_valid(hub->gpio_reset[1])) {
+		err = devm_gpio_request_one(dev, hub->gpio_reset[1],
+				GPIOF_OUT_INIT_LOW, "usb3503 reset[1]");
+		if (err) {
+			dev_err(dev,
+				"unable to request GPIO %d as reset pin (%d)\n",
+				hub->gpio_reset[1], err);
 			return err;
 		}
 	}
