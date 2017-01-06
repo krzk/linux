@@ -101,6 +101,9 @@
 	clock-names = "refclk";
 	clocks = <&pmu_system_controller 0>;
 	refclk-frequency = <24000000>;
+
+	pinctrl-0 = <&max77686_enb8>;
+	pinctrl-names = "default";
 };
 
 &ehci {
