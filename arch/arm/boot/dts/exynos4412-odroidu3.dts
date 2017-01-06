@@ -75,7 +75,8 @@
 	regulator-name = "BUCK8_P3V3";
 	regulator-min-microvolt = <3300000>;
 	regulator-max-microvolt = <3300000>;
-	maxim,ena-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+	//maxim,ena-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+	//regulator-always-on;
 };
 
 /* VDDQ for MSHC (eMMC card) */
@@ -103,12 +104,47 @@
 };
 
 &ehci {
-	port@1 {
-		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
+//	samsung,vbus-gpio = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+/*
+	usbroot@1 {
+		compatible = "usb1d6b,0002";
+		reg = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		hub@3 {
+			reg = <3>;
+			compatible = "usb424,3503";
+			reset-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+			reset-duration = <100>;
+		};
+
+
 	};
+*/
 	port@2 {
 		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
+	//		reset-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+	//		reset-duration = <100>;
+		//hub@3 {
+		//	reg = <3>;
+		//	compatible = "usb424,3503";
+		//	reset-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+		//	reset-duration = <100>;
+		//};
 	};
+/*
+		hub@3 {
+			reg = <3>;
+			compatible = "usb424,3503";
+			reset-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+			reset-duration = <100>;
+		};
+*/
 };
 
 &sound {
