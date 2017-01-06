@@ -128,6 +128,19 @@
 	};
 */
 	port@2 {
+		//	reset-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+		//	reset-duration = <100>;
+		status = "okay";
+		//lan@2 {
+			reg = <2>;
+			compatible = "usb424,9730";
+			//reset-gpios = <&gpa1 1 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&gpa1 1 GPIO_ACTIVE_LOW>;
+			reset-duration-us = <400>; // 350n, 400o
+		//vbus-supply = <&buck8_reg>;
+		//};
+	};
+	port@3 {
 		status = "okay";
 		#address-cells = <1>;
 		#size-cells = <0>;
