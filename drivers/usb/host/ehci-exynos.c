@@ -66,6 +66,13 @@ static int exynos_ehci_get_phy(struct device *dev,
 			return ret;
 		}
 
+		/* Skip non-phys children (e.g. hard-wired USB devices) */
+		if (!of_find_property(child, "phys", NULL)) {
+			pr_err("AAAAA skiping child non-phy %s\n", child->name);
+			continue;
+		}
+
+		phy_number--;
 		if (phy_number >= PHY_NUMBER) {
 			dev_err(dev, "Invalid number of PHYs\n");
 			of_node_put(child);
