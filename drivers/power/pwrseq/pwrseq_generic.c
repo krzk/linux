@@ -127,11 +127,14 @@ static int pwrseq_generic_on(struct pwrseq *pwrseq)
 	if (gpiod_reset) {
 		u32 duration_us = pwrseq_gen->duration_us;
 
+		//gpiod_set_value(gpiod_reset, 0);
 		if (duration_us <= 10)
 			udelay(10);
 		else
 			usleep_range(duration_us, duration_us + 100);
+		//gpiod_set_value(gpiod_reset, 1);
 		gpiod_set_value(gpiod_reset, 0);
+
 		pr_info("%s: gpio valid, duration: %d us\n", __func__, duration_us);
 	}
 
