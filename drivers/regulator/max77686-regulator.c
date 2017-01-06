@@ -121,6 +121,7 @@ static unsigned int max77686_map_normal_mode(struct max77686_data *max77686,
 {
 	switch (id) {
 	case MAX77686_BUCK8:
+		return 0x2;
 	case MAX77686_BUCK9:
 	case MAX77686_LDO20 ... MAX77686_LDO22:
 		if (test_bit(id, max77686->gpio_enabled))
@@ -229,6 +230,15 @@ static int max77686_enable(struct regulator_dev *rdev)
 	if (max77686->opmode[id] == MAX77686_OFF_PWRREQ)
 		max77686->opmode[id] = max77686_map_normal_mode(max77686, id);
 
+	if (id == MAX77686_BUCK8) {
+		pr_err("AAA enabling regulator buck8 with 0x%x\n", max77686->opmode[id]);
+		//max77686->opmode[id] = 0x1;
+		//pr_err("AAA enabling regulator buck8 with 0x%x\n", max77686->opmode[id]);
+		//regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
+		//		  rdev->desc->enable_mask,
+		//		  0);
+		udelay(100);
+	}
 	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
 				  rdev->desc->enable_mask,
 				  max77686->opmode[id] << shift);
@@ -431,6 +441,26 @@ static struct regulator_ops max77686_buck_dvs_ops = {
 	.enable_reg	= MAX77686_REG_BUCK5CTRL + (num - 5) * 2,	\
 	.enable_mask	= MAX77686_OPMODE_MASK,				\
 }
+#define regulator_desc_buck8(num)		{			\
+	.name		= "BUCK"#num,					\
+	.of_match	= of_match_ptr("BUCK"#num),			\
+	.regulators_node	= of_match_ptr("voltage-regulators"),	\
+	.of_parse_cb	= max77686_of_parse_cb,				\
+	.id		= MAX77686_BUCK##num,				\
+	.ops		= &max77686_ops,				\
+	.type		= REGULATOR_VOLTAGE,				\
+	.owner		= THIS_MODULE,					\
+	.min_uV		= MAX77686_BUCK_MINUV,				\
+	.uV_step	= MAX77686_BUCK_UVSTEP,				\
+	.ramp_delay	= MAX77686_RAMP_DELAY,				\
+	.enable_time	= MAX77686_BUCK_ENABLE_TIME,			\
+	.n_voltages	= MAX77686_VSEL_MASK + 1,			\
+	.vsel_reg	= MAX77686_REG_BUCK5OUT + (num - 5) * 2,	\
+	.vsel_mask	= MAX77686_VSEL_MASK,				\
+	.enable_reg	= MAX77686_REG_BUCK5CTRL + (num - 5) * 2,	\
+	.enable_mask	= MAX77686_OPMODE_MASK,				\
+	.enable_val	= 0x2						\
+}
 #define regulator_desc_buck1(num)		{			\
 	.name		= "BUCK"#num,					\
 	.of_match	= of_match_ptr("BUCK"#num),			\
@@ -503,7 +533,7 @@ static const struct regulator_desc regulators[] = {
 	regulator_desc_buck(5),
 	regulator_desc_buck(6),
 	regulator_desc_buck(7),
-	regulator_desc_buck(8),
+	regulator_desc_buck8(8),
 	regulator_desc_buck(9),
 };
 
