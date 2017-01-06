@@ -1646,6 +1646,7 @@ static void hub_disconnect(struct usb_interface *intf)
 	hub->error = 0;
 	hub_quiesce(hub, HUB_DISCONNECT);
 
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	of_pwrseq_off_list(&hub->pwrseq_on_list);
 	mutex_lock(&usb_port_peer_mutex);
 
@@ -1682,12 +1683,14 @@ static int hub_of_pwrseq_on(struct usb_hub *hub)
 	struct device_node *np;
 	int ret;
 
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 	if (hdev->parent)
 		parent = &hdev->dev;
 	else
 		parent = bus_to_hcd(hdev->bus)->self.controller;
 
 	for_each_child_of_node(parent->of_node, np) {
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 		ret = of_pwrseq_on_list(np, &hub->pwrseq_on_list);
 		if (ret)
 			return ret;
@@ -1828,7 +1831,9 @@ descriptor_error:
 		hub->quirk_check_port_auto_suspend = 1;
 
 	if (hub_configure(hub, endpoint) >= 0) {
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 		ret = hub_of_pwrseq_on(hub);
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
 		if (!ret)
 			return 0;
 	}
