@@ -260,6 +260,7 @@
 		intn-gpios = <&gpx3 0 GPIO_ACTIVE_HIGH>;
 		connect-gpios = <&gpx3 4 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpx3 5 GPIO_ACTIVE_HIGH>;
+//			      <&gpa1 1 GPIO_ACTIVE_HIGH>;
 		initial-mode = <1>;
 	};
 
@@ -473,6 +474,7 @@
 				 * X2 and U3.
 				 */
 				regulator-name = "BUCK8_2.8V";
+				//regulator-boot-on;
 			};
 		};
 	};
