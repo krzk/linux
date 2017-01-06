@@ -509,8 +509,20 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
 			raw_port = usb_hcd_find_raw_port_number(usb_hcd,
 				port1);
 		}
+	pr_err("AAA %s:%d %p %s\n", __func__, __LINE__, parent->dev.of_node,
+			dev_name(&parent->dev));
+	if (parent->dev.of_node)
+	pr_err("AAA %s:%d %s %s\n", __func__, __LINE__,
+			parent->dev.of_node->name,
+			parent->dev.of_node->full_name);
 		dev->dev.of_node = usb_of_get_child_node(parent->dev.of_node,
 				raw_port);
+	pr_err("AAA %s:%d\n", __func__, __LINE__);
+		pr_err("AAA usb_of_get_child_node() %d-%s: %d - %s - %s\n",
+				bus->busnum, dev->devpath,
+			raw_port,
+			(dev->dev.of_node ? dev->dev.of_node->name : "x"),
+			(dev->dev.of_node ? dev->dev.of_node->full_name : "x"));
 
 		/* hub driver sets up TT records */
 	}

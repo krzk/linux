@@ -37,6 +37,7 @@ struct device_node *usb_of_get_child_node(struct device_node *parent,
 
 	for_each_child_of_node(parent, node) {
 		if (!of_property_read_u32(node, "reg", &port)) {
+			pr_err("AAA %s: %d %d\n", __func__, port, portnum);
 			if (port == portnum)
 				return node;
 		}
