@@ -245,7 +245,6 @@ static struct regmap *max14577_get_regmap(struct max14577 *max14577,
 static int max14577_regulator_probe(struct platform_device *pdev)
 {
 	struct max14577 *max14577 = dev_get_drvdata(pdev->dev.parent);
-	struct max14577_platform_data *pdata = dev_get_platdata(max14577->dev);
 	int i, ret = 0;
 	struct regulator_config config = {};
 	const struct regulator_desc *supported_regulators;
@@ -268,17 +267,9 @@ static int max14577_regulator_probe(struct platform_device *pdev)
 
 	for (i = 0; i < supported_regulators_size; i++) {
 		struct regulator_dev *regulator;
-		/*
-		 * Index of supported_regulators[] is also the id and must
-		 * match index of pdata->regulators[].
-		 */
-		if (pdata && pdata->regulators) {
-			config.init_data = pdata->regulators[i].initdata;
-			config.of_node = pdata->regulators[i].of_node;
-		} else {
-			config.init_data = match_init_data(i, dev_type);
-			config.of_node = match_of_node(i, dev_type);
-		}
+
+		config.init_data = match_init_data(i, dev_type);
+		config.of_node = match_of_node(i, dev_type);
 		config.regmap = max14577_get_regmap(max14577,
 				supported_regulators[i].id);
 
