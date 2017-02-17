@@ -373,25 +373,12 @@ static int max14577_i2c_probe(struct i2c_client *i2c,
 			      const struct i2c_device_id *id)
 {
 	struct max14577 *max14577;
-	struct max14577_platform_data *pdata = dev_get_platdata(&i2c->dev);
 	struct device_node *np = i2c->dev.of_node;
 	int ret = 0;
 	const struct regmap_irq_chip *irq_chip;
 	const struct mfd_cell *mfd_devs;
 	unsigned int mfd_devs_size;
 	int irq_flags;
-
-	if (np) {
-		pdata = devm_kzalloc(&i2c->dev, sizeof(*pdata), GFP_KERNEL);
-		if (!pdata)
-			return -ENOMEM;
-		i2c->dev.platform_data = pdata;
-	}
-
-	if (!pdata) {
-		dev_err(&i2c->dev, "No platform data found.\n");
-		return -EINVAL;
-	}
 
 	max14577 = devm_kzalloc(&i2c->dev, sizeof(*max14577), GFP_KERNEL);
 	if (!max14577)
@@ -486,13 +473,6 @@ static int max14577_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static const struct i2c_device_id max14577_i2c_id[] = {
-	{ "max14577", MAXIM_DEVICE_TYPE_MAX14577, },
-	{ "max77836", MAXIM_DEVICE_TYPE_MAX77836, },
-	{ }
-};
-MODULE_DEVICE_TABLE(i2c, max14577_i2c_id);
-
 #ifdef CONFIG_PM_SLEEP
 static int max14577_suspend(struct device *dev)
 {
@@ -538,12 +518,10 @@ static struct i2c_driver max14577_i2c_driver = {
 	},
 	.probe = max14577_i2c_probe,
 	.remove = max14577_i2c_remove,
-	.id_table = max14577_i2c_id,
 };
 
 static int __init max14577_i2c_init(void)
 {
-	BUILD_BUG_ON(ARRAY_SIZE(max14577_i2c_id) != MAXIM_DEVICE_TYPE_NUM);
 	BUILD_BUG_ON(ARRAY_SIZE(max14577_dt_match) != MAXIM_DEVICE_TYPE_NUM);
 
 	/* Valid charger current values must be provided for each chipset */

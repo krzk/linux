@@ -62,26 +62,6 @@ struct max14577_charger_platform_data {
 };
 
 /*
- * MAX14577 MFD platform data
- */
-struct max14577_platform_data {
-	/* IRQ */
-	int irq_base;
-
-	/* current control GPIOs */
-	int gpio_pogo_vbatt_en;
-	int gpio_pogo_vbus_en;
-
-	/* current control GPIO control function */
-	int (*set_gpio_pogo_vbatt_en) (int gpio_val);
-	int (*set_gpio_pogo_vbus_en) (int gpio_val);
-
-	int (*set_gpio_pogo_cb) (int new_dev);
-
-	struct max14577_regulator_platform_data *regulators;
-};
-
-/*
  * Valid limits of current for max14577 and max77836 chargers.
  * They must correspond to MBCICHWRCL and MBCICHWRCH fields in CHGCTRL4
  * register for given chipset.
