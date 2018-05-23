@@ -34,12 +34,12 @@
 				cpu0_alert0: cpu-alert-0 {
 					temperature = <70000>; /* millicelsius */
 					hysteresis = <10000>; /* millicelsius */
-					type = "active";
+					type = "passive";
 				};
 				cpu0_alert1: cpu-alert-1 {
 					temperature = <85000>; /* millicelsius */
 					hysteresis = <10000>; /* millicelsius */
-					type = "active";
+					type = "passive";
 				};
 				cpu0_crit0: cpu-crit-0 {
 					temperature = <120000>; /* millicelsius */
@@ -83,12 +83,12 @@
 				cpu1_alert0: cpu-alert-0 {
 					temperature = <70000>;
 					hysteresis = <10000>;
-					type = "active";
+					type = "passive";
 				};
 				cpu1_alert1: cpu-alert-1 {
 					temperature = <85000>;
 					hysteresis = <10000>;
-					type = "active";
+					type = "passive";
 				};
 				cpu1_crit0: cpu-crit-0 {
 					temperature = <120000>;
@@ -121,12 +121,12 @@
 				cpu2_alert0: cpu-alert-0 {
 					temperature = <70000>;
 					hysteresis = <10000>;
-					type = "active";
+					type = "passive";
 				};
 				cpu2_alert1: cpu-alert-1 {
 					temperature = <85000>;
 					hysteresis = <10000>;
-					type = "active";
+					type = "passive";
 				};
 				cpu2_crit0: cpu-crit-0 {
 					temperature = <120000>;
@@ -159,12 +159,12 @@
 				cpu3_alert0: cpu-alert-0 {
 					temperature = <70000>;
 					hysteresis = <10000>;
-					type = "active";
+					type = "passive";
 				};
 				cpu3_alert1: cpu-alert-1 {
 					temperature = <85000>;
 					hysteresis = <10000>;
-					type = "active";
+					type = "passive";
 				};
 				cpu3_crit0: cpu-crit-0 {
 					temperature = <120000>;
