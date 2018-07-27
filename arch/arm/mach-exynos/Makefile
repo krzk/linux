@@ -13,6 +13,8 @@ obj-$(CONFIG_EXYNOS_CPU_SUSPEND) += pm.o sleep.o
 obj-$(CONFIG_PM_SLEEP)		+= suspend.o
 
 obj-$(CONFIG_SMP)		+= platsmp.o headsmp.o
+# headsmp.o uses ARMv7 Virtualization Extensions
+AFLAGS_headsmp.o		+=-Wa,-march=armv7-a
 
 plus_sec := $(call as-instr,.arch_extension sec,+sec)
 AFLAGS_exynos-smc.o		:=-Wa,-march=armv7-a$(plus_sec)
