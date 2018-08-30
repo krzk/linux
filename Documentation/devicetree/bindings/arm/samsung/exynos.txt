@@ -1,0 +1,26 @@
+Samsung Exynos SoC Family Device Tree Bindings
+---------------------------------------------------------------
+
+Work in progress statement:
+
+Following Device Tree files and bindings applying to Samsung Exynos SoCs and
+boards are considered "unstable":
+
+ - samsung,exynos5433* (all compatibles related to Exynos5433)
+ - samsung,exynos7* (all compatibles related to Exynos7)
+ - samsung,tm2-audio
+ - samsung,mfc-v10
+ - samsung,exynos*-mipi-dsi
+ - samsung,exynos5-dp
+ - samsung,exynos*-hdmi
+ - samsung,exynos*-hdmiddc
+ - samsung,exynos*-hdmiphy
+ - samsung,exynos*-mixer
+ - samsung,exynos*-fimd
+
+Any Samsung Exynos device tree binding mentioned may change at any time. Be
+sure to use a device tree binary and a kernel image generated from the same
+source tree.
+
+Please refer to Documentation/devicetree/bindings/ABI.txt for a definition of a
+stable binding/ABI.
