@@ -2708,6 +2708,12 @@ static const struct alg_test_desc alg_test_descs[] = {
 		.alg = "compress_null",
 		.test = alg_test_null,
 	}, {
+		.alg = "crc16",
+		.test = alg_test_hash,
+		.suite = {
+			.hash = __VECS(crc16_tv_template)
+		}
+	}, {
 		.alg = "crc32",
 		.test = alg_test_hash,
 		.suite = {
