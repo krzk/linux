@@ -402,6 +402,22 @@ config CRYPTO_DEV_MXC_SCC
 	  This option enables support for the Security Controller (SCC)
 	  found in Freescale i.MX25 chips.
 
+config CRYPTO_DEV_MXS_DCP
+	tristate "Support for Freescale MXS DCP"
+	depends on (ARCH_MXS || ARCH_MXC)
+	select STMP_DEVICE
+	select CRYPTO_CBC
+	select CRYPTO_ECB
+	select CRYPTO_AES
+	select CRYPTO_BLKCIPHER
+	select CRYPTO_HASH
+	help
+	  The Freescale i.MX23/i.MX28 has SHA1/SHA256 and AES128 CBC/ECB
+	  co-processor on the die.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called mxs-dcp.
+
 config CRYPTO_DEV_EXYNOS_RNG
 	tristate "EXYNOS HW pseudo random number generator support"
 	depends on ARCH_EXYNOS || COMPILE_TEST
@@ -541,22 +557,6 @@ config CRYPTO_DEV_CCP
 if CRYPTO_DEV_CCP
 	source "drivers/crypto/ccp/Kconfig"
 endif
-
-config CRYPTO_DEV_MXS_DCP
-	tristate "Support for Freescale MXS DCP"
-	depends on (ARCH_MXS || ARCH_MXC)
-	select STMP_DEVICE
-	select CRYPTO_CBC
-	select CRYPTO_ECB
-	select CRYPTO_AES
-	select CRYPTO_BLKCIPHER
-	select CRYPTO_HASH
-	help
-	  The Freescale i.MX23/i.MX28 has SHA1/SHA256 and AES128 CBC/ECB
-	  co-processor on the die.
-
-	  To compile this driver as a module, choose M here: the module
-	  will be called mxs-dcp.
 
 source "drivers/crypto/qat/Kconfig"
 source "drivers/crypto/cavium/cpt/Kconfig"
