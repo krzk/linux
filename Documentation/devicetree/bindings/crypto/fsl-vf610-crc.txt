@@ -1,0 +1,16 @@
+Freescale/NXP Vybrid VF500/VF610 CRC HW accelerator
+
+Required properties:
+- compatible : Should be "fsl,vf610-crc"
+- reg : Should contain register location and length.
+- clocks : Should contain the clock driving the CRC block.
+- clock-names : Should be set to "crc".
+
+Example:
+
+crc@40033000 {
+	compatible = "fsl,vf610-crc";
+	reg = <0x40033000 0x10>;
+	clocks = <&clks VF610_CLK_CRC>;
+	clock-names = "crc";
+};
