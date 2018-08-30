@@ -17,4 +17,11 @@
  */
 #define CRC32C_POLY_LE 0x82F63B78
 
+/*
+ * CRC16 polynomial as defined by ITU-T V.41 (ITU Telecommunication
+ * Standardization Sector recommendations)
+ * x^16 + x^12 + x^5 + x^0
+ */
+#define CRC16_POLY_BE 0x1021
+
 #endif /* _LINUX_CRC32_POLY_H */

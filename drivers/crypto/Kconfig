@@ -418,6 +418,16 @@ config CRYPTO_DEV_MXS_DCP
 	  To compile this driver as a module, choose M here: the module
 	  will be called mxs-dcp.
 
+config CRYPTO_DEV_VF_CRC
+	tristate "Support for Freescale/NXP Vybrid CRC HW accelerator"
+	select CRYPTO_HASH
+	help
+	  This option enables support for the CRC16/32 hardware accelerator
+	  on Freescale/NXP Vybrid VF500/VF610 SoCs.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called vf-crc.
+
 config CRYPTO_DEV_EXYNOS_RNG
 	tristate "EXYNOS HW pseudo random number generator support"
 	depends on ARCH_EXYNOS || COMPILE_TEST

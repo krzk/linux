@@ -15388,6 +15388,13 @@ S:	Maintained
 F:	Documentation/fb/uvesafb.txt
 F:	drivers/video/fbdev/uvesafb.*
 
+VF500/VF610 HW CRC DRIVER
+M:	Krzysztof Kozlowski <krzk@kernel.org>
+L:	linux-crypto@vger.kernel.org
+S:	Maintained
+F:	drivers/crypto/vf-crc.c
+F:	Documentation/devicetree/bindings/crypto/fsl-vf610-crc.txt
+
 VF610 NAND DRIVER
 M:	Stefan Agner <stefan@agner.ch>
 L:	linux-mtd@lists.infradead.org
