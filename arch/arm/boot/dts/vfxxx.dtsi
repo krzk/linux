@@ -276,6 +276,13 @@
 				status = "disabled";
 			};
 
+			crc: crc@40033000 {
+				compatible = "fsl,vf610-crc";
+				reg = <0x40033000 0x10>;
+				clocks = <&clks VF610_CLK_CRC>;
+				clock-names = "crc";
+			};
+
 			pit: pit@40037000 {
 				compatible = "fsl,vf610-pit";
 				reg = <0x40037000 0x1000>;
