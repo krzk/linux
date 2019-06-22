@@ -31,12 +31,9 @@ ifeq ($(wildcard $(src)/linux/license/gpl/*),)
         $(error Profiling is incompatible with non-GPL license)
     endif
     ifeq ($(CONFIG_PM_RUNTIME),y)
-        $(error Runtime PM is incompatible with non-GPL license)
     endif
     ifeq ($(CONFIG_DMA_SHARED_BUFFER),y)
-        $(error DMA-BUF is incompatible with non-GPL license)
     endif
-    $(error Linux Device integration is incompatible with non-GPL license)
 else
     ccflags-y += -I$(src)/linux/license/gpl
 endif
