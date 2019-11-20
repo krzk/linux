@@ -26,8 +26,8 @@ endmenu
 source "drivers/video/backlight/Kconfig"
 
 config VGASTATE
-       tristate
-       default n
+	tristate
+	default n
 
 config VIDEOMODE_HELPERS
 	bool
