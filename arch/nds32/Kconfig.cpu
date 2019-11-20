@@ -13,8 +13,8 @@ config FPU
 	default n
 	help
 	  If FPU ISA is used in user space, this configuration shall be Y to
-          enable required support in kerenl such as fpu context switch and
-          fpu exception handler.
+	  enable required support in kerenl such as fpu context switch and
+	  fpu exception handler.
 
 	  If no FPU ISA is used in user space, say N.
 
@@ -24,7 +24,7 @@ config LAZY_FPU
 	default y
 	help
 	  Say Y here to enable the lazy FPU scheme. The lazy FPU scheme can
-          enhance system performance by reducing the context switch
+	  enhance system performance by reducing the context switch
 	  frequency of the FPU register.
 
 	  For nomal case, say Y.
@@ -75,11 +75,11 @@ choice
 	  if its cache way size is larger than page size. You can specify the
 	  CPU type direcly or choose CPU_V3 if unsure.
 
-          A kernel built for N10 is able to run on N15, D15, N13, N10 or D10.
-          A kernel built for N15 is able to run on N15 or D15.
-          A kernel built for D10 is able to run on D10 or D15.
-          A kernel built for D15 is able to run on D15.
-          A kernel built for N13 is able to run on N15, N13 or D15.
+	  A kernel built for N10 is able to run on N15, D15, N13, N10 or D10.
+	  A kernel built for N15 is able to run on N15 or D15.
+	  A kernel built for D10 is able to run on D10 or D15.
+	  A kernel built for D15 is able to run on D15.
+	  A kernel built for N13 is able to run on N15, N13 or D15.
 
 config CPU_N15
 	bool "AndesCore N15"
@@ -173,7 +173,7 @@ config HIGHMEM
 
 config CACHE_L2
 	bool "Support L2 cache"
-        default y
+	default y
 	help
 	  Say Y here to enable L2 cache if your SoC are integrated with L2CC.
 	  If unsure, say N.
