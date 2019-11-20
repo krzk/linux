@@ -492,7 +492,7 @@ config EDAC_TI
 	depends on ARCH_KEYSTONE || SOC_DRA7XX
 	help
 	  Support for error detection and correction on the
-          TI SoCs.
+	  TI SoCs.
 
 config EDAC_QCOM
 	tristate "QCOM EDAC Controller"
