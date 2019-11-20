@@ -56,7 +56,7 @@ config PCMCIA_NINJA_SCSI
 	    [I-O DATA (OEM) (version string: "IO DATA","CBSC16       ","1")]
 	    I-O DATA CBSC-II
 	    [Kyusyu Matsushita Kotobuki (OEM)
-               (version string: "KME    ","SCSI-CARD-001","1")]
+	       (version string: "KME    ","SCSI-CARD-001","1")]
 	    KME KXL-820AN's card
 	    HP M820e CDRW's card
 	    etc.
