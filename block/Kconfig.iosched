@@ -29,13 +29,13 @@ config IOSCHED_BFQ
 	Documentation/block/bfq-iosched.rst
 
 config BFQ_GROUP_IOSCHED
-       bool "BFQ hierarchical scheduling support"
-       depends on IOSCHED_BFQ && BLK_CGROUP
-       select BLK_CGROUP_RWSTAT
-       ---help---
+	bool "BFQ hierarchical scheduling support"
+	depends on IOSCHED_BFQ && BLK_CGROUP
+	select BLK_CGROUP_RWSTAT
+	---help---
 
-       Enable hierarchical scheduling in BFQ, using the blkio
-       (cgroups-v1) or io (cgroups-v2) controller.
+	Enable hierarchical scheduling in BFQ, using the blkio
+	(cgroups-v1) or io (cgroups-v2) controller.
 
 config BFQ_CGROUP_DEBUG
 	bool "BFQ IO controller debugging"
