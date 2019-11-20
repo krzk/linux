@@ -128,8 +128,8 @@ config DYNAMIC_DEBUG
 	  lineno : line number of the debug statement
 	  module : module that contains the debug statement
 	  function : function that contains the debug statement
-          flags : '=p' means the line is turned 'on' for printing
-          format : the format used for the debug statement
+	  flags : '=p' means the line is turned 'on' for printing
+	  format : the format used for the debug statement
 
 	  From a live system:
 
@@ -190,7 +190,7 @@ config DEBUG_INFO
 	bool "Compile the kernel with debug info"
 	depends on DEBUG_KERNEL && !COMPILE_TEST
 	help
-          If you say Y here the resulting kernel image will include
+	  If you say Y here the resulting kernel image will include
 	  debugging info resulting in a larger kernel image.
 	  This adds debug symbols to the kernel and modules (gcc -g), and
 	  is needed if you intend to use kernel crashdump or binary object
@@ -287,13 +287,13 @@ config STRIP_ASM_SYMS
 	  get_wchan() and suchlike.
 
 config READABLE_ASM
-        bool "Generate readable assembler code"
-        depends on DEBUG_KERNEL
-        help
-          Disable some compiler optimizations that tend to generate human unreadable
-          assembler output. This may make the kernel slightly slower, but it helps
-          to keep kernel developers who have to stare a lot at assembler listings
-          sane.
+	bool "Generate readable assembler code"
+	depends on DEBUG_KERNEL
+	help
+	  Disable some compiler optimizations that tend to generate human unreadable
+	  assembler output. This may make the kernel slightly slower, but it helps
+	  to keep kernel developers who have to stare a lot at assembler listings
+	  sane.
 
 config HEADERS_INSTALL
 	bool "Install uapi headers to usr/include"
@@ -525,11 +525,11 @@ config DEBUG_OBJECTS_PERCPU_COUNTER
 
 config DEBUG_OBJECTS_ENABLE_DEFAULT
 	int "debug_objects bootup default value (0-1)"
-        range 0 1
-        default "1"
-        depends on DEBUG_OBJECTS
-        help
-          Debug objects boot parameter default value
+	range 0 1
+	default "1"
+	depends on DEBUG_OBJECTS
+	help
+	  Debug objects boot parameter default value
 
 config DEBUG_SLAB
 	bool "Debug slab memory allocations"
@@ -660,7 +660,7 @@ config DEBUG_VM
 	depends on DEBUG_KERNEL
 	help
 	  Enable this to turn on extended checks in the virtual-memory system
-          that may impact performance.
+	  that may impact performance.
 
 	  If unsure, say N.
 
@@ -1055,38 +1055,38 @@ config PROVE_LOCKING
 	select TRACE_IRQFLAGS
 	default n
 	help
-	 This feature enables the kernel to prove that all locking
-	 that occurs in the kernel runtime is mathematically
-	 correct: that under no circumstance could an arbitrary (and
-	 not yet triggered) combination of observed locking
-	 sequences (on an arbitrary number of CPUs, running an
-	 arbitrary number of tasks and interrupt contexts) cause a
-	 deadlock.
+	  This feature enables the kernel to prove that all locking
+	  that occurs in the kernel runtime is mathematically
+	  correct: that under no circumstance could an arbitrary (and
+	  not yet triggered) combination of observed locking
+	  sequences (on an arbitrary number of CPUs, running an
+	  arbitrary number of tasks and interrupt contexts) cause a
+	  deadlock.
 
-	 In short, this feature enables the kernel to report locking
-	 related deadlocks before they actually occur.
+	  In short, this feature enables the kernel to report locking
+	  related deadlocks before they actually occur.
 
-	 The proof does not depend on how hard and complex a
-	 deadlock scenario would be to trigger: how many
-	 participant CPUs, tasks and irq-contexts would be needed
-	 for it to trigger. The proof also does not depend on
-	 timing: if a race and a resulting deadlock is possible
-	 theoretically (no matter how unlikely the race scenario
-	 is), it will be proven so and will immediately be
-	 reported by the kernel (once the event is observed that
-	 makes the deadlock theoretically possible).
+	  The proof does not depend on how hard and complex a
+	  deadlock scenario would be to trigger: how many
+	  participant CPUs, tasks and irq-contexts would be needed
+	  for it to trigger. The proof also does not depend on
+	  timing: if a race and a resulting deadlock is possible
+	  theoretically (no matter how unlikely the race scenario
+	  is), it will be proven so and will immediately be
+	  reported by the kernel (once the event is observed that
+	  makes the deadlock theoretically possible).
 
-	 If a deadlock is impossible (i.e. the locking rules, as
-	 observed by the kernel, are mathematically correct), the
-	 kernel reports nothing.
+	  If a deadlock is impossible (i.e. the locking rules, as
+	  observed by the kernel, are mathematically correct), the
+	  kernel reports nothing.
 
-	 NOTE: this feature can also be enabled for rwlocks, mutexes
-	 and rwsems - in which case all dependencies between these
-	 different locking variants are observed and mapped too, and
-	 the proof of observed correctness is also maintained for an
-	 arbitrary combination of these separate locking variants.
+	  NOTE: this feature can also be enabled for rwlocks, mutexes
+	  and rwsems - in which case all dependencies between these
+	  different locking variants are observed and mapped too, and
+	  the proof of observed correctness is also maintained for an
+	  arbitrary combination of these separate locking variants.
 
-	 For more details, see Documentation/locking/lockdep-design.rst.
+	  For more details, see Documentation/locking/lockdep-design.rst.
 
 config LOCK_STAT
 	bool "Lock usage statistics"
@@ -1098,24 +1098,24 @@ config LOCK_STAT
 	select DEBUG_LOCK_ALLOC
 	default n
 	help
-	 This feature enables tracking lock contention points
+	  This feature enables tracking lock contention points
 
-	 For more details, see Documentation/locking/lockstat.rst
+	  For more details, see Documentation/locking/lockstat.rst
 
-	 This also enables lock events required by "perf lock",
-	 subcommand of perf.
-	 If you want to use "perf lock", you also need to turn on
-	 CONFIG_EVENT_TRACING.
+	  This also enables lock events required by "perf lock",
+	  subcommand of perf.
+	  If you want to use "perf lock", you also need to turn on
+	  CONFIG_EVENT_TRACING.
 
-	 CONFIG_LOCK_STAT defines "contended" and "acquired" lock events.
-	 (CONFIG_LOCKDEP defines "acquire" and "release" events.)
+	  CONFIG_LOCK_STAT defines "contended" and "acquired" lock events.
+	  (CONFIG_LOCKDEP defines "acquire" and "release" events.)
 
 config DEBUG_RT_MUTEXES
 	bool "RT Mutex debugging, deadlock detection"
 	depends on DEBUG_KERNEL && RT_MUTEXES
 	help
-	 This allows rt mutex semantics violations and rt mutex related
-	 deadlocks (lockups) to be detected and reported automatically.
+	  This allows rt mutex semantics violations and rt mutex related
+	  deadlocks (lockups) to be detected and reported automatically.
 
 config DEBUG_SPINLOCK
 	bool "Spinlock and rw-lock debugging: basic checks"
@@ -1131,8 +1131,8 @@ config DEBUG_MUTEXES
 	bool "Mutex debugging: basic checks"
 	depends on DEBUG_KERNEL
 	help
-	 This feature allows mutex semantics violations to be detected and
-	 reported.
+	  This feature allows mutex semantics violations to be detected and
+	  reported.
 
 config DEBUG_WW_MUTEX_SLOWPATH
 	bool "Wait/wound mutex debugging: Slowpath testing"
@@ -1141,15 +1141,15 @@ config DEBUG_WW_MUTEX_SLOWPATH
 	select DEBUG_SPINLOCK
 	select DEBUG_MUTEXES
 	help
-	 This feature enables slowpath testing for w/w mutex users by
-	 injecting additional -EDEADLK wound/backoff cases. Together with
-	 the full mutex checks enabled with (CONFIG_PROVE_LOCKING) this
-	 will test all possible w/w mutex interface abuse with the
-	 exception of simply not acquiring all the required locks.
-	 Note that this feature can introduce significant overhead, so
-	 it really should not be enabled in a production or distro kernel,
-	 even a debug kernel.  If you are a driver writer, enable it.  If
-	 you are a distro, do not.
+	  This feature enables slowpath testing for w/w mutex users by
+	  injecting additional -EDEADLK wound/backoff cases. Together with
+	  the full mutex checks enabled with (CONFIG_PROVE_LOCKING) this
+	  will test all possible w/w mutex interface abuse with the
+	  exception of simply not acquiring all the required locks.
+	  Note that this feature can introduce significant overhead, so
+	  it really should not be enabled in a production or distro kernel,
+	  even a debug kernel.  If you are a driver writer, enable it.  If
+	  you are a distro, do not.
 
 config DEBUG_RWSEMS
 	bool "RW Semaphore debugging: basic checks"
@@ -1166,12 +1166,12 @@ config DEBUG_LOCK_ALLOC
 	select DEBUG_RT_MUTEXES if RT_MUTEXES
 	select LOCKDEP
 	help
-	 This feature will check whether any held lock (spinlock, rwlock,
-	 mutex or rwsem) is incorrectly freed by the kernel, via any of the
-	 memory-freeing routines (kfree(), kmem_cache_free(), free_pages(),
-	 vfree(), etc.), whether a live lock is incorrectly reinitialized via
-	 spin_lock_init()/mutex_init()/etc., or whether there is any lock
-	 held during task exit.
+	  This feature will check whether any held lock (spinlock, rwlock,
+	  mutex or rwsem) is incorrectly freed by the kernel, via any of the
+	  memory-freeing routines (kfree(), kmem_cache_free(), free_pages(),
+	  vfree(), etc.), whether a live lock is incorrectly reinitialized via
+	  spin_lock_init()/mutex_init()/etc., or whether there is any lock
+	  held during task exit.
 
 config LOCKDEP
 	bool
@@ -1400,7 +1400,7 @@ config DEBUG_WQ_FORCE_RR_CPU
 	  be impacted.
 
 config DEBUG_BLOCK_EXT_DEVT
-        bool "Force extended block device numbers and spread them"
+	bool "Force extended block device numbers and spread them"
 	depends on DEBUG_KERNEL
 	depends on BLOCK
 	default n
@@ -1529,10 +1529,10 @@ config IO_STRICT_DEVMEM
 	  If in doubt, say Y.
 
 config DEBUG_AID_FOR_SYZBOT
-       bool "Additional debug code for syzbot"
-       default n
-       help
-         This option is intended for testing by syzbot.
+	bool "Additional debug code for syzbot"
+	default n
+	help
+	  This option is intended for testing by syzbot.
 
 menu "$(SRCARCH) Debugging"
 
@@ -1800,7 +1800,7 @@ config TEST_LKM
 config TEST_VMALLOC
 	tristate "Test module for stress/performance analysis of vmalloc allocator"
 	default n
-       depends on MMU
+	depends on MMU
 	depends on m
 	help
 	  This builds the "test_vmalloc" module that should be used for
