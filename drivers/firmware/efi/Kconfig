@@ -101,7 +101,7 @@ config EFI_PARAMS_FROM_FDT
 	help
 	  Select this config option from the architecture Kconfig if
 	  the EFI runtime support gets system table address, memory
-          map address, and other parameters from the device tree.
+	  map address, and other parameters from the device tree.
 
 config EFI_RUNTIME_WRAPPERS
 	bool
