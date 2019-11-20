@@ -90,11 +90,11 @@ config H8S_SIM
 endchoice
 
 config H8300_BUILTIN_DTB
-        string "Builtin DTB"
+	string "Builtin DTB"
 	default ""
 
 config OFFSET
-        hex "Load offset"
+	hex "Load offset"
 	default 0
 
 endmenu
