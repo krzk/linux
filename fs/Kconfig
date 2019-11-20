@@ -7,7 +7,7 @@ menu "File systems"
 
 # Use unaligned word dcache accesses
 config DCACHE_WORD_ACCESS
-       bool
+	bool
 
 config VALIDATE_FS_PARSER
 	bool "Validate filesystem parameter description"
@@ -97,8 +97,8 @@ config FILE_LOCKING
 	default y
 	help
 	  This option enables standard file locking support, required
-          for filesystems like NFS and for the flock() system
-          call. Disabling this option saves about 11k.
+	  for filesystems like NFS and for the flock() system
+	  call. Disabling this option saves about 11k.
 
 config MANDATORY_FILE_LOCKING
 	bool "Enable Mandatory file locking"

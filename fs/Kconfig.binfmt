@@ -127,7 +127,7 @@ config BINFMT_SHARED_FLAT
 	  Support FLAT shared libraries
 
 config HAVE_AOUT
-       def_bool n
+	def_bool n
 
 config BINFMT_AOUT
 	tristate "Kernel support for a.out and ECOFF binaries"
@@ -191,9 +191,9 @@ config BINFMT_MISC
 	  <file:Documentation/admin-guide/binfmt-misc.rst> to learn how to use this
 	  feature, <file:Documentation/admin-guide/java.rst> for information about how
 	  to include Java support. and <file:Documentation/admin-guide/mono.rst> for
-          information about how to include Mono-based .NET support.
+	  information about how to include Mono-based .NET support.
 
-          To use binfmt_misc, you will need to mount it:
+	  To use binfmt_misc, you will need to mount it:
 		mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
 
 	  You may say M here for module support and later load the module when
