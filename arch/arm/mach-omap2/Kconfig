@@ -176,16 +176,16 @@ config SOC_TI81XX
 	default y
 
 config OMAP_PACKAGE_CBC
-       bool
+	bool
 
 config OMAP_PACKAGE_CBB
-       bool
+	bool
 
 config OMAP_PACKAGE_CUS
-       bool
+	bool
 
 config OMAP_PACKAGE_CBP
-       bool
+	bool
 
 comment "OMAP Legacy Platform Data Board Type"
 	depends on ARCH_OMAP2PLUS
@@ -210,10 +210,10 @@ config MACH_OMAP3_PANDORA
 	select OMAP_PACKAGE_CBB
 
 config MACH_NOKIA_N810
-       bool
+	bool
 
 config MACH_NOKIA_N810_WIMAX
-       bool
+	bool
 
 config MACH_NOKIA_N8X0
 	bool "Nokia N800/N810"

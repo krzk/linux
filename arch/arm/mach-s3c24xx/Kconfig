@@ -138,11 +138,11 @@ config S3C2410_IOTIMING
 	  and s3c2440/s3c2442 cpu frequency support.
 
 config S3C2410_CPUFREQ_UTILS
-       bool
-       depends on ARM_S3C24XX_CPUFREQ
-       help
-         Internal node to select timing code that is common to the s3c2410
-         and s3c2440/s3c244 cpu frequency support.
+	bool
+	depends on ARM_S3C24XX_CPUFREQ
+	help
+	 Internal node to select timing code that is common to the s3c2410
+	 and s3c2440/s3c244 cpu frequency support.
 
 # cpu frequency support common to s3c2412, s3c2413 and s3c2442
 
