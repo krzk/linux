@@ -276,9 +276,9 @@ config VERSATILE_FPGA_IRQ
 	select IRQ_DOMAIN
 
 config VERSATILE_FPGA_IRQ_NR
-       int
-       default 4
-       depends on VERSATILE_FPGA_IRQ
+	int
+	default 4
+	depends on VERSATILE_FPGA_IRQ
 
 config XTENSA_MX
 	bool
@@ -328,7 +328,7 @@ config INGENIC_TCU_IRQ
 	  If unsure, say N.
 
 config RENESAS_H8300H_INTC
-        bool
+	bool
 	select IRQ_DOMAIN
 
 config RENESAS_H8S_INTC
@@ -368,7 +368,7 @@ config MVEBU_PIC
 	bool
 
 config MVEBU_SEI
-        bool
+	bool
 
 config LS_EXTIRQ
 	def_bool y if SOC_LS1021A || ARCH_LAYERSCAPE
@@ -410,19 +410,19 @@ config IRQ_UNIPHIER_AIDET
 	  Support for the UniPhier AIDET (ARM Interrupt Detector).
 
 config MESON_IRQ_GPIO
-       bool "Meson GPIO Interrupt Multiplexer"
-       depends on ARCH_MESON
-       select IRQ_DOMAIN_HIERARCHY
-       help
-         Support Meson SoC Family GPIO Interrupt Multiplexer
+	bool "Meson GPIO Interrupt Multiplexer"
+	depends on ARCH_MESON
+	select IRQ_DOMAIN_HIERARCHY
+	help
+	  Support Meson SoC Family GPIO Interrupt Multiplexer
 
 config GOLDFISH_PIC
-       bool "Goldfish programmable interrupt controller"
-       depends on MIPS && (GOLDFISH || COMPILE_TEST)
-       select IRQ_DOMAIN
-       help
-         Say yes here to enable Goldfish interrupt controller driver used
-         for Goldfish based virtual platforms.
+	bool "Goldfish programmable interrupt controller"
+	depends on MIPS && (GOLDFISH || COMPILE_TEST)
+	select IRQ_DOMAIN
+	help
+	  Say yes here to enable Goldfish interrupt controller driver used
+	  for Goldfish based virtual platforms.
 
 config QCOM_PDC
 	bool "QCOM PDC"
