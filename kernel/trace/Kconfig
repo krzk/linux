@@ -73,9 +73,9 @@ config RING_BUFFER
 	select IRQ_WORK
 
 config FTRACE_NMI_ENTER
-       bool
-       depends on HAVE_FTRACE_NMI_ENTER
-       default y
+	bool
+	depends on HAVE_FTRACE_NMI_ENTER
+	default y
 
 config EVENT_TRACING
 	select CONTEXT_SWITCH_TRACER
@@ -88,8 +88,8 @@ config CONTEXT_SWITCH_TRACER
 config RING_BUFFER_ALLOW_SWAP
 	bool
 	help
-	 Allow the use of ring_buffer_swap_cpu.
-	 Adds a very slight overhead to tracing when enabled.
+	  Allow the use of ring_buffer_swap_cpu.
+	  Adds a very slight overhead to tracing when enabled.
 
 config PREEMPTIRQ_TRACEPOINTS
 	bool
@@ -252,36 +252,36 @@ config HWLAT_TRACER
 	bool "Tracer to detect hardware latencies (like SMIs)"
 	select GENERIC_TRACER
 	help
-	 This tracer, when enabled will create one or more kernel threads,
-	 depending on what the cpumask file is set to, which each thread
-	 spinning in a loop looking for interruptions caused by
-	 something other than the kernel. For example, if a
-	 System Management Interrupt (SMI) takes a noticeable amount of
-	 time, this tracer will detect it. This is useful for testing
-	 if a system is reliable for Real Time tasks.
+	  This tracer, when enabled will create one or more kernel threads,
+	  depending on what the cpumask file is set to, which each thread
+	  spinning in a loop looking for interruptions caused by
+	  something other than the kernel. For example, if a
+	  System Management Interrupt (SMI) takes a noticeable amount of
+	  time, this tracer will detect it. This is useful for testing
+	  if a system is reliable for Real Time tasks.
 
-	 Some files are created in the tracing directory when this
-	 is enabled:
+	  Some files are created in the tracing directory when this
+	  is enabled:
 
-	   hwlat_detector/width   - time in usecs for how long to spin for
-	   hwlat_detector/window  - time in usecs between the start of each
+	    hwlat_detector/width   - time in usecs for how long to spin for
+	    hwlat_detector/window  - time in usecs between the start of each
 				     iteration
 
-	 A kernel thread is created that will spin with interrupts disabled
-	 for "width" microseconds in every "window" cycle. It will not spin
-	 for "window - width" microseconds, where the system can
-	 continue to operate.
+	  A kernel thread is created that will spin with interrupts disabled
+	  for "width" microseconds in every "window" cycle. It will not spin
+	  for "window - width" microseconds, where the system can
+	  continue to operate.
 
-	 The output will appear in the trace and trace_pipe files.
+	  The output will appear in the trace and trace_pipe files.
 
-	 When the tracer is not running, it has no affect on the system,
-	 but when it is running, it can cause the system to be
-	 periodically non responsive. Do not run this tracer on a
-	 production system.
+	  When the tracer is not running, it has no affect on the system,
+	  but when it is running, it can cause the system to be
+	  periodically non responsive. Do not run this tracer on a
+	  production system.
 
-	 To enable this tracer, echo in "hwlat" into the current_tracer
-	 file. Every time a latency is greater than tracing_thresh, it will
-	 be recorded into the ring buffer.
+	  To enable this tracer, echo in "hwlat" into the current_tracer
+	  file. Every time a latency is greater than tracing_thresh, it will
+	  be recorded into the ring buffer.
 
 config ENABLE_DEFAULT_TRACERS
 	bool "Trace process context switches and events"
@@ -339,18 +339,18 @@ choice
 	prompt "Branch Profiling"
 	default BRANCH_PROFILE_NONE
 	help
-	 The branch profiling is a software profiler. It will add hooks
-	 into the C conditionals to test which path a branch takes.
+	  The branch profiling is a software profiler. It will add hooks
+	  into the C conditionals to test which path a branch takes.
 
-	 The likely/unlikely profiler only looks at the conditions that
-	 are annotated with a likely or unlikely macro.
+	  The likely/unlikely profiler only looks at the conditions that
+	  are annotated with a likely or unlikely macro.
 
-	 The "all branch" profiler will profile every if-statement in the
-	 kernel. This profiler will also enable the likely/unlikely
-	 profiler.
+	  The "all branch" profiler will profile every if-statement in the
+	  kernel. This profiler will also enable the likely/unlikely
+	  profiler.
 
-	 Either of the above profilers adds a bit of overhead to the system.
-	 If unsure, choose "No branch profiling".
+	  Either of the above profilers adds a bit of overhead to the system.
+	  If unsure, choose "No branch profiling".
 
 config BRANCH_PROFILE_NONE
 	bool "No branch profiling"
@@ -585,8 +585,8 @@ config BPF_KPROBE_OVERRIDE
 	depends on FUNCTION_ERROR_INJECTION
 	default n
 	help
-	 Allows BPF to override the execution of a probed function and
-	 set a different return value.  This is used for error injection.
+	  Allows BPF to override the execution of a probed function and
+	  set a different return value.  This is used for error injection.
 
 config FTRACE_MCOUNT_RECORD
 	def_bool y
@@ -620,13 +620,13 @@ config EVENT_TRACE_TEST_SYSCALLS
 	bool "Run selftest on syscall events"
 	depends on EVENT_TRACE_STARTUP_TEST
 	help
-	 This option will also enable testing every syscall event.
-	 It only enables the event and disables it and runs various loads
-	 with the event enabled. This adds a bit more time for kernel boot
-	 up since it runs this on every system call defined.
+	  This option will also enable testing every syscall event.
+	  It only enables the event and disables it and runs various loads
+	  with the event enabled. This adds a bit more time for kernel boot
+	  up since it runs this on every system call defined.
 
-	 TBD - enable a way to actually call the syscalls as we test their
-	       events
+	  TBD - enable a way to actually call the syscalls as we test their
+	        events
 
 config MMIOTRACE
 	bool "Memory mapped IO tracing"
@@ -685,22 +685,22 @@ config MMIOTRACE_TEST
 config TRACEPOINT_BENCHMARK
 	bool "Add tracepoint that benchmarks tracepoints"
 	help
-	 This option creates the tracepoint "benchmark:benchmark_event".
-	 When the tracepoint is enabled, it kicks off a kernel thread that
-	 goes into an infinite loop (calling cond_sched() to let other tasks
-	 run), and calls the tracepoint. Each iteration will record the time
-	 it took to write to the tracepoint and the next iteration that
-	 data will be passed to the tracepoint itself. That is, the tracepoint
-	 will report the time it took to do the previous tracepoint.
-	 The string written to the tracepoint is a static string of 128 bytes
-	 to keep the time the same. The initial string is simply a write of
-	 "START". The second string records the cold cache time of the first
-	 write which is not added to the rest of the calculations.
+	  This option creates the tracepoint "benchmark:benchmark_event".
+	  When the tracepoint is enabled, it kicks off a kernel thread that
+	  goes into an infinite loop (calling cond_sched() to let other tasks
+	  run), and calls the tracepoint. Each iteration will record the time
+	  it took to write to the tracepoint and the next iteration that
+	  data will be passed to the tracepoint itself. That is, the tracepoint
+	  will report the time it took to do the previous tracepoint.
+	  The string written to the tracepoint is a static string of 128 bytes
+	  to keep the time the same. The initial string is simply a write of
+	  "START". The second string records the cold cache time of the first
+	  write which is not added to the rest of the calculations.
 
-	 As it is a tight loop, it benchmarks as hot cache. That's fine because
-	 we care most about hot paths that are probably in cache already.
+	  As it is a tight loop, it benchmarks as hot cache. That's fine because
+	  we care most about hot paths that are probably in cache already.
 
-	 An example of the output:
+	  An example of the output:
 
 	      START
 	      first=3672 [COLD CACHED]
@@ -729,27 +729,27 @@ config RING_BUFFER_BENCHMARK
 	  If unsure, say N.
 
 config RING_BUFFER_STARTUP_TEST
-       bool "Ring buffer startup self test"
-       depends on RING_BUFFER
-       help
-	 Run a simple self test on the ring buffer on boot up. Late in the
-	 kernel boot sequence, the test will start that kicks off
-	 a thread per cpu. Each thread will write various size events
-	 into the ring buffer. Another thread is created to send IPIs
-	 to each of the threads, where the IPI handler will also write
-	 to the ring buffer, to test/stress the nesting ability.
-	 If any anomalies are discovered, a warning will be displayed
-	 and all ring buffers will be disabled.
+	bool "Ring buffer startup self test"
+	depends on RING_BUFFER
+	help
+	  Run a simple self test on the ring buffer on boot up. Late in the
+	  kernel boot sequence, the test will start that kicks off
+	  a thread per cpu. Each thread will write various size events
+	  into the ring buffer. Another thread is created to send IPIs
+	  to each of the threads, where the IPI handler will also write
+	  to the ring buffer, to test/stress the nesting ability.
+	  If any anomalies are discovered, a warning will be displayed
+	  and all ring buffers will be disabled.
 
-	 The test runs for 10 seconds. This will slow your boot time
-	 by at least 10 more seconds.
+	  The test runs for 10 seconds. This will slow your boot time
+	  by at least 10 more seconds.
 
-	 At the end of the test, statics and more checks are done.
-	 It will output the stats of each per cpu buffer. What
-	 was written, the sizes, what was read, what was lost, and
-	 other similar details.
+	  At the end of the test, statics and more checks are done.
+	  It will output the stats of each per cpu buffer. What
+	  was written, the sizes, what was read, what was lost, and
+	  other similar details.
 
-	 If unsure, say N
+	  If unsure, say N
 
 config PREEMPTIRQ_DELAY_TEST
 	tristate "Preempt / IRQ disable delay thread to test latency tracers"
@@ -767,9 +767,9 @@ config PREEMPTIRQ_DELAY_TEST
 	  If unsure, say N
 
 config TRACE_EVAL_MAP_FILE
-       bool "Show eval mappings for trace events"
-       depends on TRACING
-       help
+	bool "Show eval mappings for trace events"
+	depends on TRACING
+	help
 	The "print fmt" of the trace events will show the enum/sizeof names
 	instead of their values. This can cause problems for user space tools
 	that use this string to parse the raw data as user space does not know

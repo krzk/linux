@@ -75,8 +75,8 @@ config PREEMPT_RT
 endchoice
 
 config PREEMPT_COUNT
-       bool
+	bool
 
 config PREEMPTION
-       bool
-       select PREEMPT_COUNT
+	bool
+	select PREEMPT_COUNT

@@ -102,24 +102,24 @@ config NO_HZ_FULL
 	select IRQ_WORK
 	select CPU_ISOLATION
 	help
-	 Adaptively try to shutdown the tick whenever possible, even when
-	 the CPU is running tasks. Typically this requires running a single
-	 task on the CPU. Chances for running tickless are maximized when
-	 the task mostly runs in userspace and has few kernel activity.
+	  Adaptively try to shutdown the tick whenever possible, even when
+	  the CPU is running tasks. Typically this requires running a single
+	  task on the CPU. Chances for running tickless are maximized when
+	  the task mostly runs in userspace and has few kernel activity.
 
-	 You need to fill up the nohz_full boot parameter with the
-	 desired range of dynticks CPUs.
+	  You need to fill up the nohz_full boot parameter with the
+	  desired range of dynticks CPUs.
 
-	 This is implemented at the expense of some overhead in user <-> kernel
-	 transitions: syscalls, exceptions and interrupts. Even when it's
-	 dynamically off.
+	  This is implemented at the expense of some overhead in user <-> kernel
+	  transitions: syscalls, exceptions and interrupts. Even when it's
+	  dynamically off.
 
-	 Say N.
+	  Say N.
 
 endchoice
 
 config CONTEXT_TRACKING
-       bool
+	bool
 
 config CONTEXT_TRACKING_FORCE
 	bool "Force context tracking"

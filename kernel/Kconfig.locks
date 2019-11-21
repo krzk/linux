@@ -229,12 +229,12 @@ config MUTEX_SPIN_ON_OWNER
 	depends on SMP && ARCH_SUPPORTS_ATOMIC_RMW
 
 config RWSEM_SPIN_ON_OWNER
-       def_bool y
-       depends on SMP && ARCH_SUPPORTS_ATOMIC_RMW
+	def_bool y
+	depends on SMP && ARCH_SUPPORTS_ATOMIC_RMW
 
 config LOCK_SPIN_ON_OWNER
-       def_bool y
-       depends on MUTEX_SPIN_ON_OWNER || RWSEM_SPIN_ON_OWNER
+	def_bool y
+	depends on MUTEX_SPIN_ON_OWNER || RWSEM_SPIN_ON_OWNER
 
 config ARCH_USE_QUEUED_SPINLOCKS
 	bool

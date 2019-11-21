@@ -4,11 +4,11 @@ menu "IRQ subsystem"
 
 # Make sparse irq Kconfig switch below available
 config MAY_HAVE_SPARSE_IRQ
-       bool
+	bool
 
 # Legacy support, required for itanic
 config GENERIC_IRQ_LEGACY
-       bool
+	bool
 
 # Enable the generic irq autoprobe mechanism
 config GENERIC_IRQ_PROBE
@@ -16,20 +16,20 @@ config GENERIC_IRQ_PROBE
 
 # Use the generic /proc/interrupts implementation
 config GENERIC_IRQ_SHOW
-       bool
+	bool
 
 # Print level/edge extra information
 config GENERIC_IRQ_SHOW_LEVEL
-       bool
+	bool
 
 # Supports effective affinity mask
 config GENERIC_IRQ_EFFECTIVE_AFF_MASK
-       bool
+	bool
 
 # Facility to allocate a hardware interrupt. This is legacy support
 # and should not be used in new code. Use irq domains instead.
 config GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
-       bool
+	bool
 
 # Support for delayed migration from interrupt context
 config GENERIC_PENDING_IRQ
@@ -41,24 +41,24 @@ config GENERIC_IRQ_MIGRATION
 
 # Alpha specific irq affinity mechanism
 config AUTO_IRQ_AFFINITY
-       bool
+	bool
 
 # Tasklet based software resend for pending interrupts on enable_irq()
 config HARDIRQS_SW_RESEND
-       bool
+	bool
 
 # Preflow handler support for fasteoi (sparc64)
 config IRQ_PREFLOW_FASTEOI
-       bool
+	bool
 
 # Edge style eoi based handler (cell)
 config IRQ_EDGE_EOI_HANDLER
-       bool
+	bool
 
 # Generic configurable interrupt chip implementation
 config GENERIC_IRQ_CHIP
-       bool
-       select IRQ_DOMAIN
+	bool
+	select IRQ_DOMAIN
 
 # Generic irq_domain hw <--> linux irq number translation
 config IRQ_DOMAIN
@@ -109,7 +109,7 @@ config GENERIC_IRQ_RESERVATION_MODE
 
 # Support forced irq threading
 config IRQ_FORCED_THREADING
-       bool
+	bool
 
 config SPARSE_IRQ
 	bool "Support sparse irq numbering" if MAY_HAVE_SPARSE_IRQ
