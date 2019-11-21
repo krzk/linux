@@ -17,8 +17,8 @@ config SND_HDA_I915
 	select SND_HDA_COMPONENT
 
 config SND_HDA_EXT_CORE
-       tristate
-       select SND_HDA_CORE
+	tristate
+	select SND_HDA_CORE
 
 config SND_HDA_PREALLOC_SIZE
 	int "Pre-allocated buffer size for HD-audio driver"
