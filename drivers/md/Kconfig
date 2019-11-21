@@ -225,44 +225,44 @@ config DM_DEBUG
 	  If unsure, say N.
 
 config DM_BUFIO
-       tristate
-       depends on BLK_DEV_DM
-       ---help---
-	 This interface allows you to do buffered I/O on a device and acts
-	 as a cache, holding recently-read blocks in memory and performing
-	 delayed writes.
+	tristate
+	depends on BLK_DEV_DM
+	---help---
+	  This interface allows you to do buffered I/O on a device and acts
+	  as a cache, holding recently-read blocks in memory and performing
+	  delayed writes.
 
 config DM_DEBUG_BLOCK_MANAGER_LOCKING
-       bool "Block manager locking"
-       depends on DM_BUFIO
-       ---help---
-	 Block manager locking can catch various metadata corruption issues.
+	bool "Block manager locking"
+	depends on DM_BUFIO
+	---help---
+	  Block manager locking can catch various metadata corruption issues.
 
-	 If unsure, say N.
+	  If unsure, say N.
 
 config DM_DEBUG_BLOCK_STACK_TRACING
-       bool "Keep stack trace of persistent data block lock holders"
-       depends on STACKTRACE_SUPPORT && DM_DEBUG_BLOCK_MANAGER_LOCKING
-       select STACKTRACE
-       ---help---
-	 Enable this for messages that may help debug problems with the
-	 block manager locking used by thin provisioning and caching.
+	bool "Keep stack trace of persistent data block lock holders"
+	depends on STACKTRACE_SUPPORT && DM_DEBUG_BLOCK_MANAGER_LOCKING
+	select STACKTRACE
+	---help---
+	  Enable this for messages that may help debug problems with the
+	  block manager locking used by thin provisioning and caching.
 
-	 If unsure, say N.
+	  If unsure, say N.
 
 config DM_BIO_PRISON
-       tristate
-       depends on BLK_DEV_DM
-       ---help---
-	 Some bio locking schemes used by other device-mapper targets
-	 including thin provisioning.
+	tristate
+	depends on BLK_DEV_DM
+	---help---
+	  Some bio locking schemes used by other device-mapper targets
+	  including thin provisioning.
 
 source "drivers/md/persistent-data/Kconfig"
 
 config DM_UNSTRIPED
-       tristate "Unstriped target"
-       depends on BLK_DEV_DM
-       ---help---
+	tristate "Unstriped target"
+	depends on BLK_DEV_DM
+	---help---
 	  Unstripes I/O so it is issued solely on a single drive in a HW
 	  RAID0 or dm-striped target.
 
@@ -286,87 +286,87 @@ config DM_CRYPT
 	  If unsure, say N.
 
 config DM_SNAPSHOT
-       tristate "Snapshot target"
-       depends on BLK_DEV_DM
-       select DM_BUFIO
-       ---help---
-	 Allow volume managers to take writable snapshots of a device.
+	tristate "Snapshot target"
+	depends on BLK_DEV_DM
+	select DM_BUFIO
+	---help---
+	  Allow volume managers to take writable snapshots of a device.
 
 config DM_THIN_PROVISIONING
-       tristate "Thin provisioning target"
-       depends on BLK_DEV_DM
-       select DM_PERSISTENT_DATA
-       select DM_BIO_PRISON
-       ---help---
-	 Provides thin provisioning and snapshots that share a data store.
+	tristate "Thin provisioning target"
+	depends on BLK_DEV_DM
+	select DM_PERSISTENT_DATA
+	select DM_BIO_PRISON
+	---help---
+	  Provides thin provisioning and snapshots that share a data store.
 
 config DM_CACHE
-       tristate "Cache target (EXPERIMENTAL)"
-       depends on BLK_DEV_DM
-       default n
-       select DM_PERSISTENT_DATA
-       select DM_BIO_PRISON
-       ---help---
-	 dm-cache attempts to improve performance of a block device by
-	 moving frequently used data to a smaller, higher performance
-	 device.  Different 'policy' plugins can be used to change the
-	 algorithms used to select which blocks are promoted, demoted,
-	 cleaned etc.  It supports writeback and writethrough modes.
+	tristate "Cache target (EXPERIMENTAL)"
+	depends on BLK_DEV_DM
+	default n
+	select DM_PERSISTENT_DATA
+	select DM_BIO_PRISON
+	---help---
+	  dm-cache attempts to improve performance of a block device by
+	  moving frequently used data to a smaller, higher performance
+	  device.  Different 'policy' plugins can be used to change the
+	  algorithms used to select which blocks are promoted, demoted,
+	  cleaned etc.  It supports writeback and writethrough modes.
 
 config DM_CACHE_SMQ
-       tristate "Stochastic MQ Cache Policy (EXPERIMENTAL)"
-       depends on DM_CACHE
-       default y
-       ---help---
-	 A cache policy that uses a multiqueue ordered by recent hits
-	 to select which blocks should be promoted and demoted.
-	 This is meant to be a general purpose policy.  It prioritises
-	 reads over writes.  This SMQ policy (vs MQ) offers the promise
-	 of less memory utilization, improved performance and increased
-	 adaptability in the face of changing workloads.
+	tristate "Stochastic MQ Cache Policy (EXPERIMENTAL)"
+	depends on DM_CACHE
+	default y
+	---help---
+	  A cache policy that uses a multiqueue ordered by recent hits
+	  to select which blocks should be promoted and demoted.
+	  This is meant to be a general purpose policy.  It prioritises
+	  reads over writes.  This SMQ policy (vs MQ) offers the promise
+	  of less memory utilization, improved performance and increased
+	  adaptability in the face of changing workloads.
 
 config DM_WRITECACHE
 	tristate "Writecache target"
 	depends on BLK_DEV_DM
 	---help---
-	   The writecache target caches writes on persistent memory or SSD.
-	   It is intended for databases or other programs that need extremely
-	   low commit latency.
+	  The writecache target caches writes on persistent memory or SSD.
+	  It is intended for databases or other programs that need extremely
+	  low commit latency.
 
-	   The writecache target doesn't cache reads because reads are supposed
-	   to be cached in standard RAM.
+	  The writecache target doesn't cache reads because reads are supposed
+	  to be cached in standard RAM.
 
 config DM_ERA
-       tristate "Era target (EXPERIMENTAL)"
-       depends on BLK_DEV_DM
-       default n
-       select DM_PERSISTENT_DATA
-       select DM_BIO_PRISON
-       ---help---
-	 dm-era tracks which parts of a block device are written to
-	 over time.  Useful for maintaining cache coherency when using
-	 vendor snapshots.
+	tristate "Era target (EXPERIMENTAL)"
+	depends on BLK_DEV_DM
+	default n
+	select DM_PERSISTENT_DATA
+	select DM_BIO_PRISON
+	---help---
+	  dm-era tracks which parts of a block device are written to
+	  over time.  Useful for maintaining cache coherency when using
+	  vendor snapshots.
 
 config DM_CLONE
-       tristate "Clone target (EXPERIMENTAL)"
-       depends on BLK_DEV_DM
-       default n
-       select DM_PERSISTENT_DATA
-       ---help---
-	 dm-clone produces a one-to-one copy of an existing, read-only source
-	 device into a writable destination device. The cloned device is
-	 visible/mountable immediately and the copy of the source device to the
-	 destination device happens in the background, in parallel with user
-	 I/O.
+	tristate "Clone target (EXPERIMENTAL)"
+	depends on BLK_DEV_DM
+	default n
+	select DM_PERSISTENT_DATA
+	---help---
+	  dm-clone produces a one-to-one copy of an existing, read-only source
+	  device into a writable destination device. The cloned device is
+	  visible/mountable immediately and the copy of the source device to the
+	  destination device happens in the background, in parallel with user
+	  I/O.
 
-	 If unsure, say N.
+	  If unsure, say N.
 
 config DM_MIRROR
-       tristate "Mirror target"
-       depends on BLK_DEV_DM
-       ---help---
-	 Allow volume managers to mirror logical volumes, also
-	 needed for live data migration tools such as 'pvmove'.
+	tristate "Mirror target"
+	depends on BLK_DEV_DM
+	---help---
+	  Allow volume managers to mirror logical volumes, also
+	  needed for live data migration tools such as 'pvmove'.
 
 config DM_LOG_USERSPACE
 	tristate "Mirror userspace logging"
@@ -380,31 +380,31 @@ config DM_LOG_USERSPACE
 	  by leveraging this framework.
 
 config DM_RAID
-       tristate "RAID 1/4/5/6/10 target"
-       depends on BLK_DEV_DM
-       select MD_RAID0
-       select MD_RAID1
-       select MD_RAID10
-       select MD_RAID456
-       select BLK_DEV_MD
-       ---help---
-	 A dm target that supports RAID1, RAID10, RAID4, RAID5 and RAID6 mappings
+	tristate "RAID 1/4/5/6/10 target"
+	depends on BLK_DEV_DM
+	select MD_RAID0
+	select MD_RAID1
+	select MD_RAID10
+	select MD_RAID456
+	select BLK_DEV_MD
+	---help---
+	  A dm target that supports RAID1, RAID10, RAID4, RAID5 and RAID6 mappings
 
-	 A RAID-5 set of N drives with a capacity of C MB per drive provides
-	 the capacity of C * (N - 1) MB, and protects against a failure
-	 of a single drive. For a given sector (row) number, (N - 1) drives
-	 contain data sectors, and one drive contains the parity protection.
-	 For a RAID-4 set, the parity blocks are present on a single drive,
-	 while a RAID-5 set distributes the parity across the drives in one
-	 of the available parity distribution methods.
+	  A RAID-5 set of N drives with a capacity of C MB per drive provides
+	  the capacity of C * (N - 1) MB, and protects against a failure
+	  of a single drive. For a given sector (row) number, (N - 1) drives
+	  contain data sectors, and one drive contains the parity protection.
+	  For a RAID-4 set, the parity blocks are present on a single drive,
+	  while a RAID-5 set distributes the parity across the drives in one
+	  of the available parity distribution methods.
 
-	 A RAID-6 set of N drives with a capacity of C MB per drive
-	 provides the capacity of C * (N - 2) MB, and protects
-	 against a failure of any two drives. For a given sector
-	 (row) number, (N - 2) drives contain data sectors, and two
-	 drives contains two independent redundancy syndromes.  Like
-	 RAID-5, RAID-6 distributes the syndromes across the drives
-	 in one of the available parity distribution methods.
+	  A RAID-6 set of N drives with a capacity of C MB per drive
+	  provides the capacity of C * (N - 2) MB, and protects
+	  against a failure of any two drives. For a given sector
+	  (row) number, (N - 2) drives contain data sectors, and two
+	  drives contains two independent redundancy syndromes.  Like
+	  RAID-5, RAID-6 distributes the syndromes across the drives
+	  in one of the available parity distribution methods.
 
 config DM_ZERO
 	tristate "Zero target"
@@ -447,43 +447,43 @@ config DM_DELAY
 	tristate "I/O delaying target"
 	depends on BLK_DEV_DM
 	---help---
-	A target that delays reads and/or writes and can send
-	them to different devices.  Useful for testing.
+	  A target that delays reads and/or writes and can send
+	  them to different devices.  Useful for testing.
 
-	If unsure, say N.
+	  If unsure, say N.
 
 config DM_DUST
 	tristate "Bad sector simulation target"
 	depends on BLK_DEV_DM
 	---help---
-	A target that simulates bad sector behavior.
-	Useful for testing.
+	  A target that simulates bad sector behavior.
+	  Useful for testing.
 
-	If unsure, say N.
+	  If unsure, say N.
 
 config DM_INIT
 	bool "DM \"dm-mod.create=\" parameter support"
 	depends on BLK_DEV_DM=y
 	---help---
-	Enable "dm-mod.create=" parameter to create mapped devices at init time.
-	This option is useful to allow mounting rootfs without requiring an
-	initramfs.
-	See Documentation/admin-guide/device-mapper/dm-init.rst for dm-mod.create="..."
-	format.
+	  Enable "dm-mod.create=" parameter to create mapped devices at init time.
+	  This option is useful to allow mounting rootfs without requiring an
+	  initramfs.
+	  See Documentation/admin-guide/device-mapper/dm-init.rst for dm-mod.create="..."
+	  format.
 
-	If unsure, say N.
+	  If unsure, say N.
 
 config DM_UEVENT
 	bool "DM uevents"
 	depends on BLK_DEV_DM
 	---help---
-	Generate udev events for DM events.
+	  Generate udev events for DM events.
 
 config DM_FLAKEY
-       tristate "Flakey target"
-       depends on BLK_DEV_DM
-       ---help---
-	 A target that intermittently fails I/O for debugging purposes.
+	tristate "Flakey target"
+	depends on BLK_DEV_DM
+	---help---
+	  A target that intermittently fails I/O for debugging purposes.
 
 config DM_VERITY
 	tristate "Verity target support"
