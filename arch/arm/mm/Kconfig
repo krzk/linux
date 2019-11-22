@@ -123,13 +123,13 @@ config CPU_ARM925T
 	select CPU_PABRT_LEGACY
 	select CPU_THUMB_CAPABLE
 	select CPU_TLB_V4WBI if MMU
- 	help
- 	  The ARM925T is a mix between the ARM920T and ARM926T, but with
+	help
+	  The ARM925T is a mix between the ARM920T and ARM926T, but with
 	  different instruction and data caches. It is used in TI's OMAP
- 	  device family.
+	  device family.
 
- 	  Say Y if you want support for the ARM925T processor.
- 	  Otherwise, say N.
+	  Say Y if you want support for the ARM925T processor.
+	  Otherwise, say N.
 
 # ARM926T
 config CPU_ARM926T
