@@ -81,10 +81,10 @@ config PROC_SYSCTL
 	  limited in memory.
 
 config PROC_PAGE_MONITOR
- 	default y
+	default y
 	depends on PROC_FS && MMU
 	bool "Enable /proc page monitoring" if EXPERT
- 	help
+	help
 	  Various /proc files exist to monitor process memory utilization:
 	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
