@@ -82,7 +82,7 @@ config VIRTIO_MMIO
 	 This drivers provides support for memory mapped virtio
 	 platform device driver.
 
- 	 If unsure, say N.
+	 If unsure, say N.
 
 config VIRTIO_MMIO_CMDLINE_DEVICES
 	bool "Memory mapped virtio devices parameter parsing"
