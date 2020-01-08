@@ -275,7 +275,8 @@ EXPORT_SYMBOL(iowrite64be_hi_lo);
  * order" (we also don't have IO barriers).
  */
 #ifndef mmio_insb
-static inline void mmio_insb(const void __iomem *addr, u8 *dst, int count)
+static inline void mmio_insb(const volatile void __iomem *addr, u8 *dst,
+			     int count)
 {
 	while (--count >= 0) {
 		u8 data = __raw_readb(addr);
@@ -283,7 +284,8 @@ static inline void mmio_insb(const void __iomem *addr, u8 *dst, int count)
 		dst++;
 	}
 }
-static inline void mmio_insw(const void __iomem *addr, u16 *dst, int count)
+static inline void mmio_insw(const volatile void __iomem *addr, u16 *dst,
+			     int count)
 {
 	while (--count >= 0) {
 		u16 data = __raw_readw(addr);
@@ -291,7 +293,8 @@ static inline void mmio_insw(const void __iomem *addr, u16 *dst, int count)
 		dst++;
 	}
 }
-static inline void mmio_insl(const void __iomem *addr, u32 *dst, int count)
+static inline void mmio_insl(const volatile void __iomem *addr, u32 *dst,
+			     int count)
 {
 	while (--count >= 0) {
 		u32 data = __raw_readl(addr);
@@ -302,21 +305,24 @@ static inline void mmio_insl(const void __iomem *addr, u32 *dst, int count)
 #endif
 
 #ifndef mmio_outsb
-static inline void mmio_outsb(void __iomem *addr, const u8 *src, int count)
+static inline void mmio_outsb(volatile void __iomem *addr, const u8 *src,
+			      int count)
 {
 	while (--count >= 0) {
 		__raw_writeb(*src, addr);
 		src++;
 	}
 }
-static inline void mmio_outsw(void __iomem *addr, const u16 *src, int count)
+static inline void mmio_outsw(volatile void __iomem *addr, const u16 *src,
+			      int count)
 {
 	while (--count >= 0) {
 		__raw_writew(*src, addr);
 		src++;
 	}
 }
-static inline void mmio_outsl(void __iomem *addr, const u32 *src, int count)
+static inline void mmio_outsl(volatile void __iomem *addr, const u32 *src,
+			      int count)
 {
 	while (--count >= 0) {
 		__raw_writel(*src, addr);
