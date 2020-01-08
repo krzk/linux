@@ -384,7 +384,7 @@ struct el_apecs_procdata
 		}						\
 	} while (0)
 
-__EXTERN_INLINE unsigned int apecs_ioread8(const void __iomem *xaddr)
+__EXTERN_INLINE unsigned int apecs_ioread8(const volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long result, base_and_type;
@@ -402,7 +402,7 @@ __EXTERN_INLINE unsigned int apecs_ioread8(const void __iomem *xaddr)
 	return __kernel_extbl(result, addr & 3);
 }
 
-__EXTERN_INLINE void apecs_iowrite8(u8 b, void __iomem *xaddr)
+__EXTERN_INLINE void apecs_iowrite8(u8 b, volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long w, base_and_type;
@@ -420,7 +420,7 @@ __EXTERN_INLINE void apecs_iowrite8(u8 b, void __iomem *xaddr)
 	*(vuip) ((addr << 5) + base_and_type) = w;
 }
 
-__EXTERN_INLINE unsigned int apecs_ioread16(const void __iomem *xaddr)
+__EXTERN_INLINE unsigned int apecs_ioread16(const volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long result, base_and_type;
@@ -438,7 +438,7 @@ __EXTERN_INLINE unsigned int apecs_ioread16(const void __iomem *xaddr)
 	return __kernel_extwl(result, addr & 3);
 }
 
-__EXTERN_INLINE void apecs_iowrite16(u16 b, void __iomem *xaddr)
+__EXTERN_INLINE void apecs_iowrite16(u16 b, volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long w, base_and_type;
@@ -456,7 +456,7 @@ __EXTERN_INLINE void apecs_iowrite16(u16 b, void __iomem *xaddr)
 	*(vuip) ((addr << 5) + base_and_type) = w;
 }
 
-__EXTERN_INLINE unsigned int apecs_ioread32(const void __iomem *xaddr)
+__EXTERN_INLINE unsigned int apecs_ioread32(const volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
 	if (addr < APECS_DENSE_MEM)
@@ -464,7 +464,7 @@ __EXTERN_INLINE unsigned int apecs_ioread32(const void __iomem *xaddr)
 	return *(vuip)addr;
 }
 
-__EXTERN_INLINE void apecs_iowrite32(u32 b, void __iomem *xaddr)
+__EXTERN_INLINE void apecs_iowrite32(u32 b, volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
 	if (addr < APECS_DENSE_MEM)
