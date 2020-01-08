@@ -298,56 +298,56 @@ static const struct iomap_ops *iomap_ops[8] = {
 };
 
 
-unsigned int ioread8(const void __iomem *addr)
+unsigned int ioread8(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read8(addr);
 	return *((u8 *)addr);
 }
 
-unsigned int ioread16(const void __iomem *addr)
+unsigned int ioread16(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read16(addr);
 	return le16_to_cpup((u16 *)addr);
 }
 
-unsigned int ioread16be(const void __iomem *addr)
+unsigned int ioread16be(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read16be(addr);
 	return *((u16 *)addr);
 }
 
-unsigned int ioread32(const void __iomem *addr)
+unsigned int ioread32(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read32(addr);
 	return le32_to_cpup((u32 *)addr);
 }
 
-unsigned int ioread32be(const void __iomem *addr)
+unsigned int ioread32be(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read32be(addr);
 	return *((u32 *)addr);
 }
 
-u64 ioread64(const void __iomem *addr)
+u64 ioread64(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read64(addr);
 	return le64_to_cpup((u64 *)addr);
 }
 
-u64 ioread64be(const void __iomem *addr)
+u64 ioread64be(const volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
 		return iomap_ops[ADDR_TO_REGION(addr)]->read64be(addr);
 	return *((u64 *)addr);
 }
 
-void iowrite8(u8 datum, void __iomem *addr)
+void iowrite8(u8 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write8(datum, addr);
@@ -356,7 +356,7 @@ void iowrite8(u8 datum, void __iomem *addr)
 	}
 }
 
-void iowrite16(u16 datum, void __iomem *addr)
+void iowrite16(u16 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write16(datum, addr);
@@ -365,7 +365,7 @@ void iowrite16(u16 datum, void __iomem *addr)
 	}
 }
 
-void iowrite16be(u16 datum, void __iomem *addr)
+void iowrite16be(u16 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write16be(datum, addr);
@@ -374,7 +374,7 @@ void iowrite16be(u16 datum, void __iomem *addr)
 	}
 }
 
-void iowrite32(u32 datum, void __iomem *addr)
+void iowrite32(u32 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write32(datum, addr);
@@ -383,7 +383,7 @@ void iowrite32(u32 datum, void __iomem *addr)
 	}
 }
 
-void iowrite32be(u32 datum, void __iomem *addr)
+void iowrite32be(u32 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write32be(datum, addr);
@@ -392,7 +392,7 @@ void iowrite32be(u32 datum, void __iomem *addr)
 	}
 }
 
-void iowrite64(u64 datum, void __iomem *addr)
+void iowrite64(u64 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write64(datum, addr);
@@ -401,7 +401,7 @@ void iowrite64(u64 datum, void __iomem *addr)
 	}
 }
 
-void iowrite64be(u64 datum, void __iomem *addr)
+void iowrite64be(u64 datum, volatile void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write64be(datum, addr);
@@ -412,7 +412,8 @@ void iowrite64be(u64 datum, void __iomem *addr)
 
 /* Repeating interfaces */
 
-void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
+void ioread8_rep(const volatile void __iomem *addr, void *dst,
+		 unsigned long count)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->read8r(addr, dst, count);
@@ -424,7 +425,8 @@ void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
 	}
 }
 
-void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
+void ioread16_rep(const volatile void __iomem *addr, void *dst,
+		  unsigned long count)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->read16r(addr, dst, count);
@@ -436,7 +438,8 @@ void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
 	}
 }
 
-void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
+void ioread32_rep(const volatile void __iomem *addr, void *dst,
+		  unsigned long count)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->read32r(addr, dst, count);
@@ -448,7 +451,8 @@ void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
 	}
 }
 
-void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
+void iowrite8_rep(volatile void __iomem *addr, const void *src,
+		  unsigned long count)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write8r(addr, src, count);
@@ -460,7 +464,8 @@ void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
 	}
 }
 
-void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
+void iowrite16_rep(volatile void __iomem *addr, const void *src,
+		   unsigned long count)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write16r(addr, src, count);
@@ -472,7 +477,8 @@ void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
 	}
 }
 
-void iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
+void iowrite32_rep(volatile void __iomem *addr, const void *src,
+		   unsigned long count)
 {
 	if (unlikely(INDIRECT_ADDR(addr))) {
 		iomap_ops[ADDR_TO_REGION(addr)]->write32r(addr, src, count);
