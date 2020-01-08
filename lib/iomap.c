@@ -331,15 +331,18 @@ static inline void mmio_outsl(volatile void __iomem *addr, const u32 *src,
 }
 #endif
 
-void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
+void ioread8_rep(const volatile void __iomem *addr, void *dst,
+		 unsigned long count)
 {
 	IO_COND(addr, insb(port,dst,count), mmio_insb(addr, dst, count));
 }
-void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
+void ioread16_rep(const volatile void __iomem *addr, void *dst,
+		  unsigned long count)
 {
 	IO_COND(addr, insw(port,dst,count), mmio_insw(addr, dst, count));
 }
-void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
+void ioread32_rep(const volatile void __iomem *addr, void *dst,
+		  unsigned long count)
 {
 	IO_COND(addr, insl(port,dst,count), mmio_insl(addr, dst, count));
 }
@@ -347,15 +350,18 @@ EXPORT_SYMBOL(ioread8_rep);
 EXPORT_SYMBOL(ioread16_rep);
 EXPORT_SYMBOL(ioread32_rep);
 
-void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
+void iowrite8_rep(volatile void __iomem *addr, const void *src,
+		  unsigned long count)
 {
 	IO_COND(addr, outsb(port, src, count), mmio_outsb(addr, src, count));
 }
-void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
+void iowrite16_rep(volatile void __iomem *addr, const void *src,
+		   unsigned long count)
 {
 	IO_COND(addr, outsw(port, src, count), mmio_outsw(addr, src, count));
 }
-void iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
+void iowrite32_rep(volatile void __iomem *addr, const void *src,
+		   unsigned long count)
 {
 	IO_COND(addr, outsl(port, src,count), mmio_outsl(addr, src, count));
 }
