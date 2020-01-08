@@ -74,7 +74,8 @@ EXPORT_SYMBOL(iowrite32be);
  * convert to CPU byte order. We write in "IO byte
  * order" (we also don't have IO barriers).
  */
-static inline void mmio_insb(const void __iomem *addr, u8 *dst, int count)
+static inline void mmio_insb(const volatile void __iomem *addr, u8 *dst,
+			     int count)
 {
 	while (--count >= 0) {
 		u8 data = __raw_readb(addr);
@@ -83,7 +84,8 @@ static inline void mmio_insb(const void __iomem *addr, u8 *dst, int count)
 	}
 }
 
-static inline void mmio_insw(const void __iomem *addr, u16 *dst, int count)
+static inline void mmio_insw(const volatile void __iomem *addr, u16 *dst,
+			     int count)
 {
 	while (--count >= 0) {
 		u16 data = __raw_readw(addr);
@@ -92,7 +94,8 @@ static inline void mmio_insw(const void __iomem *addr, u16 *dst, int count)
 	}
 }
 
-static inline void mmio_insl(const void __iomem *addr, u32 *dst, int count)
+static inline void mmio_insl(const volatile void __iomem *addr, u32 *dst,
+			     int count)
 {
 	while (--count >= 0) {
 		u32 data = __raw_readl(addr);
