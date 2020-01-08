@@ -42,6 +42,7 @@
 #define IOPORT_MAP_BASE		(8UL << 28)
 #endif
 
+// FIXME volatile?
 struct iomap_ops {
 	unsigned int (*read8)(const void __iomem *);
 	unsigned int (*read16)(const void __iomem *);
