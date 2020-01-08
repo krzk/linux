@@ -138,6 +138,7 @@ static inline void * __deprecated bus_to_virt(unsigned long address)
 
 /* In a generic kernel, we always go through the machine vector.  */
 
+// FIXME:  QUAL not needed
 #define REMAP1(TYPE, NAME, QUAL)					\
 static inline TYPE generic_##NAME(QUAL void __iomem *addr)		\
 {									\
