@@ -572,14 +572,14 @@ __EXTERN_INLINE int t2_is_mmio(const volatile void __iomem *addr)
    it doesn't make sense to merge the pio and mmio routines.  */
 
 #define IOPORT(OS, NS)							\
-__EXTERN_INLINE unsigned int t2_ioread##NS(const void __iomem *xaddr)		\
+__EXTERN_INLINE unsigned int t2_ioread##NS(const volatile void __iomem *xaddr)		\
 {									\
 	if (t2_is_mmio(xaddr))						\
 		return t2_read##OS(xaddr);				\
 	else								\
 		return t2_in##OS((unsigned long)xaddr - T2_IO);		\
 }									\
-__EXTERN_INLINE void t2_iowrite##NS(u##NS b, void __iomem *xaddr)	\
+__EXTERN_INLINE void t2_iowrite##NS(u##NS b, volatile void __iomem *xaddr)	\
 {									\
 	if (t2_is_mmio(xaddr))						\
 		t2_write##OS(b, xaddr);					\
