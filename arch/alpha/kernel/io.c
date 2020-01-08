@@ -14,7 +14,7 @@
    "generic", which bumps through the machine vector.  */
 
 unsigned int
-ioread8(const void __iomem *addr)
+ioread8(const volatile void __iomem *addr)
 {
 	unsigned int ret;
 	mb();
@@ -23,7 +23,7 @@ ioread8(const void __iomem *addr)
 	return ret;
 }
 
-unsigned int ioread16(const void __iomem *addr)
+unsigned int ioread16(const volatile void __iomem *addr)
 {
 	unsigned int ret;
 	mb();
@@ -32,7 +32,7 @@ unsigned int ioread16(const void __iomem *addr)
 	return ret;
 }
 
-unsigned int ioread32(const void __iomem *addr)
+unsigned int ioread32(const volatile void __iomem *addr)
 {
 	unsigned int ret;
 	mb();
@@ -41,19 +41,19 @@ unsigned int ioread32(const void __iomem *addr)
 	return ret;
 }
 
-void iowrite8(u8 b, void __iomem *addr)
+void iowrite8(u8 b, volatile void __iomem *addr)
 {
 	mb();
 	IO_CONCAT(__IO_PREFIX,iowrite8)(b, addr);
 }
 
-void iowrite16(u16 b, void __iomem *addr)
+void iowrite16(u16 b, volatile void __iomem *addr)
 {
 	mb();
 	IO_CONCAT(__IO_PREFIX,iowrite16)(b, addr);
 }
 
-void iowrite32(u32 b, void __iomem *addr)
+void iowrite32(u32 b, volatile void __iomem *addr)
 {
 	mb();
 	IO_CONCAT(__IO_PREFIX,iowrite32)(b, addr);
@@ -257,7 +257,8 @@ EXPORT_SYMBOL(readq_relaxed);
 /*
  * Read COUNT 8-bit bytes from port PORT into memory starting at SRC.
  */
-void ioread8_rep(const void __iomem *port, void *dst, unsigned long count)
+void ioread8_rep(const volatile void __iomem *port, void *dst,
+		 unsigned long count)
 {
 	while ((unsigned long)dst & 0x3) {
 		if (!count)
@@ -300,7 +301,8 @@ EXPORT_SYMBOL(insb);
  * the interfaces seems to be slow: just using the inlined version
  * of the inw() breaks things.
  */
-void ioread16_rep(const void __iomem *port, void *dst, unsigned long count)
+void ioread16_rep(const volatile void __iomem *port, void *dst,
+		  unsigned long count)
 {
 	if (unlikely((unsigned long)dst & 0x3)) {
 		if (!count)
@@ -340,7 +342,8 @@ EXPORT_SYMBOL(insw);
  * but the interfaces seems to be slow: just using the inlined version
  * of the inl() breaks things.
  */
-void ioread32_rep(const void __iomem *port, void *dst, unsigned long count)
+void ioread32_rep(const volatile void __iomem *port, void *dst,
+		  unsigned long count)
 {
 	if (unlikely((unsigned long)dst & 0x3)) {
 		while (count--) {
@@ -372,7 +375,8 @@ EXPORT_SYMBOL(insl);
  * doing byte reads the "slow" way isn't nearly as slow as
  * doing byte writes the slow way (no r-m-w cycle).
  */
-void iowrite8_rep(void __iomem *port, const void *xsrc, unsigned long count)
+void iowrite8_rep(volatile void __iomem *port, const void *xsrc,
+		  unsigned long count)
 {
 	const unsigned char *src = xsrc;
 	while (count--)
@@ -394,7 +398,8 @@ EXPORT_SYMBOL(outsb);
  * interfaces seems to be slow: just using the inlined version of the
  * outw() breaks things.
  */
-void iowrite16_rep(void __iomem *port, const void *src, unsigned long count)
+void iowrite16_rep(volatile void __iomem *port, const void *src,
+		   unsigned long count)
 {
 	if (unlikely((unsigned long)src & 0x3)) {
 		if (!count)
@@ -434,7 +439,8 @@ EXPORT_SYMBOL(outsw);
  * Performance is important, but the interfaces seems to be slow:
  * just using the inlined version of the outl() breaks things.
  */
-void iowrite32_rep(void __iomem *port, const void *src, unsigned long count)
+void iowrite32_rep(volatile void __iomem *port, const void *src,
+		   unsigned long count)
 {
 	if (unlikely((unsigned long)src & 0x3)) {
 		while (count--) {

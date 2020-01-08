@@ -358,7 +358,7 @@ static inline void insl(u32 io_addr, void *p, u32 count)
 					((unsigned long)p <= (PIO_MASK + PIO_OFFSET)))
 
 #define	ioread8(p)			ioread8(p)
-static inline u8 ioread8(const void __iomem *addr)
+static inline u8 ioread8(const volatile void __iomem *addr)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -372,7 +372,8 @@ static inline u8 ioread8(const void __iomem *addr)
 }
 
 #define	ioread8_rep(p, v, c)		ioread8_rep(p, v, c)
-static inline void ioread8_rep(const void __iomem *addr, void *vaddr, u32 count)
+static inline void ioread8_rep(const volatile void __iomem *addr, void *vaddr,
+			       u32 count)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -386,7 +387,7 @@ static inline void ioread8_rep(const void __iomem *addr, void *vaddr, u32 count)
 }
 
 #define	ioread16(p)			ioread16(p)
-static inline u16 ioread16(const void __iomem *addr)
+static inline u16 ioread16(const volatile void __iomem *addr)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -400,7 +401,7 @@ static inline u16 ioread16(const void __iomem *addr)
 }
 
 #define	ioread16_rep(p, v, c)		ioread16_rep(p, v, c)
-static inline void ioread16_rep(const void __iomem *addr, void *vaddr,
+static inline void ioread16_rep(const volatile void __iomem *addr, void *vaddr,
 				u32 count)
 {
 	unsigned long port = (unsigned long __force)addr;
@@ -415,7 +416,7 @@ static inline void ioread16_rep(const void __iomem *addr, void *vaddr,
 }
 
 #define	ioread32(p)			ioread32(p)
-static inline u32 ioread32(const void __iomem *addr)
+static inline u32 ioread32(const volatile void __iomem *addr)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -430,7 +431,7 @@ static inline u32 ioread32(const void __iomem *addr)
 }
 
 #define	ioread32_rep(p, v, c)		ioread32_rep(p, v, c)
-static inline void ioread32_rep(const void __iomem *addr, void *vaddr,
+static inline void ioread32_rep(const volatile void __iomem *addr, void *vaddr,
 				u32 count)
 {
 	unsigned long port = (unsigned long __force)addr;
@@ -445,7 +446,7 @@ static inline void ioread32_rep(const void __iomem *addr, void *vaddr,
 }
 
 #define	iowrite8(v, p)			iowrite8(v, p)
-static inline void iowrite8(u8 value, void __iomem *addr)
+static inline void iowrite8(u8 value, volatile void __iomem *addr)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -459,7 +460,7 @@ static inline void iowrite8(u8 value, void __iomem *addr)
 }
 
 #define	iowrite8_rep(p, v, c)		iowrite8_rep(p, v, c)
-static inline void iowrite8_rep(void __iomem *addr, const void *vaddr,
+static inline void iowrite8_rep(volatile void __iomem *addr, const void *vaddr,
 				u32 count)
 {
 	unsigned long port = (unsigned long __force)addr;
@@ -474,7 +475,7 @@ static inline void iowrite8_rep(void __iomem *addr, const void *vaddr,
 }
 
 #define	iowrite16(v, p)			iowrite16(v, p)
-static inline void iowrite16(u16 value, void __iomem *addr)
+static inline void iowrite16(u16 value, volatile void __iomem *addr)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -488,7 +489,7 @@ static inline void iowrite16(u16 value, void __iomem *addr)
 }
 
 #define	iowrite16_rep(p, v, c)		iowrite16_rep(p, v, c)
-static inline void iowrite16_rep(void __iomem *addr, const void *vaddr,
+static inline void iowrite16_rep(volatile void __iomem *addr, const void *vaddr,
 				 u32 count)
 {
 	unsigned long port = (unsigned long __force)addr;
@@ -503,7 +504,7 @@ static inline void iowrite16_rep(void __iomem *addr, const void *vaddr,
 }
 
 #define	iowrite32(v, p)			iowrite32(v, p)
-static inline void iowrite32(u32 value, void __iomem *addr)
+static inline void iowrite32(u32 value, volatile void __iomem *addr)
 {
 	unsigned long port = (unsigned long __force)addr;
 	if (__is_io_address(port))
@@ -517,7 +518,7 @@ static inline void iowrite32(u32 value, void __iomem *addr)
 }
 
 #define	iowrite32_rep(p, v, c)		iowrite32_rep(p, v, c)
-static inline void iowrite32_rep(void __iomem *addr, const void *vaddr,
+static inline void iowrite32_rep(volatile void __iomem *addr, const void *vaddr,
 				 u32 count)
 {
 	unsigned long port = (unsigned long __force)addr;
