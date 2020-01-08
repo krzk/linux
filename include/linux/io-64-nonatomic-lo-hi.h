@@ -57,7 +57,7 @@ static inline void lo_hi_writeq_relaxed(__u64 val, volatile void __iomem *addr)
 
 #ifndef ioread64_lo_hi
 #define ioread64_lo_hi ioread64_lo_hi
-static inline u64 ioread64_lo_hi(const void __iomem *addr)
+static inline u64 ioread64_lo_hi(const volatile void __iomem *addr)
 {
 	u32 low, high;
 
@@ -70,7 +70,7 @@ static inline u64 ioread64_lo_hi(const void __iomem *addr)
 
 #ifndef iowrite64_lo_hi
 #define iowrite64_lo_hi iowrite64_lo_hi
-static inline void iowrite64_lo_hi(u64 val, void __iomem *addr)
+static inline void iowrite64_lo_hi(u64 val, volatile void __iomem *addr)
 {
 	iowrite32(val, addr);
 	iowrite32(val >> 32, addr + sizeof(u32));
@@ -79,7 +79,7 @@ static inline void iowrite64_lo_hi(u64 val, void __iomem *addr)
 
 #ifndef ioread64be_lo_hi
 #define ioread64be_lo_hi ioread64be_lo_hi
-static inline u64 ioread64be_lo_hi(const void __iomem *addr)
+static inline u64 ioread64be_lo_hi(const volatile void __iomem *addr)
 {
 	u32 low, high;
 
@@ -92,7 +92,7 @@ static inline u64 ioread64be_lo_hi(const void __iomem *addr)
 
 #ifndef iowrite64be_lo_hi
 #define iowrite64be_lo_hi iowrite64be_lo_hi
-static inline void iowrite64be_lo_hi(u64 val, void __iomem *addr)
+static inline void iowrite64be_lo_hi(u64 val, volatile void __iomem *addr)
 {
 	iowrite32be(val, addr + sizeof(u32));
 	iowrite32be(val >> 32, addr);
