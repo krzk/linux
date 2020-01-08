@@ -101,7 +101,8 @@ static inline void mmio_insl(const void __iomem *addr, u32 *dst, int count)
 	}
 }
 
-static inline void mmio_outsb(void __iomem *addr, const u8 *src, int count)
+static inline void mmio_outsb(volatile void __iomem *addr, const u8 *src,
+			      int count)
 {
 	while (--count >= 0) {
 		__raw_writeb(*src, addr);
@@ -109,7 +110,8 @@ static inline void mmio_outsb(void __iomem *addr, const u8 *src, int count)
 	}
 }
 
-static inline void mmio_outsw(void __iomem *addr, const u16 *src, int count)
+static inline void mmio_outsw(volatile void __iomem *addr, const u16 *src,
+			      int count)
 {
 	while (--count >= 0) {
 		__raw_writew(*src, addr);
@@ -117,7 +119,8 @@ static inline void mmio_outsw(void __iomem *addr, const u16 *src, int count)
 	}
 }
 
-static inline void mmio_outsl(void __iomem *addr, const u32 *src, int count)
+static inline void mmio_outsl(volatile void __iomem *addr, const u32 *src,
+			      int count)
 {
 	while (--count >= 0) {
 		__raw_writel(*src, addr);
