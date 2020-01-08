@@ -8,61 +8,61 @@
 #include <linux/module.h>
 #include <linux/io.h>
 
-unsigned int ioread8(const void __iomem *addr)
+unsigned int ioread8(const volatile void __iomem *addr)
 {
 	return readb(addr);
 }
 EXPORT_SYMBOL(ioread8);
 
-unsigned int ioread16(const void __iomem *addr)
+unsigned int ioread16(const volatile void __iomem *addr)
 {
 	return readw(addr);
 }
 EXPORT_SYMBOL(ioread16);
 
-unsigned int ioread16be(const void __iomem *addr)
+unsigned int ioread16be(const volatile void __iomem *addr)
 {
 	return be16_to_cpu(__raw_readw(addr));
 }
 EXPORT_SYMBOL(ioread16be);
 
-unsigned int ioread32(const void __iomem *addr)
+unsigned int ioread32(const volatile void __iomem *addr)
 {
 	return readl(addr);
 }
 EXPORT_SYMBOL(ioread32);
 
-unsigned int ioread32be(const void __iomem *addr)
+unsigned int ioread32be(const volatile void __iomem *addr)
 {
 	return be32_to_cpu(__raw_readl(addr));
 }
 EXPORT_SYMBOL(ioread32be);
 
-void iowrite8(u8 val, void __iomem *addr)
+void iowrite8(u8 val, volatile void __iomem *addr)
 {
 	writeb(val, addr);
 }
 EXPORT_SYMBOL(iowrite8);
 
-void iowrite16(u16 val, void __iomem *addr)
+void iowrite16(u16 val, volatile void __iomem *addr)
 {
 	writew(val, addr);
 }
 EXPORT_SYMBOL(iowrite16);
 
-void iowrite16be(u16 val, void __iomem *addr)
+void iowrite16be(u16 val, volatile void __iomem *addr)
 {
 	__raw_writew(cpu_to_be16(val), addr);
 }
 EXPORT_SYMBOL(iowrite16be);
 
-void iowrite32(u32 val, void __iomem *addr)
+void iowrite32(u32 val, volatile void __iomem *addr)
 {
 	writel(val, addr);
 }
 EXPORT_SYMBOL(iowrite32);
 
-void iowrite32be(u32 val, void __iomem *addr)
+void iowrite32be(u32 val, volatile void __iomem *addr)
 {
 	__raw_writel(cpu_to_be32(val), addr);
 }
