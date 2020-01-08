@@ -309,27 +309,27 @@ static inline int __is_mmio(const volatile void __iomem *addr)
  */
 
 #if IO_CONCAT(__IO_PREFIX,trivial_io_bw)
-extern inline unsigned int ioread8(const void __iomem *addr)
+extern inline unsigned int ioread8(const volatile void __iomem *addr)
 {
 	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread8)(addr);
 	mb();
 	return ret;
 }
 
-extern inline unsigned int ioread16(const void __iomem *addr)
+extern inline unsigned int ioread16(const volatile void __iomem *addr)
 {
 	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread16)(addr);
 	mb();
 	return ret;
 }
 
-extern inline void iowrite8(u8 b, void __iomem *addr)
+extern inline void iowrite8(u8 b, volatile void __iomem *addr)
 {
 	mb();
 	IO_CONCAT(__IO_PREFIX, iowrite8)(b, addr);
 }
 
-extern inline void iowrite16(u16 b, void __iomem *addr)
+extern inline void iowrite16(u16 b, volatile void __iomem *addr)
 {
 	mb();
 	IO_CONCAT(__IO_PREFIX, iowrite16)(b, addr);
@@ -357,14 +357,14 @@ extern inline void outw(u16 b, unsigned long port)
 #endif
 
 #if IO_CONCAT(__IO_PREFIX,trivial_io_lq)
-extern inline unsigned int ioread32(const void __iomem *addr)
+extern inline unsigned int ioread32(const volatile void __iomem *addr)
 {
 	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread32)(addr);
 	mb();
 	return ret;
 }
 
-extern inline void iowrite32(u32 b, void __iomem *addr)
+extern inline void iowrite32(u32 b, volatile void __iomem *addr)
 {
 	mb();
 	IO_CONCAT(__IO_PREFIX, iowrite32)(b, addr);

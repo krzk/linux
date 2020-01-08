@@ -7,25 +7,25 @@
 
 #if IO_CONCAT(__IO_PREFIX,trivial_io_bw)
 __EXTERN_INLINE unsigned int
-IO_CONCAT(__IO_PREFIX,ioread8)(const void __iomem *a)
+IO_CONCAT(__IO_PREFIX,ioread8)(const volatile void __iomem *a)
 {
 	return __kernel_ldbu(*(const volatile u8 __force *)a);
 }
 
 __EXTERN_INLINE unsigned int
-IO_CONCAT(__IO_PREFIX,ioread16)(const void __iomem *a)
+IO_CONCAT(__IO_PREFIX,ioread16)(const volatile void __iomem *a)
 {
 	return __kernel_ldwu(*(const volatile u16 __force *)a);
 }
 
 __EXTERN_INLINE void
-IO_CONCAT(__IO_PREFIX,iowrite8)(u8 b, void __iomem *a)
+IO_CONCAT(__IO_PREFIX,iowrite8)(u8 b, volatile void __iomem *a)
 {
 	__kernel_stb(b, *(volatile u8 __force *)a);
 }
 
 __EXTERN_INLINE void
-IO_CONCAT(__IO_PREFIX,iowrite16)(u16 b, void __iomem *a)
+IO_CONCAT(__IO_PREFIX,iowrite16)(u16 b, volatile void __iomem *a)
 {
 	__kernel_stw(b, *(volatile u16 __force *)a);
 }
@@ -33,13 +33,13 @@ IO_CONCAT(__IO_PREFIX,iowrite16)(u16 b, void __iomem *a)
 
 #if IO_CONCAT(__IO_PREFIX,trivial_io_lq)
 __EXTERN_INLINE unsigned int
-IO_CONCAT(__IO_PREFIX,ioread32)(const void __iomem *a)
+IO_CONCAT(__IO_PREFIX,ioread32)(const volatile void __iomem *a)
 {
 	return *(const volatile u32 __force *)a;
 }
 
 __EXTERN_INLINE void
-IO_CONCAT(__IO_PREFIX,iowrite32)(u32 b, void __iomem *a)
+IO_CONCAT(__IO_PREFIX,iowrite32)(u32 b, volatile void __iomem *a)
 {
 	*(volatile u32 __force *)a = b;
 }

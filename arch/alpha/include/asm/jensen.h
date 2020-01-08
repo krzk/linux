@@ -305,14 +305,14 @@ __EXTERN_INLINE int jensen_is_mmio(const volatile void __iomem *addr)
    that it doesn't make sense to merge them.  */
 
 #define IOPORT(OS, NS)							\
-__EXTERN_INLINE unsigned int jensen_ioread##NS(const void __iomem *xaddr)	\
+__EXTERN_INLINE unsigned int jensen_ioread##NS(const volatile void __iomem *xaddr)	\
 {									\
 	if (jensen_is_mmio(xaddr))					\
 		return jensen_read##OS(xaddr - 0x100000000ul);		\
 	else								\
 		return jensen_in##OS((unsigned long)xaddr);		\
 }									\
-__EXTERN_INLINE void jensen_iowrite##NS(u##NS b, void __iomem *xaddr)	\
+__EXTERN_INLINE void jensen_iowrite##NS(u##NS b, volatile void __iomem *xaddr)	\
 {									\
 	if (jensen_is_mmio(xaddr))					\
 		jensen_write##OS(b, xaddr - 0x100000000ul);		\
