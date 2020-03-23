@@ -24,6 +24,12 @@ static const char * const regulator_names[] = {
 	"avee",
 };
 
+enum panel_vendor {
+	NOT_INITIALIZE = -1,
+	TRULY,
+	AUO,
+};
+
 struct cmd_set {
 	const u8 *payload;
 	size_t size;
@@ -50,6 +56,20 @@ struct truly_panel {
 	bool enabled;
 };
 
+/* Panel vendor/type provided by bootloader */
+static enum panel_vendor vendor_from_bl = NOT_INITIALIZE;
+
+static int __init panel_setup(char *str)
+{
+	if (strstr(str, "truly_r63350"))
+		vendor_from_bl = TRULY;
+	else if (strstr(str, "auo_r63350"))
+		vendor_from_bl = AUO;
+
+	return 1;
+}
+__setup("mdss_mdp.panel=", panel_setup);
+
 static inline struct truly_panel *panel_to_truly(struct drm_panel *panel)
 {
 	return container_of(panel, struct truly_panel, panel);
@@ -70,6 +90,14 @@ static int truly_r63350_power_on(struct truly_panel *truly)
 				    truly->supplies);
 	if (ret)
 		return ret;
+
+	if (vendor_from_bl != NOT_INITIALIZE) {
+		/*
+		 * If bootloader already configures the panel, we are
+		 * done and skip panel reset below.
+		 */
+		return 0;
+	}
 
 	/* Reset panel */
 	gpiod_set_value(truly->reset_gpio, 0);
@@ -221,7 +249,6 @@ static const struct drm_display_mode truly_fhd_mode = {
 	.vsync_start = 1920 + 4,
 	.vsync_end = 1920 + 4 + 1,
 	.vtotal = 1920 + 4 + 1 + 5,
-	.vrefresh = 60,
 	.flags = 0,
 };
 
@@ -285,11 +312,7 @@ static int truly_r63350_panel_add(struct truly_panel *truly)
 		return ret;
 	}
 
-	ret = drm_panel_add(&truly->panel);
-	if (ret) {
-		DRM_DEV_ERROR(dev, "failed to add panel: %d\n", ret);
-		return ret;
-	}
+	drm_panel_add(&truly->panel);
 
 	return 0;
 }
@@ -638,6 +661,12 @@ static int truly_r63350_probe(struct mipi_dsi_device *dsi)
 	truly->data = of_device_get_match_data(dev);
 	if (!truly->data)
 		return -ENODEV;
+
+	/* Override data if bootloader provides the panel type */
+	if (vendor_from_bl == TRULY)
+		truly->data = &truly_fhd_data;
+	else if (vendor_from_bl == AUO)
+		truly->data = &auo_fhd_data;
 
 	truly->dev = dev;
 
