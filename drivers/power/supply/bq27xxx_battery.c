@@ -1612,12 +1612,10 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
 			di->charge_design_full = bq27xxx_battery_read_dcap(di);
 	}
 
-	if ((di->cache.capacity != cache.capacity) ||
-	    (di->cache.flags != cache.flags))
+	if (memcmp(&di->cache, &cache, sizeof(cache)) != 0) {
 		power_supply_changed(di->bat);
-
-	if (memcmp(&di->cache, &cache, sizeof(cache)) != 0)
 		di->cache = cache;
+	}
 
 	di->last_update = jiffies;
 }
