@@ -1521,6 +1521,48 @@ static int bq27xxx_battery_read_pwr_avg(struct bq27xxx_device_info *di)
 }
 
 /*
+ * Return the battery average current in µA
+ * Note that current can be negative signed as well
+ * Or 0 if something fails.
+ */
+static int bq27xxx_battery_read_current(struct bq27xxx_device_info *di,
+					int flags)
+{
+	int curr;
+
+	curr = bq27xxx_read(di, BQ27XXX_REG_AI, false);
+	if (curr < 0) {
+		dev_err(di->dev, "error reading current\n");
+		return 0;
+	}
+
+	if (di->opts & BQ27XXX_O_ZERO) {
+		if (flags & BQ27000_FLAG_CHGS) {
+			dev_dbg(di->dev, "negative current!\n");
+			curr = -curr;
+		}
+
+		return curr * BQ27XXX_CURRENT_CONSTANT / BQ27XXX_RS;
+	}
+
+	/* else: Other gauges return signed value */
+	return (int)((s16)curr) * 1000;
+}
+
+static int bq27xxx_battery_read_voltage(struct bq27xxx_device_info *di)
+{
+	int volt;
+
+	volt = bq27xxx_read(di, BQ27XXX_REG_VOLT, false);
+	if (volt < 0) {
+		dev_err(di->dev, "error reading voltage\n");
+		return volt;
+	}
+
+	return volt * 1000;
+}
+
+/*
  * Returns true if a battery over temperature condition is detected
  */
 static bool bq27xxx_battery_overtemp(struct bq27xxx_device_info *di, u16 flags)
@@ -1606,6 +1648,8 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
 			cache.cycle_count = bq27xxx_battery_read_cyct(di);
 		if (di->regs[BQ27XXX_REG_AP] != INVALID_REG_ADDR)
 			cache.power_avg = bq27xxx_battery_read_pwr_avg(di);
+		cache.curr = bq27xxx_battery_read_current(di, cache.flags);
+		cache.voltage = bq27xxx_battery_read_voltage(di);
 
 		/* We only have to read charge design full once */
 		if (di->charge_design_full <= 0)
@@ -1631,39 +1675,6 @@ static void bq27xxx_battery_poll(struct work_struct *work)
 
 	if (poll_interval > 0)
 		schedule_delayed_work(&di->work, poll_interval * HZ);
-}
-
-/*
- * Return the battery average current in µA
- * Note that current can be negative signed as well
- * Or 0 if something fails.
- */
-static int bq27xxx_battery_current(struct bq27xxx_device_info *di,
-				   union power_supply_propval *val)
-{
-	int curr;
-	int flags;
-
-	curr = bq27xxx_read(di, BQ27XXX_REG_AI, false);
-	if (curr < 0) {
-		dev_err(di->dev, "error reading current\n");
-		return curr;
-	}
-
-	if (di->opts & BQ27XXX_O_ZERO) {
-		flags = bq27xxx_read(di, BQ27XXX_REG_FLAGS, true);
-		if (flags & BQ27000_FLAG_CHGS) {
-			dev_dbg(di->dev, "negative current!\n");
-			curr = -curr;
-		}
-
-		val->intval = curr * BQ27XXX_CURRENT_CONSTANT / BQ27XXX_RS;
-	} else {
-		/* Other gauges return signed value */
-		val->intval = (int)((s16)curr) * 1000;
-	}
-
-	return 0;
 }
 
 static int bq27xxx_battery_status(struct bq27xxx_device_info *di,
@@ -1728,22 +1739,6 @@ static int bq27xxx_battery_capacity_level(struct bq27xxx_device_info *di,
  * Return the battery Voltage in millivolts
  * Or < 0 if something fails.
  */
-static int bq27xxx_battery_voltage(struct bq27xxx_device_info *di,
-				   union power_supply_propval *val)
-{
-	int volt;
-
-	volt = bq27xxx_read(di, BQ27XXX_REG_VOLT, false);
-	if (volt < 0) {
-		dev_err(di->dev, "error reading voltage\n");
-		return volt;
-	}
-
-	val->intval = volt * 1000;
-
-	return 0;
-}
-
 static int bq27xxx_simple_value(int value,
 				union power_supply_propval *val)
 {
@@ -1777,13 +1772,13 @@ static int bq27xxx_battery_get_property(struct power_supply *psy,
 		ret = bq27xxx_battery_status(di, val);
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		ret = bq27xxx_battery_voltage(di, val);
+		ret = bq27xxx_simple_value(di->cache.voltage, val);
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 		val->intval = di->cache.flags < 0 ? 0 : 1;
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_NOW:
-		ret = bq27xxx_battery_current(di, val);
+		val->intval = di->cache.curr; /* Can be negative */
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
 		ret = bq27xxx_simple_value(di->cache.capacity, val);

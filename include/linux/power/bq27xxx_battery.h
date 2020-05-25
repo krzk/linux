@@ -49,6 +49,8 @@ struct bq27xxx_reg_cache {
 	int cycle_count;
 	int capacity;
 	int energy;
+	int curr;
+	int voltage;
 	int flags;
 	int power_avg;
 	int health;
