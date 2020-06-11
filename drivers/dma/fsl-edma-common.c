@@ -8,6 +8,9 @@
 #include <linux/slab.h>
 #include <linux/dma-mapping.h>
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/edma.h>
+
 #include "fsl-edma-common.h"
 
 #define EDMA_CR			0x00
@@ -163,10 +166,12 @@ int fsl_edma_terminate_all(struct dma_chan *chan)
 	unsigned long flags;
 	LIST_HEAD(head);
 
+	trace_edma_terminate_all((unsigned long)fsl_chan, false);
 	spin_lock_irqsave(&fsl_chan->vchan.lock, flags);
 	fsl_edma_disable_request(fsl_chan);
 	fsl_chan->edesc = NULL;
 	fsl_chan->idle = true;
+	trace_edma_terminate_all((unsigned long)fsl_chan, true);
 	vchan_get_all_descriptors(&fsl_chan->vchan, &head);
 	spin_unlock_irqrestore(&fsl_chan->vchan.lock, flags);
 	vchan_dma_desc_free_list(&fsl_chan->vchan, &head);
@@ -597,6 +602,7 @@ void fsl_edma_xfer_desc(struct fsl_edma_chan *fsl_chan)
 	fsl_edma_enable_request(fsl_chan);
 	fsl_chan->status = DMA_IN_PROGRESS;
 	fsl_chan->idle = false;
+	trace_edma_xfer_desc((unsigned long)fsl_chan, (unsigned long)fsl_chan->edesc);
 }
 EXPORT_SYMBOL_GPL(fsl_edma_xfer_desc);
 

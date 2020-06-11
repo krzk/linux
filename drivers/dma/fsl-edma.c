@@ -18,6 +18,8 @@
 #include <linux/of_irq.h>
 #include <linux/of_dma.h>
 
+#include <trace/events/edma.h>
+
 #include "fsl-edma-common.h"
 
 static void fsl_edma_synchronize(struct dma_chan *chan)
@@ -44,7 +46,10 @@ static irqreturn_t fsl_edma_tx_handler(int irq, void *dev_id)
 
 			fsl_chan = &fsl_edma->chans[ch];
 
+			trace_edma_tx_handler((unsigned long)fsl_chan, false, (unsigned long)fsl_chan->edesc);
 			spin_lock(&fsl_chan->vchan.lock);
+			trace_edma_tx_handler((unsigned long)fsl_chan, true, (unsigned long)fsl_chan->edesc);
+
 			if (!fsl_chan->edesc->iscyclic) {
 				list_del(&fsl_chan->edesc->vdesc.node);
 				vchan_cookie_complete(&fsl_chan->edesc->vdesc);
