@@ -433,7 +433,7 @@
 			power-domains = <&mau_pd>;
 		};
 
-		amba {
+		bus {
 			#address-cells = <1>;
 			#size-cells = <1>;
 			compatible = "simple-bus";

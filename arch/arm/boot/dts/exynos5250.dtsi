@@ -679,7 +679,7 @@
 			samsung,pmureg-phandle = <&pmu_system_controller>;
 		};
 
-		amba {
+		bus {
 			#address-cells = <1>;
 			#size-cells = <1>;
 			compatible = "simple-bus";

@@ -189,7 +189,7 @@
 			interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
 		};
 
-		amba {
+		bus {
 			#address-cells = <1>;
 			#size-cells = <1>;
 			compatible = "simple-bus";
