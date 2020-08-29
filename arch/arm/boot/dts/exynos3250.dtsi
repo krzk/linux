@@ -214,10 +214,6 @@
 			compatible = "samsung,exynos3250-cmu";
 			reg = <0x10030000 0x20000>;
 			#clock-cells = <1>;
-			assigned-clocks = <&cmu CLK_MOUT_ACLK_400_MCUISP_SUB>,
-					  <&cmu CLK_MOUT_ACLK_266_SUB>;
-			assigned-clock-parents = <&cmu CLK_FIN_PLL>,
-						 <&cmu CLK_FIN_PLL>;
 		};
 
 		cmu_dmc: clock-controller@105c0000 {
@@ -835,6 +831,8 @@
 			compatible = "samsung,exynos-bus";
 			clocks = <&cmu CLK_DIV_ACLK_400_MCUISP>;
 			clock-names = "bus";
+			assigned-clocks = <&cmu CLK_MOUT_ACLK_400_MCUISP_SUB>;
+			assigned-clock-parents = <&cmu CLK_FIN_PLL>;
 			operating-points-v2 = <&bus_mcuisp_opp_table>;
 			status = "disabled";
 		};
@@ -843,6 +841,8 @@
 			compatible = "samsung,exynos-bus";
 			clocks = <&cmu CLK_DIV_ACLK_266>;
 			clock-names = "bus";
+			assigned-clocks =  <&cmu CLK_MOUT_ACLK_266_SUB>;
+			assigned-clock-parents = <&cmu CLK_FIN_PLL>;
 			operating-points-v2 = <&bus_isp_opp_table>;
 			status = "disabled";
 		};
