@@ -101,6 +101,8 @@ properties:
 
   mali-supply: true
 
+  opp-table: true
+
   power-domains:
     maxItems: 1
 
