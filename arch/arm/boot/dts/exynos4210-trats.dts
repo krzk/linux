@@ -159,8 +159,6 @@
 };
 
 &camera {
-	pinctrl-names = "default";
-	pinctrl-0 = <>;
 	status = "okay";
 };
 
