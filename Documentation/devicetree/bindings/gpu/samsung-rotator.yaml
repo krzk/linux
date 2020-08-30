@@ -22,6 +22,9 @@ properties:
   interrupts:
     maxItems: 1
 
+  iommus: true
+  power-domains: true
+
   clocks:
     maxItems: 1
 
