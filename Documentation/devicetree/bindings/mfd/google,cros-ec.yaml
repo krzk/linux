@@ -79,7 +79,7 @@ then:
     google,cros-ec-spi-msg-delay: false
     spi-max-frequency: false
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   # Example for I2C
