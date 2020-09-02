@@ -1509,12 +1509,8 @@ static int devm_clk_get_enable(struct device *dev, char *id)
 	int ret;
 
 	clk = devm_clk_get(dev, id);
-	if (IS_ERR(clk)) {
-		ret = PTR_ERR(clk);
-		if (ret != -EPROBE_DEFER)
-			dev_err(dev, "failed to get %s", id);
-		return ret;
-	}
+	if (IS_ERR(clk))
+		return dev_err_probe(dev, PTR_ERR(clk), "failed to get %s", id);
 
 	ret = clk_prepare_enable(clk);
 	if (ret) {
