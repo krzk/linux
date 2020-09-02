@@ -444,18 +444,14 @@ struct icc_path *of_icc_get_by_index(struct device *dev, int idx)
 	src_node = of_icc_get_from_provider(&src_args);
 
 	if (IS_ERR(src_node)) {
-		if (PTR_ERR(src_node) != -EPROBE_DEFER)
-			dev_err(dev, "error finding src node: %ld\n",
-				PTR_ERR(src_node));
+		dev_err_probe(dev, PTR_ERR(src_node), "error finding src node\n");
 		return ERR_CAST(src_node);
 	}
 
 	dst_node = of_icc_get_from_provider(&dst_args);
 
 	if (IS_ERR(dst_node)) {
-		if (PTR_ERR(dst_node) != -EPROBE_DEFER)
-			dev_err(dev, "error finding dst node: %ld\n",
-				PTR_ERR(dst_node));
+		dev_err_probe(dev, PTR_ERR(dst_node), "error finding dst node\n");
 		return ERR_CAST(dst_node);
 	}
 
