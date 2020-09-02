@@ -21,6 +21,7 @@
 
 	aliases {
 		serial0 = &uart12;
+		serial1 = &uart6;
 		sdhc2 = &sdhc_2;
 	};
 
@@ -1192,6 +1193,17 @@
 		"HST_WLAN_UART_TX",
 		"HST_WLAN_UART_RX";
 
+	bt_en_state: bt-default-state {
+		bt-en {
+			pins = "gpio21";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-up;
+		};
+	};
+
 	lt9611_irq_pin: lt9611-irq {
 		pins = "gpio63";
 		function = "gpio";
@@ -1233,6 +1245,18 @@
 			output-low;
 			bias-pull-up;
 		};
+	};
+};
+
+&uart6 {
+	status = "okay";
+	bluetooth {
+		compatible = "qcom,qca6390-bt";
+		pinctrl-names = "default";
+		pinctrl-0 = <&bt_en_state>;
+
+		power-domains = <&qca639x>;
+		enable-gpios = <&tlmm 21 GPIO_ACTIVE_HIGH>;
 	};
 };
 
