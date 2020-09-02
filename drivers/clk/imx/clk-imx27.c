@@ -2,6 +2,7 @@
 #include <linux/clk.h>
 #include <linux/clk-provider.h>
 #include <linux/clkdev.h>
+#include <linux/clk/imx.h>
 #include <linux/err.h>
 #include <linux/io.h>
 #include <linux/of.h>

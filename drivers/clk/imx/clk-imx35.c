@@ -5,6 +5,7 @@
 #include <linux/mm.h>
 #include <linux/delay.h>
 #include <linux/clk.h>
+#include <linux/clk/imx.h>
 #include <linux/io.h>
 #include <linux/clkdev.h>
 #include <linux/of.h>

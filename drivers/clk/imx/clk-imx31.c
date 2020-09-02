@@ -6,6 +6,7 @@
 #include <linux/module.h>
 #include <linux/clk.h>
 #include <linux/clkdev.h>
+#include <linux/clk/imx.h>
 #include <linux/io.h>
 #include <linux/err.h>
 #include <linux/of.h>
