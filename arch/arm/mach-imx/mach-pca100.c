@@ -4,6 +4,7 @@
  * Copyright (C) 2009 Sascha Hauer (kernel@pengutronix.de)
  */
 
+#include <linux/clk/imx.h>
 #include <linux/platform_device.h>
 #include <linux/io.h>
 #include <linux/i2c.h>

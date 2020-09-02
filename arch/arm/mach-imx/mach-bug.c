@@ -6,6 +6,7 @@
  * Copyright 2011 Denis 'GNUtoo' Carikli <GNUtoo@no-log.org>
  */
 
+#include <linux/clk/imx.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>

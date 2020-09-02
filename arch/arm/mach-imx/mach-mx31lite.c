@@ -6,6 +6,7 @@
  *  Copyright (C) 2009 Daniel Mack <daniel@caiaq.de>
  */
 
+#include <linux/clk/imx.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/kernel.h>

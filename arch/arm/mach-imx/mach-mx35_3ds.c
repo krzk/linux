@@ -17,6 +17,7 @@
  *  - i.MX35 Platform Development Kit (i.MX35 PDK)
  */
 
+#include <linux/clk/imx.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>

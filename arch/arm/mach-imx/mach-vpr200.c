@@ -8,6 +8,7 @@
  * Original author: Fabio Estevam <fabio.estevam@freescale.com>
  */
 
+#include <linux/clk/imx.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>

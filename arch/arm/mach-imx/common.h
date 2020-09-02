@@ -34,10 +34,6 @@ void imx21_soc_init(void);
 void imx27_soc_init(void);
 void imx31_soc_init(void);
 void imx35_soc_init(void);
-int mx21_clocks_init(unsigned long lref, unsigned long fref);
-int mx27_clocks_init(unsigned long fref);
-int mx31_clocks_init(unsigned long fref);
-int mx35_clocks_init(void);
 struct platform_device *mxc_register_gpio(char *name, int id,
 	resource_size_t iobase, resource_size_t iosize, int irq, int irq_high);
 void mxc_set_cpu_type(unsigned int type);

@@ -9,6 +9,7 @@
  *  Copyright 2005-2007 Freescale Semiconductor, Inc. All Rights Reserved.
  */
 
+#include <linux/clk/imx.h>
 #include <linux/gpio.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>

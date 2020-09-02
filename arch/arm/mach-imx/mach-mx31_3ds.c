@@ -3,6 +3,7 @@
  *  Copyright 2008 Freescale Semiconductor, Inc. All Rights Reserved.
  */
 
+#include <linux/clk/imx.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/types.h>

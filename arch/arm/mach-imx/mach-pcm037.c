@@ -3,6 +3,7 @@
  *  Copyright (C) 2008 Sascha Hauer, Pengutronix
  */
 
+#include <linux/clk/imx.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/dma-mapping.h>

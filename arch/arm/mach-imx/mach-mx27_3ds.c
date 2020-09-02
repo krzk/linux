@@ -11,6 +11,7 @@
  *  - i.MX27 Platform Development Kit (i.MX27 PDK)
  */
 
+#include <linux/clk/imx.h>
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 #include <linux/gpio/machine.h>

@@ -5,6 +5,7 @@
  *  Copyright 2006-2007 Freescale Semiconductor, Inc. All Rights Reserved.
  */
 
+#include <linux/clk/imx.h>
 #include <linux/platform_device.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/physmap.h>

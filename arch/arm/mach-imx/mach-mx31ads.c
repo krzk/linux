@@ -8,6 +8,7 @@
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/clk.h>
+#include <linux/clk/imx.h>
 #include <linux/serial_8250.h>
 #include <linux/gpio.h>
 #include <linux/i2c.h>

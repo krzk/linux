@@ -4,6 +4,7 @@
  *  Copyright (C) 2002 Shane Nay (shane@minirl.com)
  *  Copyright 2006-2007 Freescale Semiconductor, Inc. All Rights Reserved.
  */
+#include <linux/clk/imx.h>
 #include <linux/gpio/driver.h>
 /* Needed for gpio_to_irq() */
 #include <linux/gpio.h>

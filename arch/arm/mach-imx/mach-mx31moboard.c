@@ -3,6 +3,7 @@
  *  Copyright (C) 2008 Valentin Longchamp, EPFL Mobots group
  */
 
+#include <linux/clk/imx.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/gfp.h>
