@@ -251,7 +251,7 @@
 			samsung,idma-addr = <0xc0010000>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&i2s0_bus>;
-			#sound-dai-cells = <0>;
+			#sound-dai-cells = <1>;
 			status = "disabled";
 		};
 
@@ -266,7 +266,7 @@
 			clocks = <&clocks CLK_I2S1>, <&clocks SCLK_AUDIO1>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&i2s1_bus>;
-			#sound-dai-cells = <0>;
+			#sound-dai-cells = <1>;
 			status = "disabled";
 		};
 
@@ -281,7 +281,7 @@
 			clocks = <&clocks CLK_I2S2>, <&clocks SCLK_AUDIO2>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&i2s2_bus>;
-			#sound-dai-cells = <0>;
+			#sound-dai-cells = <1>;
 			status = "disabled";
 		};
 
