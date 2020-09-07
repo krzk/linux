@@ -132,7 +132,7 @@
 		pinctrl-0 = <&headset_det &earpath_sel>;
 
 		cpu {
-			sound-dai = <&i2s0>, <&bt_codec>;
+			sound-dai = <&i2s0 0>, <&bt_codec>;
 		};
 
 		codec {
