@@ -17,6 +17,9 @@ description: |
   GPIO ports share the same IO space with PIN controller, the GPIO node
   will be represented as sub-nodes of MXS pinctrl node.
 
+allOf:
+  - $ref: gpio-common.yaml#
+
 properties:
   compatible:
     enum:
