@@ -49,6 +49,9 @@ properties:
 patternProperties:
   "^gpio-(port|controller)@[0-9a-f]+$":
     type: object
+    allOf:
+      - $ref: gpio-common.yaml#
+
     properties:
       compatible:
         const: snps,dw-apb-gpio-port

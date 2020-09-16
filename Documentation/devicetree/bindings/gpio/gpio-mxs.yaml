@@ -34,6 +34,10 @@ properties:
 patternProperties:
   "gpio@[0-9]+$":
     type: object
+
+    allOf:
+      - $ref: gpio-common.yaml#
+
     properties:
       compatible:
         enum:
