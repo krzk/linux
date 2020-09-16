@@ -1,0 +1,126 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/gpio/gpio-common.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Common GPIO controller properties
+
+maintainers:
+  - Krzysztof Kozlowski <krzk@kernel.org>
+  - Linus Walleij <linus.walleij@linaro.org>
+
+properties:
+  nodename:
+    pattern: "^(gpio-controller|gpio)(@[0-9a-f]+|-[0-9a-f]+)?$"
+
+  '#gpio-cells': true
+  gpio-controller: true
+  gpio-ranges: true
+
+  gpio-line-names:
+    description: |
+      Optionally, a GPIO controller may have a "gpio-line-names" property. This
+      is an array of strings defining the names of the GPIO lines going out of
+      the GPIO controller. This name should be the most meaningful producer
+      name for the system, such as a rail name indicating the usage. Package
+      names such as pin name are discouraged: such lines have opaque names
+      (since they are by definition generic purpose) and such names are usually
+      not very helpful.
+
+      For example "MMC-CD", "Red LED Vdd" and "ethernet reset" are reasonable
+      line names as they describe what the line is used for. "GPIO0" is not a
+      good name to give to a GPIO line.
+
+      Placeholders are discouraged: rather use the "" (blank string) if the use
+      of the GPIO line is undefined in your design. The names are assigned
+      starting from line offset 0 from left to right from the passed array. An
+      incomplete array (where the number of passed named are less than ngpios)
+      will still be used up until the last provided valid line index.
+
+  gpio-reserved-ranges:
+    description:
+      Indicates the start and size of the GPIOs that can't be used.
+
+  ngpios:
+    description: |
+      Optionally, a GPIO controller may have a "ngpios" property. This property
+      indicates the number of in-use slots of available slots for GPIOs. The
+      typical example is something like this: the hardware register is 32 bits
+      wide, but only 18 of the bits have a physical counterpart. The driver is
+      generally written so that all 32 bits can be used, but the IP block is
+      reused in a lot of designs, some using all 32 bits, some using 18 and
+      some using 12. In this case, setting "ngpios = <18>;" informs the driver
+      that only the first 18 GPIOs, at local offset 0 .. 17, are in use.
+
+      If these GPIOs do not happen to be the first N GPIOs at offset 0...N-1,
+      an additional set of tuples is needed to specify which GPIOs are
+      unusable, with the gpio-reserved-ranges binding.
+
+patternProperties:
+  "^(hog-[0-9]+|.+-hog(-[0-9]+)?)$":
+    type: object
+    description:
+      The GPIO chip may contain GPIO hog definitions. GPIO hogging is a mechanism
+      providing automatic GPIO request and configuration as part of the
+      gpio-controller's driver probe function.
+      Each GPIO hog definition is represented as a child node of the GPIO controller.
+
+    properties:
+      gpio-hog: true
+      gpios: true
+      input: true
+      output-high: true
+      output-low: true
+      line-name:
+        description:
+          The GPIO label name. If not present the node name is used.
+
+    required:
+      - gpio-hog
+      - gpios
+
+    oneOf:
+      - required:
+          - input
+      - required:
+          - output-high
+      - required:
+          - output-low
+
+    additionalProperties: false
+
+required:
+  - compatible
+  - "#gpio-cells"
+  - gpio-controller
+
+examples:
+  - |
+    gpio-controller@15000000 {
+        compatible = "foo";
+        reg = <0x15000000 0x1000>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        ngpios = <18>;
+        gpio-reserved-ranges = <0 4>, <12 2>;
+        gpio-line-names = "MMC-CD", "MMC-WP", "VDD eth", "RST eth", "LED R",
+                          "LED G", "LED B", "Col A", "Col B", "Col C", "Col D",
+                          "Row A", "Row B", "Row C", "Row D", "NMI button",
+                          "poweroff", "reset";
+    };
+
+  - |
+    gpio-controller@1400 {
+        compatible = "fsl,qe-pario-bank-a", "fsl,qe-pario-bank";
+        reg = <0x1400 0x18>;
+        gpio-controller;
+        #gpio-cells = <2>;
+
+        line-b-hog {
+            gpio-hog;
+            gpios = <6 0>;
+            input;
+            line-name = "foo-bar-gpio";
+        };
+    };
