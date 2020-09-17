@@ -31,6 +31,8 @@ properties:
 
   pinctrl:
     type: object
+    allOf:
+      - $ref: /schemas/gpio/gpio-common.yaml#
 
     properties:
       compatible:

@@ -20,6 +20,9 @@ description: |
   LEDs and onkey) refer to the binding documents under the respective
   sub-system directories.
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     const: maxim,max77650

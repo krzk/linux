@@ -20,6 +20,7 @@ description: |
     bindings/sound/cirrus,madera.yaml
 
 allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
   - $ref: /schemas/pinctrl/cirrus,madera.yaml#
   - $ref: /schemas/regulator/wlf,arizona.yaml#
   - $ref: /schemas/sound/cirrus,madera.yaml#
