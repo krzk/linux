@@ -15,6 +15,9 @@ maintainers:
   - Jaroslav Kysela <perex@perex.cz>
   - Takashi Iwai <tiwai@suse.com>
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     const: mscc,zl38060
