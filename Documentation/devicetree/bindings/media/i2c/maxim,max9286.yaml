@@ -24,6 +24,9 @@ description: |
   serializer will output it on a local I2C bus. In the other direction all I2C
   traffic received over GMSL by the MAX9286 is output on the local I2C bus.
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   '#address-cells':
     const: 1
