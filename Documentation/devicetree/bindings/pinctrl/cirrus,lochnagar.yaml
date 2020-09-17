@@ -31,6 +31,9 @@ description: |
   This binding must be part of the Lochnagar MFD binding:
     [4] ../mfd/cirrus,lochnagar.yaml
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     enum:

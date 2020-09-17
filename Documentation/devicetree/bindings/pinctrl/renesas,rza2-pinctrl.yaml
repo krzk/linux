@@ -10,6 +10,9 @@ maintainers:
   - Chris Brandt <chris.brandt@renesas.com>
   - Geert Uytterhoeven <geert+renesas@glider.be>
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 description:
   The Renesas SoCs of the RZ/A2 series feature a combined Pin and GPIO
   controller.

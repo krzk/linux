@@ -12,6 +12,9 @@ maintainers:
 description: |
   The Mediatek's Pin controller is used to control SoC pins.
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     const: mediatek,mt8192-pinctrl

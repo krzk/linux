@@ -13,6 +13,9 @@ description: |
   This binding describes the Top Level Mode Multiplexer block found in the
   IPQ6018 platform.
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     const: qcom,ipq6018-pinctrl

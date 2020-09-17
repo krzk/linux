@@ -59,6 +59,9 @@ properties:
 patternProperties:
   "^gpio@[0-9]$":
     type: object
+    allOf:
+      - $ref: /schemas/gpio/gpio-common.yaml#
+
     properties:
       compatible:
         enum:

@@ -15,6 +15,9 @@ description: |
   GPIO function selection & GPIO attributes configuration. Please refer to
   pinctrl-bindings.txt in this directory for common binding part and usage.
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     const: actions,s500-pinctrl

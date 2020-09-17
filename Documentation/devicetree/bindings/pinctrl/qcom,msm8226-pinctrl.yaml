@@ -13,6 +13,9 @@ description: |
   This binding describes the Top Level Mode Multiplexer block found in the
   MSM8226 platform.
 
+allOf:
+  - $ref: /schemas/gpio/gpio-common.yaml#
+
 properties:
   compatible:
     const: qcom,msm8226-pinctrl
