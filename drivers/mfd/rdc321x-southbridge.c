@@ -71,7 +71,7 @@ static int rdc321x_sb_probe(struct pci_dev *pdev,
 	rdc321x_gpio_pdata.sb_pdev = pdev;
 	rdc321x_wdt_pdata.sb_pdev = pdev;
 
-	return devm_mfd_add_devices(&pdev->dev, -1,
+	return devm_mfd_add_devices(&pdev->dev, PLATFORM_DEVID_NONE,
 				    rdc321x_sb_cells,
 				    ARRAY_SIZE(rdc321x_sb_cells),
 				    NULL, 0, NULL);
