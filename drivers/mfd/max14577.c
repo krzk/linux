@@ -445,7 +445,7 @@ static int max14577_i2c_probe(struct i2c_client *i2c,
 			goto err_max77836;
 	}
 
-	ret = mfd_add_devices(max14577->dev, -1, mfd_devs,
+	ret = mfd_add_devices(max14577->dev, PLATFORM_DEVID_NONE, mfd_devs,
 			mfd_devs_size, NULL, 0, NULL);
 	if (ret < 0)
 		goto err_mfd;
