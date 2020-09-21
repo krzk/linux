@@ -209,7 +209,7 @@ static int tps65090_i2c_probe(struct i2c_client *client,
 		tps65090s[CHARGER].num_resources = 0;
 	}
 
-	ret = mfd_add_devices(tps65090->dev, -1, tps65090s,
+	ret = mfd_add_devices(tps65090->dev, PLATFORM_DEVID_NONE, tps65090s,
 			      ARRAY_SIZE(tps65090s), NULL,
 			      0, regmap_irq_get_domain(tps65090->irq_data));
 	if (ret) {
