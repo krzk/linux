@@ -271,9 +271,9 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
 	if (ret < 0)
 		return ret;
 
-	ret = mfd_add_devices(rdev->dev, -1, rdat->children, rdat->nchildren,
-			      NULL, regmap_irq_chip_get_base(rdev->irq_data),
-			      NULL);
+	ret = mfd_add_devices(rdev->dev, PLATFORM_DEVID_NONE, rdat->children,
+			      rdat->nchildren, NULL,
+			      regmap_irq_chip_get_base(rdev->irq_data), NULL);
 	if (ret < 0) {
 		regmap_del_irq_chip(i2c->irq, rdev->irq_data);
 		return ret;
