@@ -270,8 +270,9 @@ static int rc5t583_i2c_probe(struct i2c_client *i2c,
 			dev_warn(&i2c->dev, "IRQ init failed: %d\n", ret);
 	}
 
-	ret = devm_mfd_add_devices(rc5t583->dev, -1, rc5t583_subdevs,
-				   ARRAY_SIZE(rc5t583_subdevs), NULL, 0, NULL);
+	ret = devm_mfd_add_devices(rc5t583->dev, PLATFORM_DEVID_NONE,
+				   rc5t583_subdevs, ARRAY_SIZE(rc5t583_subdevs),
+				   NULL, 0, NULL);
 	if (ret) {
 		dev_err(&i2c->dev, "add mfd devices failed: %d\n", ret);
 		return ret;
