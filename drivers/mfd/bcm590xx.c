@@ -78,8 +78,9 @@ static int bcm590xx_i2c_probe(struct i2c_client *i2c_pri,
 		goto err;
 	}
 
-	ret = devm_mfd_add_devices(&i2c_pri->dev, -1, bcm590xx_devs,
-				   ARRAY_SIZE(bcm590xx_devs), NULL, 0, NULL);
+	ret = devm_mfd_add_devices(&i2c_pri->dev, PLATFORM_DEVID_NONE,
+				   bcm590xx_devs, ARRAY_SIZE(bcm590xx_devs),
+				   NULL, 0, NULL);
 	if (ret < 0) {
 		dev_err(&i2c_pri->dev, "failed to add sub-devices: %d\n", ret);
 		goto err;
