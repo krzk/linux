@@ -431,14 +431,13 @@ static inline struct imx214 *to_imx214(struct v4l2_subdev *sd)
 
 static int __maybe_unused imx214_power_on(struct device *dev)
 {
-	struct i2c_client *client = to_i2c_client(dev);
-	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
 	struct imx214 *imx214 = to_imx214(sd);
 	int ret;
 
 	ret = regulator_bulk_enable(IMX214_NUM_SUPPLIES, imx214->supplies);
 	if (ret < 0) {
-		dev_err(imx214->dev, "failed to enable regulators: %d\n", ret);
+		dev_err(dev, "failed to enable regulators: %d\n", ret);
 		return ret;
 	}
 
@@ -447,7 +446,7 @@ static int __maybe_unused imx214_power_on(struct device *dev)
 	ret = clk_prepare_enable(imx214->xclk);
 	if (ret < 0) {
 		regulator_bulk_disable(IMX214_NUM_SUPPLIES, imx214->supplies);
-		dev_err(imx214->dev, "clk prepare enable failed\n");
+		dev_err(dev, "clk prepare enable failed\n");
 		return ret;
 	}
 
@@ -459,8 +458,7 @@ static int __maybe_unused imx214_power_on(struct device *dev)
 
 static int __maybe_unused imx214_power_off(struct device *dev)
 {
-	struct i2c_client *client = to_i2c_client(dev);
-	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
 	struct imx214 *imx214 = to_imx214(sd);
 
 	gpiod_set_value_cansleep(imx214->enable_gpio, 0);
@@ -910,8 +908,7 @@ done:
 
 static int __maybe_unused imx214_suspend(struct device *dev)
 {
-	struct i2c_client *client = to_i2c_client(dev);
-	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
 	struct imx214 *imx214 = to_imx214(sd);
 
 	if (imx214->streaming)
@@ -922,8 +919,7 @@ static int __maybe_unused imx214_suspend(struct device *dev)
 
 static int __maybe_unused imx214_resume(struct device *dev)
 {
-	struct i2c_client *client = to_i2c_client(dev);
-	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
 	struct imx214 *imx214 = to_imx214(sd);
 	int ret;
 
