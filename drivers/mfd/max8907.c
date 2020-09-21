@@ -257,7 +257,7 @@ static int max8907_i2c_probe(struct i2c_client *i2c,
 
 	enable_irq(max8907->i2c_gen->irq);
 
-	ret = mfd_add_devices(max8907->dev, -1, max8907_cells,
+	ret = mfd_add_devices(max8907->dev, PLATFORM_DEVID_NONE, max8907_cells,
 			      ARRAY_SIZE(max8907_cells), NULL, 0, NULL);
 	if (ret != 0) {
 		dev_err(&i2c->dev, "failed to add MFD devices %d\n", ret);
