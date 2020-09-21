@@ -94,7 +94,7 @@ static int rt5033_i2c_probe(struct i2c_client *i2c,
 		return ret;
 	}
 
-	ret = devm_mfd_add_devices(rt5033->dev, -1, rt5033_devs,
+	ret = devm_mfd_add_devices(rt5033->dev, PLATFORM_DEVID_NONE, rt5033_devs,
 				   ARRAY_SIZE(rt5033_devs), NULL, 0,
 				   regmap_irq_get_domain(rt5033->irq_data));
 	if (ret < 0) {
