@@ -195,7 +195,7 @@ static int lp8788_probe(struct i2c_client *cl, const struct i2c_device_id *id)
 	if (ret)
 		return ret;
 
-	return mfd_add_devices(lp->dev, -1, lp8788_devs,
+	return mfd_add_devices(lp->dev, PLATFORM_DEVID_NONE, lp8788_devs,
 			       ARRAY_SIZE(lp8788_devs), NULL, 0, NULL);
 }
 
