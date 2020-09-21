@@ -794,8 +794,8 @@ static int twl6040_probe(struct i2c_client *client,
 	regcache_cache_only(twl6040->regmap, true);
 	regcache_mark_dirty(twl6040->regmap);
 
-	ret = mfd_add_devices(&client->dev, -1, twl6040->cells, children,
-			      NULL, 0, NULL);
+	ret = mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE, twl6040->cells,
+			      children, NULL, 0, NULL);
 	if (ret)
 		goto readyirq_err;
 
