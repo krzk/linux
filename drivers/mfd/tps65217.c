@@ -351,7 +351,7 @@ static int tps65217_probe(struct i2c_client *client)
 			tps65217s[i].num_resources = 0;
 	}
 
-	ret = devm_mfd_add_devices(tps->dev, -1, tps65217s,
+	ret = devm_mfd_add_devices(tps->dev, PLATFORM_DEVID_NONE, tps65217s,
 				   ARRAY_SIZE(tps65217s), NULL, 0,
 				   tps->irq_domain);
 	if (ret < 0) {
