@@ -184,8 +184,9 @@ static int as3711_i2c_probe(struct i2c_client *client,
 		as3711_subdevs[AS3711_BACKLIGHT].pdata_size = 0;
 	}
 
-	ret = devm_mfd_add_devices(as3711->dev, -1, as3711_subdevs,
-				   ARRAY_SIZE(as3711_subdevs), NULL, 0, NULL);
+	ret = devm_mfd_add_devices(as3711->dev, PLATFORM_DEVID_NONE,
+				   as3711_subdevs, ARRAY_SIZE(as3711_subdevs),
+				   NULL, 0, NULL);
 	if (ret < 0)
 		dev_err(&client->dev, "add mfd devices failed: %d\n", ret);
 
