@@ -578,7 +578,7 @@ static int wm8994_device_init(struct wm8994 *wm8994, int irq)
 
 	wm8994_irq_init(wm8994);
 
-	ret = mfd_add_devices(wm8994->dev, -1,
+	ret = mfd_add_devices(wm8994->dev, PLATFORM_DEVID_NONE,
 			      wm8994_devs, ARRAY_SIZE(wm8994_devs),
 			      NULL, 0, NULL);
 	if (ret != 0) {
