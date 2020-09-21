@@ -1043,8 +1043,9 @@ int arizona_dev_init(struct arizona *arizona)
 	case CS47L24:
 		break; /* No LDO1 regulator */
 	default:
-		ret = mfd_add_devices(arizona->dev, -1, early_devs,
-				      ARRAY_SIZE(early_devs), NULL, 0, NULL);
+		ret = mfd_add_devices(arizona->dev, PLATFORM_DEVID_NONE,
+				      early_devs, ARRAY_SIZE(early_devs),
+				      NULL, 0, NULL);
 		if (ret != 0) {
 			dev_err(dev, "Failed to add early children: %d\n", ret);
 			return ret;
