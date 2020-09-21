@@ -550,7 +550,7 @@ static int tps6586x_i2c_probe(struct i2c_client *client,
 		}
 	}
 
-	ret = mfd_add_devices(tps6586x->dev, -1,
+	ret = mfd_add_devices(tps6586x->dev, PLATFORM_DEVID_NONE,
 			      tps6586x_cell, ARRAY_SIZE(tps6586x_cell),
 			      NULL, 0, tps6586x->irq_domain);
 	if (ret < 0) {
