@@ -120,9 +120,8 @@ static int lp3943_probe(struct i2c_client *cl, const struct i2c_device_id *id)
 	lp3943->mux_cfg = lp3943_mux_cfg;
 	i2c_set_clientdata(cl, lp3943);
 
-	return devm_mfd_add_devices(dev, -1, lp3943_devs,
-				    ARRAY_SIZE(lp3943_devs),
-				    NULL, 0, NULL);
+	return devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, lp3943_devs,
+				    ARRAY_SIZE(lp3943_devs), NULL, 0, NULL);
 }
 
 static const struct i2c_device_id lp3943_ids[] = {
