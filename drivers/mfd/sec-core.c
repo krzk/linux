@@ -457,8 +457,8 @@ static int sec_pmic_probe(struct i2c_client *i2c,
 			sec_pmic->device_type);
 		return -ENODEV;
 	}
-	ret = devm_mfd_add_devices(sec_pmic->dev, -1, sec_devs, num_sec_devs,
-				   NULL, 0, NULL);
+	ret = devm_mfd_add_devices(sec_pmic->dev, PLATFORM_DEVID_NONE,
+				   sec_devs, num_sec_devs, NULL, 0, NULL);
 	if (ret)
 		return ret;
 
