@@ -502,7 +502,7 @@ static int tps65910_i2c_probe(struct i2c_client *i2c,
 		pm_power_off = tps65910_power_off;
 	}
 
-	ret = devm_mfd_add_devices(tps65910->dev, -1,
+	ret = devm_mfd_add_devices(tps65910->dev, PLATFORM_DEVID_NONE,
 				   tps65910s, ARRAY_SIZE(tps65910s),
 				   NULL, 0,
 				   regmap_irq_get_domain(tps65910->irq_data));
