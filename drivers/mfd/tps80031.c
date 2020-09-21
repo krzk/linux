@@ -488,7 +488,7 @@ static int tps80031_probe(struct i2c_client *client,
 
 	tps80031_init_ext_control(tps80031, pdata);
 
-	ret = mfd_add_devices(tps80031->dev, -1,
+	ret = mfd_add_devices(tps80031->dev, PLATFORM_DEVID_NONE,
 			tps80031_cell, ARRAY_SIZE(tps80031_cell),
 			NULL, 0,
 			regmap_irq_get_domain(tps80031->irq_data));
