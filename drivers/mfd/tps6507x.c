@@ -100,8 +100,9 @@ static int tps6507x_i2c_probe(struct i2c_client *i2c,
 	tps6507x->read_dev = tps6507x_i2c_read_device;
 	tps6507x->write_dev = tps6507x_i2c_write_device;
 
-	return devm_mfd_add_devices(tps6507x->dev, -1, tps6507x_devs,
-				    ARRAY_SIZE(tps6507x_devs), NULL, 0, NULL);
+	return devm_mfd_add_devices(tps6507x->dev, PLATFORM_DEVID_NONE,
+				    tps6507x_devs, ARRAY_SIZE(tps6507x_devs),
+				    NULL, 0, NULL);
 }
 
 static const struct i2c_device_id tps6507x_i2c_id[] = {
