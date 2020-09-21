@@ -212,7 +212,7 @@ static int max8997_i2c_probe(struct i2c_client *i2c,
 
 	max8997_irq_init(max8997);
 
-	ret = mfd_add_devices(max8997->dev, -1, max8997_devs,
+	ret = mfd_add_devices(max8997->dev, PLATFORM_DEVID_NONE, max8997_devs,
 			ARRAY_SIZE(max8997_devs),
 			NULL, 0, NULL);
 	if (ret < 0) {
