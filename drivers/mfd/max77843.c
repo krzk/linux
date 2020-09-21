@@ -148,7 +148,7 @@ static int max77843_probe(struct i2c_client *i2c,
 		goto err_pmic_id;
 	}
 
-	ret = mfd_add_devices(max77843->dev, -1, max77843_devs,
+	ret = mfd_add_devices(max77843->dev, PLATFORM_DEVID_NONE, max77843_devs,
 			      ARRAY_SIZE(max77843_devs), NULL, 0, NULL);
 	if (ret < 0) {
 		dev_err(&i2c->dev, "Failed to add mfd device\n");
