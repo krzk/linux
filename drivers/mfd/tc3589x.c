@@ -287,7 +287,8 @@ static int tc3589x_device_init(struct tc3589x *tc3589x)
 	unsigned int blocks = tc3589x->pdata->block;
 
 	if (blocks & TC3589x_BLOCK_GPIO) {
-		ret = mfd_add_devices(tc3589x->dev, -1, tc3589x_dev_gpio,
+		ret = mfd_add_devices(tc3589x->dev, PLATFORM_DEVID_NONE,
+				      tc3589x_dev_gpio,
 				      ARRAY_SIZE(tc3589x_dev_gpio), NULL,
 				      0, tc3589x->domain);
 		if (ret) {
@@ -298,7 +299,8 @@ static int tc3589x_device_init(struct tc3589x *tc3589x)
 	}
 
 	if (blocks & TC3589x_BLOCK_KEYPAD) {
-		ret = mfd_add_devices(tc3589x->dev, -1, tc3589x_dev_keypad,
+		ret = mfd_add_devices(tc3589x->dev, PLATFORM_DEVID_NONE,
+				      tc3589x_dev_keypad,
 				      ARRAY_SIZE(tc3589x_dev_keypad), NULL,
 				      0, tc3589x->domain);
 		if (ret) {
