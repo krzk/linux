@@ -208,12 +208,12 @@ static int max8998_i2c_probe(struct i2c_client *i2c,
 
 	switch (max8998->type) {
 	case TYPE_LP3974:
-		ret = mfd_add_devices(max8998->dev, -1,
+		ret = mfd_add_devices(max8998->dev, PLATFORM_DEVID_NONE,
 				      lp3974_devs, ARRAY_SIZE(lp3974_devs),
 				      NULL, 0, NULL);
 		break;
 	case TYPE_MAX8998:
-		ret = mfd_add_devices(max8998->dev, -1,
+		ret = mfd_add_devices(max8998->dev, PLATFORM_DEVID_NONE,
 				      max8998_devs, ARRAY_SIZE(max8998_devs),
 				      NULL, 0, NULL);
 		break;
