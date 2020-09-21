@@ -44,7 +44,7 @@ static int bcm2835_pm_probe(struct platform_device *pdev)
 	if (IS_ERR(pm->base))
 		return PTR_ERR(pm->base);
 
-	ret = devm_mfd_add_devices(dev, -1,
+	ret = devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE,
 				   bcm2835_pm_devs, ARRAY_SIZE(bcm2835_pm_devs),
 				   NULL, 0, NULL);
 	if (ret)
@@ -60,7 +60,7 @@ static int bcm2835_pm_probe(struct platform_device *pdev)
 		if (IS_ERR(pm->asb))
 			return PTR_ERR(pm->asb);
 
-		ret = devm_mfd_add_devices(dev, -1,
+		ret = devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE,
 					   bcm2835_power_devs,
 					   ARRAY_SIZE(bcm2835_power_devs),
 					   NULL, 0, NULL);
