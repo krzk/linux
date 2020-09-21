@@ -129,7 +129,7 @@ static int atmel_hlcdc_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(dev, hlcdc);
 
-	return devm_mfd_add_devices(dev, -1, atmel_hlcdc_cells,
+	return devm_mfd_add_devices(dev, PLATFORM_DEVID_NONE, atmel_hlcdc_cells,
 				    ARRAY_SIZE(atmel_hlcdc_cells),
 				    NULL, 0, NULL);
 }
