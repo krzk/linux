@@ -317,8 +317,9 @@ static int intel_msic_init_devices(struct intel_msic *msic)
 		if (!pdata->irq[i])
 			continue;
 
-		ret = mfd_add_devices(&pdev->dev, -1, &msic_devs[i], 1, NULL,
-				      pdata->irq[i], NULL);
+		ret = mfd_add_devices(&pdev->dev, PLATFORM_DEVID_NONE,
+				      &msic_devs[i], 1, NULL, pdata->irq[i],
+				      NULL);
 		if (ret)
 			goto fail;
 	}
