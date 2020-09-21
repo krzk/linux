@@ -400,7 +400,7 @@ int da9055_device_init(struct da9055 *da9055)
 
 	da9055->irq_base = regmap_irq_chip_get_base(da9055->irq_data);
 
-	ret = mfd_add_devices(da9055->dev, -1,
+	ret = mfd_add_devices(da9055->dev, PLATFORM_DEVID_NONE,
 			      da9055_devs, ARRAY_SIZE(da9055_devs),
 			      NULL, da9055->irq_base, NULL);
 	if (ret)
