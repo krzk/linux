@@ -214,7 +214,7 @@ static int wl1273_core_probe(struct i2c_client *client,
 	dev_dbg(&client->dev, "%s: number of children: %d.\n",
 		__func__, children);
 
-	r = devm_mfd_add_devices(&client->dev, -1, core->cells,
+	r = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE, core->cells,
 				 children, NULL, 0, NULL);
 	if (r)
 		goto err;
