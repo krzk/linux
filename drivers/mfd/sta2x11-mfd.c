@@ -594,7 +594,7 @@ static int sta2x11_mfd_probe(struct pci_dev *pdev,
 
 	/* Just 2 bars for all mfd's at present */
 	for (i = 0; i < 2; i++) {
-		err = mfd_add_devices(&pdev->dev, -1,
+		err = mfd_add_devices(&pdev->dev, PLATFORM_DEVID_NONE,
 				      setup_data->bars[i].cells,
 				      setup_data->bars[i].ncells,
 				      &pdev->resource[i],
