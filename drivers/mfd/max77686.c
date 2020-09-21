@@ -217,8 +217,8 @@ static int max77686_i2c_probe(struct i2c_client *i2c)
 		return ret;
 	}
 
-	ret = devm_mfd_add_devices(max77686->dev, -1, cells, n_devs, NULL,
-				   0, NULL);
+	ret = devm_mfd_add_devices(max77686->dev, PLATFORM_DEVID_NONE, cells,
+				   n_devs, NULL, 0, NULL);
 	if (ret < 0) {
 		dev_err(&i2c->dev, "failed to add MFD devices: %d\n", ret);
 		return ret;
