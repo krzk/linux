@@ -740,25 +740,25 @@ static int timb_probe(struct pci_dev *dev,
 	ip_setup = priv->fw.config & TIMB_HW_VER_MASK;
 	switch (ip_setup) {
 	case TIMB_HW_VER0:
-		err = mfd_add_devices(&dev->dev, -1,
+		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
 			timberdale_cells_bar0_cfg0,
 			ARRAY_SIZE(timberdale_cells_bar0_cfg0),
 			&dev->resource[0], msix_entries[0].vector, NULL);
 		break;
 	case TIMB_HW_VER1:
-		err = mfd_add_devices(&dev->dev, -1,
+		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
 			timberdale_cells_bar0_cfg1,
 			ARRAY_SIZE(timberdale_cells_bar0_cfg1),
 			&dev->resource[0], msix_entries[0].vector, NULL);
 		break;
 	case TIMB_HW_VER2:
-		err = mfd_add_devices(&dev->dev, -1,
+		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
 			timberdale_cells_bar0_cfg2,
 			ARRAY_SIZE(timberdale_cells_bar0_cfg2),
 			&dev->resource[0], msix_entries[0].vector, NULL);
 		break;
 	case TIMB_HW_VER3:
-		err = mfd_add_devices(&dev->dev, -1,
+		err = mfd_add_devices(&dev->dev, PLATFORM_DEVID_NONE,
 			timberdale_cells_bar0_cfg3,
 			ARRAY_SIZE(timberdale_cells_bar0_cfg3),
 			&dev->resource[0], msix_entries[0].vector, NULL);
