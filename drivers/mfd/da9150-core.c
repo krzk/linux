@@ -453,7 +453,7 @@ static int da9150_probe(struct i2c_client *client,
 
 	enable_irq_wake(da9150->irq);
 
-	ret = mfd_add_devices(da9150->dev, -1, da9150_devs,
+	ret = mfd_add_devices(da9150->dev, PLATFORM_DEVID_NONE, da9150_devs,
 			      ARRAY_SIZE(da9150_devs), NULL,
 			      da9150->irq_base, NULL);
 	if (ret) {
