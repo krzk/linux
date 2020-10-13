@@ -40,13 +40,7 @@ struct vf_crc {
 	struct device		*dev;
 	void __iomem		*iobase;
 
-	/*
-	 * Request currently processed in HW so consecutive update() and final()
-	 * will not need to reinit the HW.
-	 */
-	struct vf_crc_desc_ctx	*processed_desc;
-
-	/* Lock protecting access to HW registers and processed_desc. */
+	/* Lock protecting access to HW registers. */
 	struct mutex		lock;
 };
 
@@ -161,7 +155,7 @@ static int vf_crc_update_prepare(struct vf_crc_tfm_ctx *mctx,
 	struct vf_crc *crc = desc_ctx->crc;
 	int ret;
 
-	ret = clk_prepare_enable(crc->clk);
+	ret = clk_enable(crc->clk);
 	if (ret) {
 		dev_err(crc->dev, "Failed to enable clock\n");
 		return ret;
@@ -169,16 +163,7 @@ static int vf_crc_update_prepare(struct vf_crc_tfm_ctx *mctx,
 
 	mutex_lock(&crc->lock);
 
-	/*
-	 * Check if we are continuing to process request already configured
-	 * in HW. HW has to be re-initialized only on first update() for given
-	 * request or if new request was processed after last call to update().
-	 */
-	if (crc->processed_desc == desc_ctx)
-		return 0;
-
 	vf_crc_initialize_regs(mctx, desc_ctx);
-	desc_ctx->crc->processed_desc = desc_ctx;
 
 	return 0;
 }
@@ -195,7 +180,7 @@ static void vf_crc_update_unprepare(struct vf_crc_tfm_ctx *mctx,
 
 	mutex_unlock(&crc->lock);
 
-	clk_disable_unprepare(crc->clk);
+	clk_disable(crc->clk);
 }
 
 static int vf_crc_update(struct shash_desc *desc, const u8 *data,
@@ -246,25 +231,7 @@ static int vf_crc_final(struct shash_desc *desc, u8 *out)
 	else
 		put_unaligned_le32(bitrev32(desc_ctx->state), out);
 
-	mutex_lock(&desc_ctx->crc->lock);
-	/* No more processing of this request */
-	desc_ctx->crc->processed_desc = NULL;
-	mutex_unlock(&desc_ctx->crc->lock);
-
 	return 0;
-}
-
-static int vf_crc_finup(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *out)
-{
-	return vf_crc_update(desc, data, len) ?:
-	       vf_crc_final(desc, out);
-}
-
-static int vf_crc_digest(struct shash_desc *desc, const u8 *data,
-			 unsigned int leng, u8 *out)
-{
-	return vf_crc_init(desc) ?: vf_crc_finup(desc, data, leng, out);
 }
 
 static struct shash_alg algs[] = {
@@ -273,8 +240,6 @@ static struct shash_alg algs[] = {
 		.init           = vf_crc_init,
 		.update         = vf_crc_update,
 		.final          = vf_crc_final,
-		.finup          = vf_crc_finup,
-		.digest         = vf_crc_digest,
 		.descsize       = sizeof(struct vf_crc_desc_ctx),
 		.digestsize     = CHKSUM_DIGEST_SIZE,
 		.base           = {
@@ -293,8 +258,6 @@ static struct shash_alg algs[] = {
 		.init           = vf_crc_init,
 		.update         = vf_crc_update,
 		.final          = vf_crc_final,
-		.finup          = vf_crc_finup,
-		.digest         = vf_crc_digest,
 		.descsize       = sizeof(struct vf_crc_desc_ctx),
 		.digestsize     = (CHKSUM_DIGEST_SIZE / 2),
 		.base           = {
@@ -340,19 +303,27 @@ static int vf_crc_probe(struct platform_device *pdev)
 	}
 
 	vf_crc_data = crc;
+	mutex_init(&crc->lock);
+
+	ret = clk_prepare(crc->clk);
+	if (ret) {
+		dev_err(crc->dev, "Failed to prepare clock\n");
+		goto err_clk;
+	}
 
 	ret = crypto_register_shashes(algs, ARRAY_SIZE(algs));
 	if (ret) {
 		dev_err(dev, "Failed to register crypto algorithms\n");
-		goto err;
+		goto err_hash;
 	}
 
-	mutex_init(&crc->lock);
 	dev_dbg(dev, "HW CRC accelerator initialized\n");
 
 	return 0;
 
-err:
+err_hash:
+	clk_unprepare(crc->clk);
+err_clk:
 	vf_crc_data = NULL;
 
 	return ret;
@@ -361,6 +332,7 @@ err:
 static int vf_crc_remove(struct platform_device *pdev)
 {
 	crypto_unregister_shashes(algs, ARRAY_SIZE(algs));
+	clk_unprepare(vf_crc_data->clk);
 	vf_crc_data = NULL;
 
 	return 0;
