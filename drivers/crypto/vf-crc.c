@@ -178,6 +178,7 @@ static int vf_crc_update_prepare(struct vf_crc_tfm_ctx *mctx,
 		return 0;
 
 	vf_crc_initialize_regs(mctx, desc_ctx);
+	desc_ctx->crc->processed_desc = desc_ctx;
 
 	return 0;
 }
