@@ -420,6 +420,7 @@ config CRYPTO_DEV_MXS_DCP
 
 config CRYPTO_DEV_VF_CRC
 	tristate "Support for Freescale/NXP Vybrid CRC HW accelerator"
+	depends on HAS_IOMEM
 	select CRYPTO_HASH
 	help
 	  This option enables support for the CRC16/32 hardware accelerator
