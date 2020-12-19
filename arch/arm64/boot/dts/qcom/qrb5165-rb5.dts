@@ -224,6 +224,26 @@
 		regulator-max-microvolt = <1800000>;
 		regulator-always-on;
 	};
+
+	qca639x: qca639x {
+		compatible = "qcom,qca6390";
+		#power-domain-cells = <0>;
+
+		vddaon-supply = <&vreg_s6a_0p95>;
+		vddpmu-supply = <&vreg_s2f_0p95>;
+		vddrfa1-supply = <&vreg_s2f_0p95>;
+		vddrfa2-supply = <&vreg_s8c_1p3>;
+		vddrfa3-supply = <&vreg_s5a_1p9>;
+		vddpcie1-supply = <&vreg_s8c_1p3>;
+		vddpcie2-supply = <&vreg_s5a_1p9>;
+		vddio-supply = <&vreg_s4a_1p8>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&wlan_en_state>;
+
+		wlan-en-gpios = <&tlmm 20 GPIO_ACTIVE_HIGH>;
+	};
+
 };
 
 &adsp {
@@ -1202,6 +1222,17 @@
 		pins = "gpio77";
 		function = "gpio";
 		bias-pull-up;
+	};
+
+	wlan_en_state: wlan-default-state {
+		wlan-en {
+			pins = "gpio20";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-up;
+		};
 	};
 };
 
