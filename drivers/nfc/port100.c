@@ -800,12 +800,19 @@ static void port100_build_cmd_frame(struct port100 *dev, u8 cmd_code,
 	/* payload is already there, just update datalen */
 	int payload_len = skb->len;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	skb_push(skb, PORT100_FRAME_HEADER_LEN);
+	pr_err("%s:%d\n", __func__, __LINE__);
 	skb_put(skb, PORT100_FRAME_TAIL_LEN);
+	pr_err("%s:%d\n", __func__, __LINE__);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	port100_tx_frame_init(skb->data, cmd_code);
+	pr_err("%s:%d\n", __func__, __LINE__);
 	port100_tx_update_payload_len(skb->data, payload_len);
+	pr_err("%s:%d\n", __func__, __LINE__);
 	port100_tx_frame_finish(skb->data);
+	pr_err("%s:%d\n", __func__, __LINE__);
 }
 
 static void port100_send_async_complete(struct port100 *dev)
@@ -849,22 +856,30 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 			PORT100_FRAME_MAX_PAYLOAD_LEN +
 			PORT100_FRAME_TAIL_LEN;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	if (dev->cmd) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
 			"A command is still in process\n");
 		return -EBUSY;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	resp = alloc_skb(resp_len, GFP_KERNEL);
-	if (!resp)
+	if (!resp) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		return -ENOMEM;
+	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
 	if (!cmd) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		dev_kfree_skb(resp);
 		return -ENOMEM;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	cmd->code = cmd_code;
 	cmd->req = req;
 	cmd->resp = resp;
@@ -872,17 +887,21 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 	cmd->complete_cb = complete_cb;
 	cmd->complete_cb_context = complete_cb_context;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	port100_build_cmd_frame(dev, cmd_code, req);
 
 	dev->cmd = cmd;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	rc = port100_send_frame_async(dev, req, resp, resp_len);
 	if (rc) {
 		kfree(cmd);
 		dev_kfree_skb(resp);
 		dev->cmd = NULL;
+		pr_err("%s:%d\n", __func__, __LINE__);
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return rc;
 }
 
@@ -916,14 +935,18 @@ static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
 
 	init_completion(&arg.done);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	rc = port100_send_cmd_async(dev, cmd_code, req,
 				    port100_send_sync_complete, &arg);
 	if (rc) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		dev_kfree_skb(req);
 		return ERR_PTR(rc);
 	}
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	wait_for_completion(&arg.done);
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	return arg.resp;
 }
@@ -1008,9 +1031,13 @@ static u64 port100_get_command_type_mask(struct port100 *dev)
 	if (!skb)
 		return -ENOMEM;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	resp = port100_send_cmd_sync(dev, PORT100_CMD_GET_COMMAND_TYPE, skb);
-	if (IS_ERR(resp))
+	if (IS_ERR(resp)) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		return PTR_ERR(resp);
+	}
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	if (resp->len < 8)
 		mask = 0;
@@ -1032,11 +1059,13 @@ static u16 port100_get_firmware_version(struct port100 *dev)
 	if (!skb)
 		return 0;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	resp = port100_send_cmd_sync(dev, PORT100_CMD_GET_FIRMWARE_VERSION,
 				     skb);
 	if (IS_ERR(resp))
 		return 0;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	fw_ver = le16_to_cpu(*(__le16 *)resp->data);
 
 	dev_kfree_skb(resp);
@@ -1551,6 +1580,7 @@ static int port100_probe(struct usb_interface *interface,
 	init_completion(&dev->cmd_cancel_done);
 	INIT_WORK(&dev->cmd_complete_work, port100_wq_cmd_complete);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	/* The first thing to do with the Port-100 is to set the command type
 	 * to be used. If supported we use command type 1. 0 otherwise.
 	 */
@@ -1561,12 +1591,14 @@ static int port100_probe(struct usb_interface *interface,
 		rc = -ENODEV;
 		goto error;
 	}
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	if (PORT100_CMD_TYPE_IS_SUPPORTED(cmd_type_mask, PORT100_CMD_TYPE_1))
 		dev->cmd_type = PORT100_CMD_TYPE_1;
 	else
 		dev->cmd_type = PORT100_CMD_TYPE_0;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	rc = port100_set_command_type(dev, dev->cmd_type);
 	if (rc) {
 		nfc_err(&interface->dev,
@@ -1574,12 +1606,15 @@ static int port100_probe(struct usb_interface *interface,
 			dev->cmd_type);
 		goto error;
 	}
+	pr_err("%s:%d\n", __func__, __LINE__);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	fw_version = port100_get_firmware_version(dev);
 	if (!fw_version)
 		nfc_err(&interface->dev,
 			"Could not get device firmware version\n");
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	nfc_info(&interface->dev,
 		 "Sony NFC Port-100 Series attached (firmware v%x.%02x)\n",
 		 (fw_version & 0xFF00) >> 8, fw_version & 0xFF);
