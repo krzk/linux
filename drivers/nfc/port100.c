@@ -619,6 +619,7 @@ static void port100_recv_response(struct urb *urb)
 
 	cmd->status = urb->status;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	switch (urb->status) {
 	case 0:
 		break; /* success */
@@ -629,14 +630,17 @@ static void port100_recv_response(struct urb *urb)
 		goto sched_wq;
 	case -ESHUTDOWN:
 	default:
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Urb failure (status %d)\n",
 			urb->status);
 		goto sched_wq;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	in_frame = dev->in_urb->transfer_buffer;
 
 	if (!port100_rx_frame_is_valid(in_frame)) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Received an invalid frame\n");
 		cmd->status = -EIO;
 		goto sched_wq;
@@ -646,12 +650,14 @@ static void port100_recv_response(struct urb *urb)
 			     port100_rx_frame_size(in_frame), false);
 
 	if (!port100_rx_frame_is_cmd_response(dev, in_frame)) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
 			"It's not the response to the last command\n");
 		cmd->status = -EIO;
 		goto sched_wq;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 sched_wq:
 	pr_err("%s:%d\n", __func__, __LINE__);
 	schedule_work(&dev->cmd_complete_work);
@@ -660,9 +666,15 @@ sched_wq:
 static int port100_submit_urb_for_response(const struct port100 *dev,
 					   gfp_t flags)
 {
+	int ret;
+
 	dev->in_urb->complete = port100_recv_response;
 
-	return usb_submit_urb(dev->in_urb, flags);
+	ret = usb_submit_urb(dev->in_urb, flags);
+
+	pr_err("%s:%d %d\n", __func__, __LINE__, ret);
+
+	return ret;
 }
 
 static void port100_recv_ack(struct urb *urb)
@@ -674,6 +686,7 @@ static void port100_recv_ack(struct urb *urb)
 
 	cmd->status = urb->status;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	switch (urb->status) {
 	case 0:
 		break; /* success */
@@ -684,14 +697,17 @@ static void port100_recv_ack(struct urb *urb)
 		goto sched_wq;
 	case -ESHUTDOWN:
 	default:
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Urb failure (status %d)\n",
 			urb->status);
 		goto sched_wq;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	in_frame = dev->in_urb->transfer_buffer;
 
 	if (!port100_rx_frame_is_ack(in_frame)) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Received an invalid ack\n");
 		cmd->status = -EIO;
 		goto sched_wq;
@@ -699,12 +715,14 @@ static void port100_recv_ack(struct urb *urb)
 
 	rc = port100_submit_urb_for_response(dev, GFP_ATOMIC);
 	if (rc) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
 			"usb_submit_urb failed with result %d\n", rc);
 		cmd->status = rc;
 		goto sched_wq;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return;
 
 sched_wq:
@@ -716,6 +734,7 @@ static int port100_submit_urb_for_ack(const struct port100 *dev, gfp_t flags)
 {
 	dev->in_urb->complete = port100_recv_ack;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return usb_submit_urb(dev->in_urb, flags);
 }
 
@@ -751,8 +770,12 @@ static int port100_send_ack(struct port100 *dev)
 
 	mutex_unlock(&dev->out_urb_lock);
 
-	if (!rc)
+	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
+	if (!rc) {
+		pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 		wait_for_completion(&dev->cmd_cancel_done);
+	}
+	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 
 	return rc;
 }
@@ -959,6 +982,7 @@ static void port100_send_complete(struct urb *urb)
 
 	pr_err("%s:%d\n", __func__, __LINE__);
 	if (dev->cmd_cancel) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		complete_all(&dev->cmd_cancel_done);
 		dev->cmd_cancel = false;
 	}
@@ -973,9 +997,11 @@ static void port100_send_complete(struct urb *urb)
 		break;
 	case -ESHUTDOWN:
 	default:
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Urb failure (status %d)\n",
 			urb->status);
 	}
+	pr_err("%s:%d\n", __func__, __LINE__);
 }
 
 static void port100_abort_cmd(struct nfc_digital_dev *ddev)
