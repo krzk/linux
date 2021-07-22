@@ -1604,6 +1604,7 @@ static int port100_probe(struct usb_interface *interface,
 	pr_err("%s:%d\n", __func__, __LINE__);
 	rc = port100_set_command_type(dev, dev->cmd_type);
 	if (rc) {
+		pr_err("%s:%d\n", __func__, __LINE__);
 		nfc_err(&interface->dev,
 			"The device does not support command type %u\n",
 			dev->cmd_type);
@@ -1644,16 +1645,20 @@ static int port100_probe(struct usb_interface *interface,
 		goto free_nfc_dev;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return 0;
 
 free_nfc_dev:
+	pr_err("%s:%d\n", __func__, __LINE__);
 	nfc_digital_free_device(dev->nfc_digital_dev);
 
 error:
+	pr_err("%s:%d\n", __func__, __LINE__);
 	usb_free_urb(dev->in_urb);
 	usb_free_urb(dev->out_urb);
 	usb_put_dev(dev->udev);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return rc;
 }
 
