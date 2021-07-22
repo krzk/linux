@@ -653,6 +653,7 @@ static void port100_recv_response(struct urb *urb)
 	}
 
 sched_wq:
+	pr_err("%s:%d\n", __func__, __LINE__);
 	schedule_work(&dev->cmd_complete_work);
 }
 
@@ -707,6 +708,7 @@ static void port100_recv_ack(struct urb *urb)
 	return;
 
 sched_wq:
+	pr_err("%s:%d\n", __func__, __LINE__);
 	schedule_work(&dev->cmd_complete_work);
 }
 
@@ -943,7 +945,7 @@ static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
 		dev_kfree_skb(req);
 		return ERR_PTR(rc);
 	}
-	pr_err("%s:%d\n", __func__, __LINE__);
+	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 
 	wait_for_completion(&arg.done);
 	pr_err("%s:%d\n", __func__, __LINE__);
@@ -955,6 +957,7 @@ static void port100_send_complete(struct urb *urb)
 {
 	struct port100 *dev = urb->context;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	if (dev->cmd_cancel) {
 		complete_all(&dev->cmd_cancel_done);
 		dev->cmd_cancel = false;
