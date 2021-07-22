@@ -672,7 +672,7 @@ static int port100_submit_urb_for_response(const struct port100 *dev,
 
 	ret = usb_submit_urb(dev->in_urb, flags);
 
-	pr_err("%s:%d %d\n", __func__, __LINE__, ret);
+	nfc_err(&dev->interface->dev, "%s:%d %d\n", __func__, __LINE__, ret);
 
 	return ret;
 }
@@ -737,7 +737,7 @@ static int port100_submit_urb_for_ack(const struct port100 *dev, gfp_t flags)
 
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	ret = usb_submit_urb(dev->in_urb, flags);
-	pr_err("%s:%d rc=%d\n", __func__, __LINE__, ret);
+	nfc_err(&dev->interface->dev, "%s:%d rc=%d\n", __func__, __LINE__, ret);
 	return ret;
 }
 
@@ -773,12 +773,12 @@ static int port100_send_ack(struct port100 *dev)
 
 	mutex_unlock(&dev->out_urb_lock);
 
-	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
+	nfc_err(&dev->interface->dev, "%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 	if (!rc) {
-		pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
+		nfc_err(&dev->interface->dev, "%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 		wait_for_completion(&dev->cmd_cancel_done);
 	}
-	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
+	nfc_err(&dev->interface->dev, "%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 
 	return rc;
 }
@@ -971,7 +971,7 @@ static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
 		dev_kfree_skb(req);
 		return ERR_PTR(rc);
 	}
-	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
+	nfc_err(&dev->interface->dev, "%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 
 	wait_for_completion(&arg.done);
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
