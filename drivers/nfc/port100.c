@@ -619,7 +619,7 @@ static void port100_recv_response(struct urb *urb)
 
 	cmd->status = urb->status;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	switch (urb->status) {
 	case 0:
 		break; /* success */
@@ -630,17 +630,17 @@ static void port100_recv_response(struct urb *urb)
 		goto sched_wq;
 	case -ESHUTDOWN:
 	default:
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Urb failure (status %d)\n",
 			urb->status);
 		goto sched_wq;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	in_frame = dev->in_urb->transfer_buffer;
 
 	if (!port100_rx_frame_is_valid(in_frame)) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Received an invalid frame\n");
 		cmd->status = -EIO;
 		goto sched_wq;
@@ -650,16 +650,16 @@ static void port100_recv_response(struct urb *urb)
 			     port100_rx_frame_size(in_frame), false);
 
 	if (!port100_rx_frame_is_cmd_response(dev, in_frame)) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
 			"It's not the response to the last command\n");
 		cmd->status = -EIO;
 		goto sched_wq;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 sched_wq:
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	schedule_work(&dev->cmd_complete_work);
 }
 
@@ -686,7 +686,7 @@ static void port100_recv_ack(struct urb *urb)
 
 	cmd->status = urb->status;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	switch (urb->status) {
 	case 0:
 		break; /* success */
@@ -697,17 +697,17 @@ static void port100_recv_ack(struct urb *urb)
 		goto sched_wq;
 	case -ESHUTDOWN:
 	default:
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Urb failure (status %d)\n",
 			urb->status);
 		goto sched_wq;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	in_frame = dev->in_urb->transfer_buffer;
 
 	if (!port100_rx_frame_is_ack(in_frame)) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Received an invalid ack\n");
 		cmd->status = -EIO;
 		goto sched_wq;
@@ -715,18 +715,18 @@ static void port100_recv_ack(struct urb *urb)
 
 	rc = port100_submit_urb_for_response(dev, GFP_ATOMIC);
 	if (rc) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
 			"usb_submit_urb failed with result %d\n", rc);
 		cmd->status = rc;
 		goto sched_wq;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	return;
 
 sched_wq:
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	schedule_work(&dev->cmd_complete_work);
 }
 
@@ -735,9 +735,9 @@ static int port100_submit_urb_for_ack(const struct port100 *dev, gfp_t flags)
 	int ret;
 	dev->in_urb->complete = port100_recv_ack;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	ret = usb_submit_urb(dev->in_urb, flags);
-	pr_err("%s:%d %d\n", __func__, __LINE__, ret);
+	pr_err("%s:%d rc=%d\n", __func__, __LINE__, ret);
 	return ret;
 }
 
@@ -828,19 +828,19 @@ static void port100_build_cmd_frame(struct port100 *dev, u8 cmd_code,
 	/* payload is already there, just update datalen */
 	int payload_len = skb->len;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	skb_push(skb, PORT100_FRAME_HEADER_LEN);
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	skb_put(skb, PORT100_FRAME_TAIL_LEN);
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	port100_tx_frame_init(skb->data, cmd_code);
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	port100_tx_update_payload_len(skb->data, payload_len);
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	port100_tx_frame_finish(skb->data);
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 }
 
 static void port100_send_async_complete(struct port100 *dev)
@@ -884,30 +884,30 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 			PORT100_FRAME_MAX_PAYLOAD_LEN +
 			PORT100_FRAME_TAIL_LEN;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	if (dev->cmd) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
 			"A command is still in process\n");
 		return -EBUSY;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	resp = alloc_skb(resp_len, GFP_KERNEL);
 	if (!resp) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		return -ENOMEM;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
 	if (!cmd) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		dev_kfree_skb(resp);
 		return -ENOMEM;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	cmd->code = cmd_code;
 	cmd->req = req;
 	cmd->resp = resp;
@@ -915,21 +915,21 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 	cmd->complete_cb = complete_cb;
 	cmd->complete_cb_context = complete_cb_context;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	port100_build_cmd_frame(dev, cmd_code, req);
 
 	dev->cmd = cmd;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	rc = port100_send_frame_async(dev, req, resp, resp_len);
 	if (rc) {
 		kfree(cmd);
 		dev_kfree_skb(resp);
 		dev->cmd = NULL;
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	return rc;
 }
 
@@ -963,18 +963,18 @@ static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
 
 	init_completion(&arg.done);
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	rc = port100_send_cmd_async(dev, cmd_code, req,
 				    port100_send_sync_complete, &arg);
 	if (rc) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		dev_kfree_skb(req);
 		return ERR_PTR(rc);
 	}
 	pr_err("%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 
 	wait_for_completion(&arg.done);
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
 	return arg.resp;
 }
@@ -983,9 +983,9 @@ static void port100_send_complete(struct urb *urb)
 {
 	struct port100 *dev = urb->context;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	if (dev->cmd_cancel) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		complete_all(&dev->cmd_cancel_done);
 		dev->cmd_cancel = false;
 	}
@@ -1000,11 +1000,11 @@ static void port100_send_complete(struct urb *urb)
 		break;
 	case -ESHUTDOWN:
 	default:
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev, "Urb failure (status %d)\n",
 			urb->status);
 	}
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 }
 
 static void port100_abort_cmd(struct nfc_digital_dev *ddev)
@@ -1063,13 +1063,13 @@ static u64 port100_get_command_type_mask(struct port100 *dev)
 	if (!skb)
 		return -ENOMEM;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	resp = port100_send_cmd_sync(dev, PORT100_CMD_GET_COMMAND_TYPE, skb);
 	if (IS_ERR(resp)) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		return PTR_ERR(resp);
 	}
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
 	if (resp->len < 8)
 		mask = 0;
@@ -1091,13 +1091,13 @@ static u16 port100_get_firmware_version(struct port100 *dev)
 	if (!skb)
 		return 0;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	resp = port100_send_cmd_sync(dev, PORT100_CMD_GET_FIRMWARE_VERSION,
 				     skb);
 	if (IS_ERR(resp))
 		return 0;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	fw_ver = le16_to_cpu(*(__le16 *)resp->data);
 
 	dev_kfree_skb(resp);
@@ -1612,7 +1612,7 @@ static int port100_probe(struct usb_interface *interface,
 	init_completion(&dev->cmd_cancel_done);
 	INIT_WORK(&dev->cmd_complete_work, port100_wq_cmd_complete);
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	/* The first thing to do with the Port-100 is to set the command type
 	 * to be used. If supported we use command type 1. 0 otherwise.
 	 */
@@ -1623,31 +1623,31 @@ static int port100_probe(struct usb_interface *interface,
 		rc = -ENODEV;
 		goto error;
 	}
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
 	if (PORT100_CMD_TYPE_IS_SUPPORTED(cmd_type_mask, PORT100_CMD_TYPE_1))
 		dev->cmd_type = PORT100_CMD_TYPE_1;
 	else
 		dev->cmd_type = PORT100_CMD_TYPE_0;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	rc = port100_set_command_type(dev, dev->cmd_type);
 	if (rc) {
-		pr_err("%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&interface->dev,
 			"The device does not support command type %u\n",
 			dev->cmd_type);
 		goto error;
 	}
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	fw_version = port100_get_firmware_version(dev);
 	if (!fw_version)
 		nfc_err(&interface->dev,
 			"Could not get device firmware version\n");
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	nfc_info(&interface->dev,
 		 "Sony NFC Port-100 Series attached (firmware v%x.%02x)\n",
 		 (fw_version & 0xFF00) >> 8, fw_version & 0xFF);
@@ -1674,20 +1674,20 @@ static int port100_probe(struct usb_interface *interface,
 		goto free_nfc_dev;
 	}
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	return 0;
 
 free_nfc_dev:
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	nfc_digital_free_device(dev->nfc_digital_dev);
 
 error:
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	usb_free_urb(dev->in_urb);
 	usb_free_urb(dev->out_urb);
 	usb_put_dev(dev->udev);
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	return rc;
 }
 
