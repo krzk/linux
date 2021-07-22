@@ -732,10 +732,13 @@ sched_wq:
 
 static int port100_submit_urb_for_ack(const struct port100 *dev, gfp_t flags)
 {
+	int ret;
 	dev->in_urb->complete = port100_recv_ack;
 
 	pr_err("%s:%d\n", __func__, __LINE__);
-	return usb_submit_urb(dev->in_urb, flags);
+	ret = usb_submit_urb(dev->in_urb, flags);
+	pr_err("%s:%d %d\n", __func__, __LINE__, ret);
+	return ret;
 }
 
 static int port100_send_ack(struct port100 *dev)
