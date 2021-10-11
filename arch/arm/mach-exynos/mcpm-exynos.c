@@ -221,6 +221,10 @@ static struct syscore_ops exynos_mcpm_syscore_ops = {
 	.resume	= exynos_mcpm_setup_entry_point,
 };
 
+#include "smc.h"
+#define CCI_PA			0x10d20000
+#define SECURE_ACCESS_REG	0x8
+#define CHECK_CCI_SNOOP		(1 << 7)
 static int __init exynos_mcpm_init(void)
 {
 	struct device_node *node;
@@ -252,6 +256,16 @@ static int __init exynos_mcpm_init(void)
 	 * the PMU SPARE3 register
 	 */
 	pmu_raw_writel(EXYNOS5420_SWRESET_KFC_SEL, S5P_PMU_SPARE3);
+
+	pr_err("%s:%d\n", __func__, __LINE__);
+	if (sysram_ns_base_addr && 0) {
+		pr_err("%s:%d\n", __func__, __LINE__);
+		exynos_smc(SMC_CMD_REG, SMC_REG_ID_SFR_W(CCI_PA + SECURE_ACCESS_REG),
+						   1, 0);
+		//cci_snoop_enable
+	}
+
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	ret = mcpm_platform_register(&exynos_power_ops);
 	if (!ret)
