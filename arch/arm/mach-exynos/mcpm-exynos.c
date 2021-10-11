@@ -231,19 +231,32 @@ static int __init exynos_mcpm_init(void)
 	unsigned int value, i;
 	int ret;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	node = of_find_matching_node(NULL, exynos_dt_mcpm_match);
 	if (!node)
 		return -ENODEV;
 	of_node_put(node);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
+	if (sysram_ns_base_addr) {
+		pr_err("%s:%d\n", __func__, __LINE__);
+		exynos_smc(SMC_CMD_REG, SMC_REG_ID_SFR_W(CCI_PA + SECURE_ACCESS_REG),
+						   1, 0);
+		//cci_snoop_enable
+	}
+
+
+	pr_err("%s:%d\n", __func__, __LINE__);
 	if (!cci_probed())
 		return -ENODEV;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	node = of_find_compatible_node(NULL, NULL,
 			"samsung,exynos4210-sysram-ns");
 	if (!node)
 		return -ENODEV;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	ns_sram_base_addr = of_iomap(node, 0);
 	of_node_put(node);
 	if (!ns_sram_base_addr) {
