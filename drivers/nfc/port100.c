@@ -755,14 +755,17 @@ static int port100_send_ack(struct port100 *dev)
 	 * will be waked up soon or later.
 	 */
 	if (!dev->cmd_cancel) {
+		nfc_err(&dev->interface->dev, "%s:%d Reinit completion cancel done\n", __func__, __LINE__);
 		reinit_completion(&dev->cmd_cancel_done);
 
+		nfc_err(&dev->interface->dev, "%s:%d killing urb\n", __func__, __LINE__);
 		usb_kill_urb(dev->out_urb);
 
 		dev->out_urb->transfer_buffer = ack_frame;
 		dev->out_urb->transfer_buffer_length = sizeof(ack_frame);
 		rc = usb_submit_urb(dev->out_urb, GFP_KERNEL);
 
+		nfc_err(&dev->interface->dev, "%s:%d submit done, rc=%d (cmd_cancel=%d)\n", __func__, __LINE__, rc, !rc);
 		/*
 		 * Set the cmd_cancel flag only if the URB has been
 		 * successfully submitted. It will be reset by the out
@@ -789,15 +792,18 @@ static int port100_send_frame_async(struct port100 *dev,
 {
 	int rc;
 
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	mutex_lock(&dev->out_urb_lock);
 
 	/* A command cancel frame as been sent through dev->out_urb. Don't try
 	 * to submit a new one.
 	 */
 	if (dev->cmd_cancel) {
+		nfc_err(&dev->interface->dev, "%s:%d cmd_cancel, goto exit\n", __func__, __LINE__);
 		rc = -EAGAIN;
 		goto exit;
 	}
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
 	dev->out_urb->transfer_buffer = out->data;
 	dev->out_urb->transfer_buffer_length = out->len;
@@ -808,16 +814,22 @@ static int port100_send_frame_async(struct port100 *dev,
 	print_hex_dump_debug("PORT100 TX: ", DUMP_PREFIX_NONE, 16, 1,
 			     out->data, out->len, false);
 
+	nfc_err(&dev->interface->dev, "%s:%d submitting URB\n", __func__, __LINE__);
 	rc = usb_submit_urb(dev->out_urb, GFP_KERNEL);
+	nfc_err(&dev->interface->dev, "%s:%d submitted URB rc=%d\n", __func__, __LINE__, rc);
 	if (rc)
 		goto exit;
 
+	nfc_err(&dev->interface->dev, "%s:%d submitting URB for ack\n", __func__, __LINE__);
 	rc = port100_submit_urb_for_ack(dev, GFP_KERNEL);
+	nfc_err(&dev->interface->dev, "%s:%d submitted URB for ack rc=%d\n", __func__, __LINE__, rc);
 	if (rc)
 		usb_kill_urb(dev->out_urb);
 
 exit:
+	nfc_err(&dev->interface->dev, "%s:%d unlock with rc=%d\n", __func__, __LINE__, rc);
 	mutex_unlock(&dev->out_urb_lock);
+	nfc_err(&dev->interface->dev, "%s:%d unlocked with rc=%d\n", __func__, __LINE__, rc);
 
 	return rc;
 }
