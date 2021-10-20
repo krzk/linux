@@ -1718,6 +1718,7 @@ void usb_hcd_giveback_urb(struct usb_hcd *hcd, struct urb *urb, int status)
 	struct giveback_urb_bh *bh;
 	bool running, high_prio_bh;
 
+	dev_err(hcd->self.controller, "%s:%d give back urb %px status %d\n", __func__, __LINE__, urb, status);
 	/* pass status to tasklet via unlinked */
 	if (likely(!urb->unlinked))
 		urb->unlinked = status;

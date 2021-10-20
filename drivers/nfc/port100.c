@@ -686,7 +686,7 @@ static void port100_recv_ack(struct urb *urb)
 
 	cmd->status = urb->status;
 
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d cmd->status=%d\n", __func__, __LINE__, cmd->status);
 	switch (urb->status) {
 	case 0:
 		break; /* success */
@@ -722,11 +722,11 @@ static void port100_recv_ack(struct urb *urb)
 		goto sched_wq;
 	}
 
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d NO SCHEDULE complete work\n", __func__, __LINE__);
 	return;
 
 sched_wq:
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d schduling the complete work\n", __func__, __LINE__);
 	schedule_work(&dev->cmd_complete_work);
 }
 
@@ -735,9 +735,15 @@ static int port100_submit_urb_for_ack(const struct port100 *dev, gfp_t flags)
 	int ret;
 	dev->in_urb->complete = port100_recv_ack;
 
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d in URB in_urb use_count=%d, out_urb=%d, urb=%px\n", __func__, __LINE__,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count),
+			dev->in_urb);
 	ret = usb_submit_urb(dev->in_urb, flags);
-	nfc_err(&dev->interface->dev, "%s:%d rc=%d\n", __func__, __LINE__, ret);
+	nfc_err(&dev->interface->dev, "%s:%d in URB in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count));
+
 	return ret;
 }
 
@@ -745,6 +751,7 @@ static int port100_send_ack(struct port100 *dev)
 {
 	int rc = 0;
 
+	nfc_err(&dev->interface->dev, "%s:%d lock\n", __func__, __LINE__);
 	mutex_lock(&dev->out_urb_lock);
 
 	/*
@@ -774,6 +781,7 @@ static int port100_send_ack(struct port100 *dev)
 		dev->cmd_cancel = !rc;
 	}
 
+	nfc_err(&dev->interface->dev, "%s:%d unlock\n", __func__, __LINE__);
 	mutex_unlock(&dev->out_urb_lock);
 
 	nfc_err(&dev->interface->dev, "%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
@@ -792,7 +800,7 @@ static int port100_send_frame_async(struct port100 *dev,
 {
 	int rc;
 
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d lock\n", __func__, __LINE__);
 	mutex_lock(&dev->out_urb_lock);
 
 	/* A command cancel frame as been sent through dev->out_urb. Don't try
@@ -814,15 +822,19 @@ static int port100_send_frame_async(struct port100 *dev,
 	print_hex_dump_debug("PORT100 TX: ", DUMP_PREFIX_NONE, 16, 1,
 			     out->data, out->len, false);
 
-	nfc_err(&dev->interface->dev, "%s:%d submitting URB\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d submitting out URB, in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count));
 	rc = usb_submit_urb(dev->out_urb, GFP_KERNEL);
-	nfc_err(&dev->interface->dev, "%s:%d submitted URB rc=%d\n", __func__, __LINE__, rc);
+	nfc_err(&dev->interface->dev, "%s:%d submitted out URB rc=%d, in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__, rc,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count));
 	if (rc)
 		goto exit;
 
-	nfc_err(&dev->interface->dev, "%s:%d submitting URB for ack\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d submitting in URB for ack\n", __func__, __LINE__);
 	rc = port100_submit_urb_for_ack(dev, GFP_KERNEL);
-	nfc_err(&dev->interface->dev, "%s:%d submitted URB for ack rc=%d\n", __func__, __LINE__, rc);
+	nfc_err(&dev->interface->dev, "%s:%d submitted in URB for ack rc=%d\n", __func__, __LINE__, rc);
 	if (rc)
 		usb_kill_urb(dev->out_urb);
 
@@ -865,6 +877,7 @@ static void port100_send_async_complete(struct port100 *dev)
 
 	dev_kfree_skb(req);
 
+	nfc_err(&dev->interface->dev, "%s:%d dev->cmd=NULL (status=%d)\n", __func__, __LINE__, cmd->status);
 	dev->cmd = NULL;
 
 	if (status < 0) {
@@ -896,7 +909,7 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 			PORT100_FRAME_MAX_PAYLOAD_LEN +
 			PORT100_FRAME_TAIL_LEN;
 
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d check for dev->cmd\n", __func__, __LINE__);
 	if (dev->cmd) {
 		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		nfc_err(&dev->interface->dev,
@@ -930,7 +943,9 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	port100_build_cmd_frame(dev, cmd_code, req);
 
+	nfc_err(&dev->interface->dev, "%s:%d dev->cmd=%px replacing\n", __func__, __LINE__, dev->cmd);
 	dev->cmd = cmd;
+	nfc_err(&dev->interface->dev, "%s:%d dev->cmd=%px replaced\n", __func__, __LINE__, dev->cmd);
 
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	rc = port100_send_frame_async(dev, req, resp, resp_len);
@@ -938,7 +953,7 @@ static int port100_send_cmd_async(struct port100 *dev, u8 cmd_code,
 		kfree(cmd);
 		dev_kfree_skb(resp);
 		dev->cmd = NULL;
-		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d AAA error dev->cmd making NULL\n", __func__, __LINE__);
 	}
 
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
@@ -963,8 +978,16 @@ static void port100_send_sync_complete(struct port100 *dev, void *_arg,
 {
 	struct port100_sync_cmd_response *arg = _arg;
 
+	nfc_err(&dev->interface->dev, "%s:%d completing DONE, in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count));
+
 	arg->resp = resp;
 	complete(&arg->done);
+
+	nfc_err(&dev->interface->dev, "%s:%d completed DONE, in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count));
 }
 
 static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
@@ -976,8 +999,11 @@ static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
 	init_completion(&arg.done);
 
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+
 	rc = port100_send_cmd_async(dev, cmd_code, req,
 				    port100_send_sync_complete, &arg);
+
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	if (rc) {
 		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		dev_kfree_skb(req);
@@ -985,7 +1011,7 @@ static struct sk_buff *port100_send_cmd_sync(struct port100 *dev, u8 cmd_code,
 	}
 	nfc_err(&dev->interface->dev, "%s:%d AAAA rc=%d\n", __func__, __LINE__, rc);
 
-	wait_for_completion(&arg.done);
+	wait_for_completion(&arg.done); // HERE BLOCKS
 	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
 	return arg.resp;
@@ -995,12 +1021,21 @@ static void port100_send_complete(struct urb *urb)
 {
 	struct port100 *dev = urb->context;
 
-	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+			atomic_read(&dev->in_urb->use_count),
+			atomic_read(&dev->out_urb->use_count));
+
+	//nfc_err(&dev->interface->dev, "%s:%d lock (cancel=%d)\n", __func__, __LINE__, dev->cmd_cancel);
+	//mutex_lock(&dev->out_urb_lock);
+	//nfc_err(&dev->interface->dev, "%s:%d locked (cancel=%d)\n", __func__, __LINE__, dev->cmd_cancel);
+
 	if (dev->cmd_cancel) {
 		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 		complete_all(&dev->cmd_cancel_done);
 		dev->cmd_cancel = false;
 	}
+	//nfc_err(&dev->interface->dev, "%s:%d unlock\n", __func__, __LINE__);
+	//mutex_unlock(&dev->out_urb_lock);
 
 	switch (urb->status) {
 	case 0:

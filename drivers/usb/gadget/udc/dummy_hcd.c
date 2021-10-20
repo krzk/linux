@@ -1277,12 +1277,14 @@ static int dummy_urb_enqueue(
 
 	rc = dummy_validate_stream(dum_hcd, urb);
 	if (rc) {
+		dev_err(dummy_dev(dum_hcd), "%s:%d ERROR urb %px\n", __func__, __LINE__, urb);
 		kfree(urbp);
 		goto done;
 	}
 
 	rc = usb_hcd_link_urb_to_ep(hcd, urb);
 	if (rc) {
+		dev_err(dummy_dev(dum_hcd), "%s:%d ERROR urb %px\n", __func__, __LINE__, urb);
 		kfree(urbp);
 		goto done;
 	}
@@ -1300,9 +1302,16 @@ static int dummy_urb_enqueue(
 	if (usb_pipetype(urb->pipe) == PIPE_CONTROL)
 		urb->error_count = 1;		/* mark as a new urb */
 
+	dev_err(dummy_dev(dum_hcd), "%s:%d kicking? urb %px\n", __func__, __LINE__, urb);
 	/* kick the scheduler, it'll do the rest */
-	if (!timer_pending(&dum_hcd->timer))
+	if (!timer_pending(&dum_hcd->timer)) {
+		dev_err(dummy_dev(dum_hcd), "%s:%d kicked! urb %px\n", __func__, __LINE__, urb);
 		mod_timer(&dum_hcd->timer, jiffies + 1);
+	}
+	if (!timer_pending(&dum_hcd->timer)) {
+		dev_err(dummy_dev(dum_hcd), "%s:%d AAAAAAAAAA kicked! urb %px\n", __func__, __LINE__, urb);
+		mod_timer(&dum_hcd->timer, jiffies + 1);
+	}
 
  done:
 	spin_unlock_irqrestore(&dum_hcd->dum->lock, flags);
@@ -1320,11 +1329,13 @@ static int dummy_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	dum_hcd = hcd_to_dummy_hcd(hcd);
 	spin_lock_irqsave(&dum_hcd->dum->lock, flags);
 
+	dev_err(dummy_dev(dum_hcd), "%s:%d dequeue urb %px\n", __func__, __LINE__, urb);
 	rc = usb_hcd_check_unlink_urb(hcd, urb, status);
 	if (!rc && dum_hcd->rh_state != DUMMY_RH_RUNNING &&
 			!list_empty(&dum_hcd->urbp_list))
 		mod_timer(&dum_hcd->timer, jiffies);
 
+	dev_err(dummy_dev(dum_hcd), "%s:%d dequeue urb %px\n", __func__, __LINE__, urb);
 	spin_unlock_irqrestore(&dum_hcd->dum->lock, flags);
 	return rc;
 }
@@ -1840,14 +1851,21 @@ restart:
 			break;
 
 		urb = urbp->urb;
-		if (urb->unlinked)
+		if (urb->unlinked) {
+			dev_err(dummy_dev(dum_hcd), "%s:%d timer on urb unlinked %px\n", __func__, __LINE__, urb);
 			goto return_urb;
-		else if (dum_hcd->rh_state != DUMMY_RH_RUNNING)
+		}
+		else if (dum_hcd->rh_state != DUMMY_RH_RUNNING) {
+			dev_err(dummy_dev(dum_hcd), "%s:%d timer not running %px\n", __func__, __LINE__, urb);
 			continue;
+		}
 
+		//dev_err(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 		/* Used up this frame's bandwidth? */
-		if (total <= 0)
+		if (total <= 0) {
+			dev_err(dummy_dev(dum_hcd), "%s:%d timer no bandwidth %px\n", __func__, __LINE__, urb);
 			continue;
+		}
 
 		/* find the gadget's ep for this request (if configured) */
 		address = usb_pipeendpoint (urb->pipe);
@@ -1856,27 +1874,32 @@ restart:
 		ep = find_endpoint(dum, address);
 		if (!ep) {
 			/* set_configuration() disagreement */
-			dev_dbg(dummy_dev(dum_hcd),
-				"no ep configured for urb %p\n",
+			dev_err(dummy_dev(dum_hcd),
+				"no ep configured for urb %px\n",
 				urb);
 			status = -EPROTO;
 			goto return_urb;
 		}
 
-		if (ep->already_seen)
+		//dev_err(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
+		if (ep->already_seen) {
+			dev_err(dummy_dev(dum_hcd), "%s:%d already seen %px\n", __func__, __LINE__, urb);
 			continue;
+		}
 		ep->already_seen = 1;
+		//dev_err(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 		if (ep == &dum->ep[0] && urb->error_count) {
 			ep->setup_stage = 1;	/* a new urb */
 			urb->error_count = 0;
 		}
 		if (ep->halted && !ep->setup_stage) {
 			/* NOTE: must not be iso! */
-			dev_dbg(dummy_dev(dum_hcd), "ep %s halted, urb %p\n",
+			dev_err(dummy_dev(dum_hcd), "ep %s halted, urb %p\n",
 					ep->ep.name, urb);
 			status = -EPIPE;
 			goto return_urb;
 		}
+		dev_err_ratelimited(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 		/* FIXME make sure both ends agree on maxpacket */
 
 		/* handle control requests */
@@ -1889,7 +1912,7 @@ restart:
 			list_for_each_entry(req, &ep->queue, queue) {
 				list_del_init(&req->queue);
 				req->req.status = -EOVERFLOW;
-				dev_dbg(udc_dev(dum), "stale req = %p\n",
+				dev_err(udc_dev(dum), "stale req = %p\n",
 						req);
 
 				spin_unlock(&dum->lock);
@@ -1941,6 +1964,7 @@ restart:
 			goto return_urb;
 		}
 
+		//dev_err(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 		/* non-control requests */
 		limit = total;
 		switch (usb_pipetype(urb->pipe)) {
