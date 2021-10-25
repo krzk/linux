@@ -2014,6 +2014,7 @@ return_urb:
 		usb_hcd_giveback_urb(dummy_hcd_to_hcd(dum_hcd), urb, status);
 		spin_lock(&dum->lock);
 
+		dev_err_ratelimited(dummy_dev(dum_hcd), "%s:%d timer on urb %px - restart\n", __func__, __LINE__, urb);
 		goto restart;
 	}
 
@@ -2026,6 +2027,7 @@ return_urb:
 	}
 
 	spin_unlock_irqrestore(&dum->lock, flags);
+	dev_err_ratelimited(dummy_dev(dum_hcd), "%s:%d dummy timer finishes\n", __func__, __LINE__);
 }
 
 /*-------------------------------------------------------------------------*/
