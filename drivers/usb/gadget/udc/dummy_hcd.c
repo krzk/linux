@@ -1860,7 +1860,7 @@ restart:
 			continue;
 		}
 
-		//dev_err(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
+		dev_err_ratelimited(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 		/* Used up this frame's bandwidth? */
 		if (total <= 0) {
 			dev_err(dummy_dev(dum_hcd), "%s:%d timer no bandwidth %px\n", __func__, __LINE__, urb);
@@ -1919,6 +1919,7 @@ restart:
 				usb_gadget_giveback_request(&ep->ep, &req->req);
 				spin_lock(&dum->lock);
 				ep->already_seen = 0;
+				dev_err_ratelimited(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 				goto restart;
 			}
 
@@ -1997,8 +1998,10 @@ treat_control_like_bulk:
 		}
 
 		/* incomplete transfer? */
-		if (status == -EINPROGRESS)
+		if (status == -EINPROGRESS) {
+			dev_err_ratelimited(dummy_dev(dum_hcd), "%s:%d timer on urb %px\n", __func__, __LINE__, urb);
 			continue;
+		}
 
 return_urb:
 		list_del(&urbp->urbp_list);
