@@ -1109,11 +1109,15 @@ static u64 port100_get_command_type_mask(struct port100 *dev)
 
 	skb = port100_alloc_skb(dev, 0);
 	if (!skb)
-		return 0;
+		return -ENOMEM;
 
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 	resp = port100_send_cmd_sync(dev, PORT100_CMD_GET_COMMAND_TYPE, skb);
-	if (IS_ERR(resp))
-		return 0;
+	if (IS_ERR(resp)) {
+		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+		return PTR_ERR(resp);
+	}
+	nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
 
 	if (resp->len < 8)
 		mask = 0;
