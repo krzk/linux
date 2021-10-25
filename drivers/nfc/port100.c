@@ -822,7 +822,8 @@ static int port100_send_frame_async(struct port100 *dev,
 	print_hex_dump_debug("PORT100 TX: ", DUMP_PREFIX_NONE, 16, 1,
 			     out->data, out->len, false);
 
-	nfc_err(&dev->interface->dev, "%s:%d submitting out URB, in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+	nfc_err(&dev->interface->dev, "%s:%d submitting out URB %px, in_urb use_count=%d, out_urb=%d\n", __func__, __LINE__,
+			dev->out_urb,
 			atomic_read(&dev->in_urb->use_count),
 			atomic_read(&dev->out_urb->use_count));
 	rc = usb_submit_urb(dev->out_urb, GFP_KERNEL);
@@ -832,7 +833,7 @@ static int port100_send_frame_async(struct port100 *dev,
 	if (rc)
 		goto exit;
 
-	nfc_err(&dev->interface->dev, "%s:%d submitting in URB for ack\n", __func__, __LINE__);
+	nfc_err(&dev->interface->dev, "%s:%d submitting in URB %px for ack\n", __func__, __LINE__, dev->in_urb);
 	rc = port100_submit_urb_for_ack(dev, GFP_KERNEL);
 	nfc_err(&dev->interface->dev, "%s:%d submitted in URB for ack rc=%d\n", __func__, __LINE__, rc);
 	if (rc)
@@ -1030,7 +1031,7 @@ static void port100_send_complete(struct urb *urb)
 	//nfc_err(&dev->interface->dev, "%s:%d locked (cancel=%d)\n", __func__, __LINE__, dev->cmd_cancel);
 
 	if (dev->cmd_cancel) {
-		nfc_err(&dev->interface->dev, "%s:%d\n", __func__, __LINE__);
+		nfc_err(&dev->interface->dev, "%s:%d AAA CANCEL with status: %d\n", __func__, __LINE__, urb->status);
 		complete_all(&dev->cmd_cancel_done);
 		dev->cmd_cancel = false;
 	}
