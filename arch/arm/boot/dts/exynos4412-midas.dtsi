@@ -930,19 +930,21 @@
 				regulator-min-microvolt = <2000000>;
 				regulator-max-microvolt = <2000000>;
 				regulator-always-on;
+				maxim,ena-gpios = <&gpk0 2 GPIO_ACTIVE_HIGH>;
 			};
 
 			buck8_reg: BUCK8 {
 				regulator-name = "VMEM_VDDF_3.0V";
 				regulator-min-microvolt = <2850000>;
 				regulator-max-microvolt = <2850000>;
-				maxim,ena-gpios = <&gpk0 2 GPIO_ACTIVE_HIGH>;
+				//maxim,ena-gpios = <&gpk0 2 GPIO_ACTIVE_HIGH>;
 			};
 
 			buck9_reg: BUCK9 {
 				regulator-name = "CAM_ISP_CORE_1.2V";
 				regulator-min-microvolt = <1000000>;
 				regulator-max-microvolt = <1200000>;
+				//maxim,ena-gpios = <&gpk0 2 GPIO_ACTIVE_HIGH>, <&gpk0 2 GPIO_ACTIVE_HIGH>;
 			};
 		};
 	};
