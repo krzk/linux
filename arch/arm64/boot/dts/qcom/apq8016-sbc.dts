@@ -332,7 +332,7 @@
 &pronto {
 	status = "okay";
 
-	firmware-name = "qcom/apq8016/wcnss.mbn";
+	firmware-name = "qcom/msm8916/wcnss.mdt";
 };
 
 &sdhc_1 {
@@ -416,7 +416,7 @@
 };
 
 &wcnss_ctrl {
-	firmware-name = "qcom/apq8016/WCNSS_qcom_wlan_nv_sbc.bin";
+	//firmware-name = "qcom/apq8016/WCNSS_qcom_wlan_nv_sbc.bin";
 };
 
 /* Enable CoreSight */
