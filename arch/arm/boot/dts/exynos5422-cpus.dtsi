@@ -60,6 +60,7 @@
 			clocks = <&clock CLK_KFC_CLK>;
 			clock-frequency = <1000000000>;
 			cci-control-port = <&cci_control0>;
+			cpu-idle-states = <&cluster_sleep_little>;
 			operating-points-v2 = <&cluster_a7_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <539>;
@@ -73,6 +74,7 @@
 			clocks = <&clock CLK_KFC_CLK>;
 			clock-frequency = <1000000000>;
 			cci-control-port = <&cci_control0>;
+			cpu-idle-states = <&cluster_sleep_little>;
 			operating-points-v2 = <&cluster_a7_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <539>;
@@ -86,6 +88,7 @@
 			clocks = <&clock CLK_KFC_CLK>;
 			clock-frequency = <1000000000>;
 			cci-control-port = <&cci_control0>;
+			cpu-idle-states = <&cluster_sleep_little>;
 			operating-points-v2 = <&cluster_a7_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <539>;
@@ -99,6 +102,7 @@
 			clocks = <&clock CLK_KFC_CLK>;
 			clock-frequency = <1000000000>;
 			cci-control-port = <&cci_control0>;
+			cpu-idle-states = <&cluster_sleep_little>;
 			operating-points-v2 = <&cluster_a7_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <539>;
@@ -112,6 +116,7 @@
 			clocks = <&clock CLK_ARM_CLK>;
 			clock-frequency = <1800000000>;
 			cci-control-port = <&cci_control1>;
+			cpu-idle-states = <&cluster_sleep_big>;
 			operating-points-v2 = <&cluster_a15_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <1024>;
@@ -125,6 +130,7 @@
 			clocks = <&clock CLK_ARM_CLK>;
 			clock-frequency = <1800000000>;
 			cci-control-port = <&cci_control1>;
+			cpu-idle-states = <&cluster_sleep_big>;
 			operating-points-v2 = <&cluster_a15_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <1024>;
@@ -138,6 +144,7 @@
 			clocks = <&clock CLK_ARM_CLK>;
 			clock-frequency = <1800000000>;
 			cci-control-port = <&cci_control1>;
+			cpu-idle-states = <&cluster_sleep_big>;
 			operating-points-v2 = <&cluster_a15_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <1024>;
@@ -151,10 +158,29 @@
 			clocks = <&clock CLK_ARM_CLK>;
 			clock-frequency = <1800000000>;
 			cci-control-port = <&cci_control1>;
+			cpu-idle-states = <&cluster_sleep_big>;
 			operating-points-v2 = <&cluster_a15_opp_table>;
 			#cooling-cells = <2>; /* min followed by max */
 			capacity-dmips-mhz = <1024>;
 			dynamic-power-coefficient = <310>;
+		};
+
+		idle-states {
+			cluster_sleep_big: cluster-sleep-big {
+				compatible = "arm,idle-state";
+				local-timer-stop;
+				entry-latency-us = <1000>;
+				exit-latency-us = <700>;
+				min-residency-us = <2000>;
+			};
+
+			cluster_sleep_little: cluster-sleep-little {
+				compatible = "arm,idle-state";
+				local-timer-stop;
+				entry-latency-us = <1000>;
+				exit-latency-us = <500>;
+				min-residency-us = <2500>;
+			};
 		};
 	};
 };
