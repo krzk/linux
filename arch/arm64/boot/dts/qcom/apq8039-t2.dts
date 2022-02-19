@@ -156,6 +156,39 @@
 	vdda-supply = <&pm8916_l2>;
 	vddio-supply = <&pm8916_l6>;
 	status = "okay";
+
+	ports {
+		port@1 {
+			endpoint {
+				remote-endpoint = <&truly_in>;
+				data-lanes = <0 1 2 3>;
+			};
+		};
+	};
+
+	panel@0 {
+		compatible = "truly,r63350-fhd";
+		reg = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_panel>;
+		iovcc-supply = <&lcd_iovcc_vreg>;
+		avdd-supply = <&lcd_avdd_vreg>;
+		avee-supply = <&lcd_avee_vreg>;
+		reset-gpios = <&msmgpio 25 GPIO_ACTIVE_LOW>;
+		backlight = <&bl>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				truly_in: endpoint {
+					remote-endpoint = <&dsi0_out>;
+				};
+			};
+		};
+	};
 };
 
 &mdss_dsi0_phy {
