@@ -44,10 +44,38 @@ static const struct qca_cfg_data qca6390_cfg_data = {
 	.num_vregs = ARRAY_SIZE(qca6390_vregs),
 };
 
+static const struct vreg wcn6855_vregs[] = {
+	/* 2.8 V */
+	{ "vddasd" }, /* external antenna switch */
+
+	/* 0.95 V */
+	{ "vddaon" },
+	{ "vddcx" },
+	{ "vddmx" },
+
+	/* 1.9 V - 2.1 V */
+	{ "vddrfa1" },
+
+	/* 1.35 V */
+	{ "vddrfa2" },
+
+	/* 2.2 V, optional */
+	{ "vddrfa3" },
+
+	/* 1.8 V */
+	{ "vddio" },
+};
+
+static const struct qca_cfg_data wcn6855_cfg_data = {
+	.vregs = wcn6855_vregs,
+	.num_vregs = ARRAY_SIZE(wcn6855_vregs),
+};
+
 struct qca_data {
 	size_t num_vregs;
 	struct device *dev;
 	struct generic_pm_domain pd;
+	struct gpio_desc *xo_clk_gpio;
 	struct gpio_desc *wlan_en_gpio;
 	struct gpio_desc *bt_en_gpio;
 	struct regulator_bulk_data regulators[];
@@ -71,10 +99,23 @@ static int qca_power_on(struct generic_pm_domain *domain)
 	/* Wait for 1ms before toggling enable pins. */
 	msleep(1);
 
+	if (data->xo_clk_gpio) {
+		gpiod_set_value(data->xo_clk_gpio, 1);
+
+		/*XO CLK must be asserted for some time before WLAN_EN */
+                usleep_range(100, 200);
+	}
+
 	if (data->wlan_en_gpio)
 		gpiod_set_value(data->wlan_en_gpio, 1);
 	if (data->bt_en_gpio)
 		gpiod_set_value(data->bt_en_gpio, 1);
+
+	if (data->xo_clk_gpio) {
+		/* Assert XO CLK ~(2-5)ms before off for valid latch in HW */
+                usleep_range(2000, 5000);
+                gpiod_set_value(data->xo_clk_gpio, 0);
+	}
 
 	/* Wait for all power levels to stabilize */
 	msleep(6);
@@ -126,10 +167,17 @@ static int qca_probe(struct platform_device *pdev)
 		return ret;
 
 	for (i = 0; i < data->num_vregs; i++) {
+		if (!cfg->vregs[i].load_uA)
+			continue;
+
 		ret = regulator_set_load(data->regulators[i].consumer, cfg->vregs[i].load_uA);
 		if (ret)
 			return ret;
 	}
+
+	data->xo_clk_gpio = devm_gpiod_get_optional(&pdev->dev, "xo-clk", GPIOD_OUT_LOW);
+	if (IS_ERR(data->xo_clk_gpio))
+		return PTR_ERR(data->xo_clk_gpio);
 
 	data->wlan_en_gpio = devm_gpiod_get_optional(&pdev->dev, "wlan-en", GPIOD_OUT_LOW);
 	if (IS_ERR(data->wlan_en_gpio))
@@ -169,6 +217,7 @@ static int qca_remove(struct platform_device *pdev)
 
 static const struct of_device_id qca_of_match[] = {
 	{ .compatible = "qcom,qca6390", .data = &qca6390_cfg_data },
+	{ .compatible = "qcom,wcn6855", .data = &wcn6855_cfg_data },
 	{ },
 };
 
