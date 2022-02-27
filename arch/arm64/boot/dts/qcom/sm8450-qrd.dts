@@ -29,6 +29,24 @@
 		regulator-always-on;
 		regulator-boot-on;
 	};
+
+	wcn6856: wcn6856 {
+		compatible = "qcom,wcn6855";
+		#power-domain-cells = <0>;
+
+		vddaon-supply = <&vreg_s11b_0p95>;
+		vddcx-supply = <&vreg_s11b_0p95>;
+		vddmx-supply = <&vreg_s2e_0p85>;
+		vddrfa1-supply = <&vreg_s1c_1p86>;
+		vddrfa2-supply = <&vreg_s12b_1p25>;
+		vddio-supply = <&vreg_s10b_1p8>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&wlan_en_state &xo_clk_state>;
+
+		xo-clk-gpios = <&tlmm 204 GPIO_ACTIVE_HIGH>;
+		wlan-en-gpios = <&tlmm 80 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &apps_rsc {
@@ -426,6 +444,28 @@
 		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-up;
+	};
+
+	xo_clk_state: xo_clk_state {
+		pinconf {
+			pins = "gpio204";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-down;
+		};
+	};
+
+	wlan_en_state: wlan_en_state {
+		pinconf {
+			pins = "gpio80";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-down;
+		};
 	};
 };
 
