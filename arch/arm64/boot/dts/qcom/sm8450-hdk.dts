@@ -14,6 +14,7 @@
 
 	aliases {
 		serial0 = &uart7;
+		serial1 = &uart20;
 	};
 
 	chosen {
@@ -412,8 +413,23 @@
 	status = "okay";
 };
 
+&qupv3_id_2 {
+	status = "okay";
+};
+
 &tlmm {
 	gpio-reserved-ranges = <28 4>, <36 4>;
+
+	bt_en_state: bt-default-state {
+		bt-en {
+			pins = "gpio81";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-up;
+		};
+	};
 
 	xo_clk_state: xo_clk_state {
 		pinconf {
@@ -440,6 +456,18 @@
 
 &uart7 {
 	status = "okay";
+};
+
+&uart20 {
+	status = "okay";
+	bluetooth {
+		/* a little lie */
+		compatible = "qcom,wcn6855-bt";
+		pinctrl-names = "default";
+		pinctrl-0 = <&bt_en_state>;
+		power-domains = <&wcn6856>;
+		enable-gpios = <&tlmm 81 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &ufs_mem_hc {
