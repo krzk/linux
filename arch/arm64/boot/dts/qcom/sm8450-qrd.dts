@@ -369,12 +369,15 @@
 
 &pcie0 {
 	status = "okay";
+	max-link-speed = <2>;
 };
 
 &pcie0_phy {
 	status = "okay";
 	vdda-phy-supply = <&vreg_l5b_0p88>;
 	vdda-pll-supply = <&vreg_l6b_1p2>;
+
+	power-domains = <&wcn6856>;
 };
 
 &gpi_dma0 {
