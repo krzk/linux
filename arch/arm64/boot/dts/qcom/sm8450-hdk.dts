@@ -479,6 +479,8 @@
 	status = "okay";
 	vdda-phy-supply = <&vreg_l5b_0p88>;
 	vdda-pll-supply = <&vreg_l6b_1p2>;
+
+	power-domains = <&wcn6856>;
 };
 
 &pcie1 {
