@@ -494,11 +494,13 @@ static const struct device_type pci_epf_type = {
 };
 
 static int
-pci_epf_match_id(const struct pci_epf_device_id *id, const struct pci_epf *epf)
+pci_epf_match_id(const struct pci_epf_device_id *id, struct pci_epf *epf)
 {
 	while (id->name[0]) {
-		if (strcmp(epf->name, id->name) == 0)
+		if (strcmp(epf->name, id->name) == 0) {
+			epf->id = id;
 			return true;
+		}
 		id++;
 	}
 
@@ -526,7 +528,7 @@ static int pci_epf_device_probe(struct device *dev)
 
 	epf->driver = driver;
 
-	return driver->probe(epf);
+	return driver->probe(epf, epf->id);
 }
 
 static void pci_epf_device_remove(struct device *dev)
