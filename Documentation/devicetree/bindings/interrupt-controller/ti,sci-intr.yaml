@@ -11,6 +11,7 @@ maintainers:
 
 allOf:
   - $ref: /schemas/arm/keystone/ti,k3-sci-common.yaml#
+  - $ref: /schemas/interrupt-controller.yaml#
 
 description: |
   The Interrupt Router (INTR) module provides a mechanism to mux M
@@ -92,7 +93,7 @@ unevaluatedProperties: false
 
 examples:
   - |
-    main_gpio_intr: interrupt-controller0 {
+    main_gpio_intr: interrupt-controller {
         compatible = "ti,sci-intr";
         ti,intr-trigger-type = <1>;
         interrupt-controller;

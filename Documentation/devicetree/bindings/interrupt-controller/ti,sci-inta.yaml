@@ -11,6 +11,7 @@ maintainers:
 
 allOf:
   - $ref: /schemas/arm/keystone/ti,k3-sci-common.yaml#
+  - $ref: msi-controller.yaml#
 
 description: |
   The Interrupt Aggregator (INTA) provides a centralized machine
