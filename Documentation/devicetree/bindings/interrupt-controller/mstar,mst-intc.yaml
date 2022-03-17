@@ -16,6 +16,9 @@ description: |+
   The HW block exposes a number of interrupt controllers, each
   can support up to 64 interrupts.
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     const: mstar,mst-intc
@@ -49,7 +52,7 @@ required:
   - reg
   - mstar,irqs-map-range
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
