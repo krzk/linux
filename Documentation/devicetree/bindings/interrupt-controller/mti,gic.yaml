@@ -16,6 +16,9 @@ description: |
   interrupts which can be used as IPIs. The GIC also includes a free-running
   global timer, per-CPU count/compare timers, and a watchdog.
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     const: mti,gic
@@ -95,7 +98,7 @@ properties:
 
     additionalProperties: false
 
-additionalProperties: false
+unevaluatedProperties: false
 
 required:
   - compatible
