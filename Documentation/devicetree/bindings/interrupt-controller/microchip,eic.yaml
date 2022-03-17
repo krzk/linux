@@ -13,6 +13,9 @@ description:
   This interrupt controller is found in Microchip SoCs (SAMA7G5) and provides
   support for handling up to 2 external interrupt lines.
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     enum:
@@ -51,7 +54,7 @@ required:
   - clocks
   - clock-names
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
