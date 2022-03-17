@@ -9,6 +9,9 @@ title: Nuvoton WPCM450 Advanced Interrupt Controller bindings
 maintainers:
   - Jonathan Neuschäfer <j.neuschaefer@gmx.net>
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   '#interrupt-cells':
     const: 2
@@ -21,13 +24,13 @@ properties:
   reg:
     maxItems: 1
 
-additionalProperties: false
-
 required:
   - '#interrupt-cells'
   - compatible
   - reg
   - interrupt-controller
+
+unevaluatedProperties: false
 
 examples:
   - |
