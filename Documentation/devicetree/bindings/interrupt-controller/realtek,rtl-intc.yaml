@@ -11,6 +11,9 @@ maintainers:
   - Bert Vermeulen <bert@biot.com>
   - John Crispin <john@phrozen.org>
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     const: realtek,rtl-intc
@@ -40,7 +43,7 @@ required:
   - "#address-cells"
   - interrupt-map
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
