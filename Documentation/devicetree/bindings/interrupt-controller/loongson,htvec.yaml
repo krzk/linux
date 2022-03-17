@@ -13,6 +13,9 @@ description:
   This interrupt controller is found in the Loongson-3 family of chips for
   receiving vectorized interrupts from PCH's interrupt controller.
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     const: loongson,htvec-1.0
@@ -37,7 +40,7 @@ required:
   - interrupt-controller
   - '#interrupt-cells'
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
