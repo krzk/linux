@@ -44,6 +44,9 @@ maintainers:
   - Paul Walmsley  <paul.walmsley@sifive.com>
   - Palmer Dabbelt <palmer@dabbelt.com>
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     oneOf:
@@ -91,7 +94,7 @@ required:
   - interrupts-extended
   - riscv,ndev
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
