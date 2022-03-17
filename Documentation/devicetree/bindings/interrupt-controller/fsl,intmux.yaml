@@ -9,6 +9,9 @@ title: Freescale INTMUX interrupt multiplexer
 maintainers:
   - Joakim Zhang <qiangqing.zhang@nxp.com>
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     const: fsl,imx-intmux
@@ -45,7 +48,7 @@ required:
   - clocks
   - clock-names
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |

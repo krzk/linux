@@ -9,6 +9,9 @@ title: Freescale IRQSTEER Interrupt Multiplexer
 maintainers:
   - Lucas Stach <l.stach@pengutronix.de>
 
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+
 properties:
   compatible:
     oneOf:
@@ -70,7 +73,7 @@ required:
   - fsl,channel
   - fsl,num-irqs
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
