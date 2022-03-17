@@ -13,6 +13,7 @@ maintainers:
   - Rob Herring <robh+dt@kernel.org>
 
 allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
   - if:
       properties:
         compatible:
@@ -101,7 +102,7 @@ required:
   - reg
   - interrupt-controller
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
