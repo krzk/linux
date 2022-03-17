@@ -65,19 +65,21 @@ required:
   - '#interrupt-cells'
   - interrupts
 
-if:
-  properties:
-    compatible:
-      contains:
-        enum:
-          - renesas,intc-irqpin-r8a7740
-          - renesas,intc-irqpin-sh73a0
-then:
-  required:
-    - clocks
-    - power-domains
+allOf:
+  - $ref: /schemas/interrupt-controller.yaml#
+  - if:
+      properties:
+        compatible:
+          contains:
+            enum:
+              - renesas,intc-irqpin-r8a7740
+              - renesas,intc-irqpin-sh73a0
+    then:
+      required:
+        - clocks
+        - power-domains
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
