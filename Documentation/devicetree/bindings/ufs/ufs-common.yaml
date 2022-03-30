@@ -26,6 +26,9 @@ properties:
       array is "0" then it is assumed that the frequency is set by the parent
       clock or a fixed rate clock source.
 
+  operating-points-v2: true
+  opp-table: true
+
   interrupts:
     maxItems: 1
 
@@ -75,6 +78,7 @@ properties:
 
 dependencies:
   freq-table-hz: [ 'clocks' ]
+  operating-points-v2: [ 'freq-table-hz' ]
 
 required:
   - interrupts
