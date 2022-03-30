@@ -64,7 +64,14 @@ properties:
       - const: ufsphy
 
   power-domains:
-    maxItems: 1
+    minItems: 1
+    maxItems: 2
+
+  power-domain-names:
+    items:
+      - const: phy
+      - const: cx
+    minItems: 1
 
   reg:
     minItems: 1
