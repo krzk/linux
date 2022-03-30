@@ -2336,8 +2336,22 @@
 				<0 0>,
 				<0 0>,
 				<0 300000000>;
-
+			operating-points-v2 = <&ufs_opp_table>;
 			status = "disabled";
+
+			ufs_opp_table: opp-table {
+				compatible = "operating-points-v2";
+
+				opp-50000000 {
+					opp-hz = /bits/ 64 <50000000>;
+					required-opps = <&rpmhpd_opp_low_svs>;
+				};
+
+				opp-200000000 {
+					opp-hz = /bits/ 64 <200000000>;
+					required-opps = <&rpmhpd_opp_svs>;
+				};
+			};
 		};
 
 		ufs_mem_phy: phy@1d87000 {
