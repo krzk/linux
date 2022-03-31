@@ -32,8 +32,9 @@ properties:
 
   max8997,pmic-buck1-dvs-voltage:
     $ref: /schemas/types.yaml#/definitions/uint32-array
-    minItems: 1
-    maxItems: 8
+    items:
+      minItems: 1
+      maxItems: 8
     description: |
       A set of 8 voltage values in micro-volt (uV) units for buck1 when
       changing voltage using GPIO DVS.
@@ -44,8 +45,9 @@ properties:
 
   max8997,pmic-buck2-dvs-voltage:
     $ref: /schemas/types.yaml#/definitions/uint32-array
-    minItems: 1
-    maxItems: 8
+    items:
+      minItems: 1
+      maxItems: 8
     description: |
       A set of 8 voltage values in micro-volt (uV) units for buck2 when
       changing voltage using GPIO DVS.
@@ -56,8 +58,9 @@ properties:
 
   max8997,pmic-buck5-dvs-voltage:
     $ref: /schemas/types.yaml#/definitions/uint32-array
-    minItems: 1
-    maxItems: 8
+    items:
+      minItems: 1
+      maxItems: 8
     description: |
       A set of 8 voltage values in micro-volt (uV) units for buck5 when
       changing voltage using GPIO DVS.
@@ -267,14 +270,17 @@ if:
 then:
   properties:
     max8997,pmic-buck1-dvs-voltage:
-      minItems: 8
-      maxItems: 8
+      items:
+        minItems: 8
+        maxItems: 8
     max8997,pmic-buck2-dvs-voltage:
-      minItems: 8
-      maxItems: 8
+      items:
+        minItems: 8
+        maxItems: 8
     max8997,pmic-buck5-dvs-voltage:
-      minItems: 8
-      maxItems: 8
+      items:
+        minItems: 8
+        maxItems: 8
 
 examples:
   - |
@@ -303,20 +309,21 @@ examples:
                                              <&gpx0 6 GPIO_ACTIVE_HIGH>,
                                              <&gpl0 0 GPIO_ACTIVE_HIGH>;
 
-            max8997,pmic-buck1-dvs-voltage = <1350000>, <1300000>,
-                                             <1250000>, <1200000>,
-                                             <1150000>, <1100000>,
-                                             <1000000>, <950000>;
+            max8997,pmic-buck1-dvs-voltage = <1350000 1300000
+                                              1250000 1200000
+                                              1150000 1100000
+                                              1000000  950000>;
 
-            max8997,pmic-buck2-dvs-voltage = <1100000>, <1000000>,
-                                             <950000>,  <900000>,
-                                             <1100000>, <1000000>,
-                                             <950000>,  <900000>;
+            max8997,pmic-buck2-dvs-voltage = <1100000 1000000
+                                               950000  900000
+                                              1100000 1000000
+                                               950000  900000>;
 
-            max8997,pmic-buck5-dvs-voltage = <1200000>, <1200000>,
-                                             <1200000>, <1200000>,
-                                             <1200000>, <1200000>,
-                                             <1200000>, <1200000>;
+
+            max8997,pmic-buck5-dvs-voltage = <1200000 1200000
+                                              1200000 1200000
+                                              1200000 1200000
+                                              1200000 1200000>;
 
             pinctrl-0 = <&max8997_irq>, <&otg_gp>, <&usb_sel>;
             pinctrl-names = "default";
