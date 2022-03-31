@@ -5,6 +5,7 @@
 #ifndef UFS_QCOM_H_
 #define UFS_QCOM_H_
 
+#include <linux/device.h>
 #include <linux/reset-controller.h>
 #include <linux/reset.h>
 
@@ -15,6 +16,7 @@
 #define HBRN8_POLL_TOUT_MS      100
 #define DEFAULT_CLK_RATE_HZ     1000000
 #define BUS_VECTOR_NAME_LEN     32
+#define UFS_QCOM_PMDOMAINS_MAX	2
 
 #define UFS_HW_VER_MAJOR_SHFT	(28)
 #define UFS_HW_VER_MAJOR_MASK	(0x000F << UFS_HW_VER_MAJOR_SHFT)
@@ -201,6 +203,10 @@ struct ufs_qcom_host {
 	struct clk *rx_l1_sync_clk;
 	struct clk *tx_l1_sync_clk;
 	bool is_lane_clks_enabled;
+	struct device *pm_domains[UFS_QCOM_PMDOMAINS_MAX];
+	struct device *pm_opp_domain;
+	/* Links for pm_domains and pm_opp_domain */
+	struct device_link *links[UFS_QCOM_PMDOMAINS_MAX+1];
 
 	void __iomem *dev_ref_clk_ctrl_mmio;
 	bool is_dev_ref_clk_enabled;
