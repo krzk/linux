@@ -2299,7 +2299,15 @@
 			phys = <&ufs_mem_phy_lanes>;
 			phy-names = "ufsphy";
 			lanes-per-direction = <2>;
-			power-domains = <&gcc UFS_PHY_GDSC>;
+#if 1
+			power-domains = <&gcc UFS_PHY_GDSC>,
+					<&rpmhpd SDM845_CX>,
+					<&rpmhpd SDM845_MX>;
+			power-domain-names = "phy", "cx", "mx";
+#else
+//			power-domains = <&gcc UFS_PHY_GDSC>;
+//			power-domain-names = "phy";
+#endif
 			#reset-cells = <1>;
 			resets = <&gcc GCC_UFS_PHY_BCR>;
 			reset-names = "rst";
@@ -2344,12 +2352,12 @@
 
 				opp-50000000 {
 					opp-hz = /bits/ 64 <50000000>;
-					required-opps = <&rpmhpd_opp_low_svs>;
+					required-opps = <&rpmhpd_opp_svs>;
 				};
 
 				opp-200000000 {
 					opp-hz = /bits/ 64 <200000000>;
-					required-opps = <&rpmhpd_opp_svs>;
+					required-opps = <&rpmhpd_opp_nom>;
 				};
 			};
 		};
