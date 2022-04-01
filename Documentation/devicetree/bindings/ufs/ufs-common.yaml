@@ -37,6 +37,9 @@ properties:
       Number of lanes available per direction.  Note that it is assume same
       number of lanes is used both directions at once.
 
+  operating-points-v2: true
+  opp-table: true
+
   vdd-hba-supply:
     description:
       Phandle to UFS host controller supply regulator node.
@@ -75,6 +78,7 @@ properties:
 
 dependencies:
   freq-table-hz: [ 'clocks' ]
+  operating-points-v2: [ 'freq-table-hz' ]
 
 required:
   - interrupts
