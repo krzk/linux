@@ -509,6 +509,7 @@ static int rpmhpd_set_performance_state(struct generic_pm_domain *domain,
 	if (i == pd->level_count)
 		i--;
 
+	pr_err("AAA %s %s: level %u\n", __func__, domain->name, level);
 	if (pd->enabled) {
 		/* Ensure that the domain isn't turn off */
 		if (i < pd->enable_corner)
