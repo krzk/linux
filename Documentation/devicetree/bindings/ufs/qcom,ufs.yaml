@@ -56,9 +56,6 @@ properties:
     minItems: 1
     maxItems: 2
 
-  operating-points-v2: true
-  opp-table: true
-
   phys:
     maxItems: 1
 
@@ -73,9 +70,6 @@ properties:
   power-domain-names:
     items:
       - const: phy
-      - const: cx
-      - const: mx
-    minItems: 1
 
   reg:
     minItems: 1
@@ -95,9 +89,6 @@ properties:
     maxItems: 1
     description:
       GPIO connected to the RESET pin of the UFS memory device.
-
-dependencies:
-  operating-points-v2: [ 'freq-table-hz' ]
 
 required:
   - compatible
