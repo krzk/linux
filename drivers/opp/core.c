@@ -897,6 +897,9 @@ static int _set_required_opp(struct device *dev, struct device *pd_dev,
 	if (!pd_dev)
 		return 0;
 
+	pr_err("AAA %s:%d - %s-%s - level %d, opp %lu | %u, pstate %u\n", __func__, __LINE__,
+	       dev_name(dev), dev_name(pd_dev),
+	       i, opp ? opp->rate : 0, opp ? opp->level : 0, pstate);
 	ret = dev_pm_genpd_set_performance_state(pd_dev, pstate);
 	if (ret) {
 		dev_err(dev, "Failed to set performance rate of %s: %d (%d)\n",
@@ -1039,7 +1042,7 @@ static int _set_opp(struct device *dev, struct opp_table *opp_table,
 		return 0;
 	}
 
-	dev_dbg(dev, "%s: switching OPP: Freq %lu -> %lu Hz, Level %u -> %u, Bw %u -> %u\n",
+	dev_err(dev, "%s: switching OPP: Freq %lu -> %lu Hz, Level %u -> %u, Bw %u -> %u\n",
 		__func__, opp_table->current_rate, freq, old_opp->level,
 		opp->level, old_opp->bandwidth ? old_opp->bandwidth[0].peak : 0,
 		opp->bandwidth ? opp->bandwidth[0].peak : 0);

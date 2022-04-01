@@ -258,6 +258,9 @@ static int _gdsc_enable(struct gdsc *sc)
 {
 	int ret;
 
+	pr_err("AAA %s:%d %s/%s\n", __func__, __LINE__,
+	       sc->parent ? sc->parent->name : "",
+	       sc->pd.name);
 	if (sc->pwrsts == PWRSTS_ON)
 		return gdsc_deassert_reset(sc);
 
@@ -308,6 +311,9 @@ static int _gdsc_enable(struct gdsc *sc)
 	if (sc->flags & RETAIN_FF_ENABLE)
 		gdsc_retain_ff_on(sc);
 
+	pr_err("AAA %s:%d %s/%s\n", __func__, __LINE__,
+	       sc->parent ? sc->parent->name : "",
+	       sc->pd.name);
 	return 0;
 }
 
@@ -316,10 +322,12 @@ static int gdsc_enable(struct generic_pm_domain *domain)
 	struct gdsc *sc = domain_to_gdsc(domain);
 	int ret;
 
+	pr_err("AAA %s:%d %s\n", __func__, __LINE__, domain->name);
 	ret = gdsc_pm_runtime_get(sc);
 	if (ret)
 		return ret;
 
+	pr_err("AAA %s:%d %s\n", __func__, __LINE__, domain->name);
 	return _gdsc_enable(sc);
 }
 
@@ -327,6 +335,9 @@ static int _gdsc_disable(struct gdsc *sc)
 {
 	int ret;
 
+	pr_err("AAA %s:%d %s/%s\n", __func__, __LINE__,
+	       sc->parent ? sc->parent->name : "",
+	       sc->pd.name);
 	if (sc->pwrsts == PWRSTS_ON)
 		return gdsc_assert_reset(sc);
 
@@ -358,6 +369,9 @@ static int _gdsc_disable(struct gdsc *sc)
 	if (sc->flags & CLAMP_IO)
 		gdsc_assert_clamp_io(sc);
 
+	pr_err("AAA %s:%d %s/%s\n", __func__, __LINE__,
+	       sc->parent ? sc->parent->name : "",
+	       sc->pd.name);
 	return 0;
 }
 
@@ -366,10 +380,12 @@ static int gdsc_disable(struct generic_pm_domain *domain)
 	struct gdsc *sc = domain_to_gdsc(domain);
 	int ret;
 
+	pr_err("AAA %s:%d %s\n", __func__, __LINE__, domain->name);
 	ret = _gdsc_disable(sc);
 
 	gdsc_pm_runtime_put(sc);
 
+	pr_err("AAA %s:%d %s\n", __func__, __LINE__, domain->name);
 	return ret;
 }
 
