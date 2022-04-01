@@ -360,6 +360,12 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 		goto dealloc_host;
 	}
 
+	err = devm_pm_opp_of_add_table(dev);
+	if (err) {
+		dev_err(dev, "no OPP table %d\n", err);
+		goto dealloc_host;
+	}
+
 	ufshcd_init_lanes_per_dir(hba);
 
 	err = ufshcd_init(hba, mmio_base, irq);
