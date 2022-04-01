@@ -1168,8 +1168,6 @@ static int ufshcd_scale_gear(struct ufs_hba *hba, bool scale_up)
 	unsigned long pm_opp_target_rate;
 	struct ufs_pa_layer_attr new_pwr_info;
 
-	dev_err(hba->dev, "AAAA ufshcd_scale_gear %d - %d\n",
-		scale_up, hba->use_pm_opp);
 	clki = list_first_entry(&hba->clk_list_head, struct ufs_clk_info, list);
 
 	if (scale_up) {
@@ -1195,9 +1193,9 @@ static int ufshcd_scale_gear(struct ufs_hba *hba, bool scale_up)
 	}
 
 	if (hba->use_pm_opp && scale_up) {
-		//ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
-		//dev_err(hba->dev, "AAA dev_pm_opp_set_rate %d\n", ret);
-		//ret = 0;
+		ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
+		if (ret)
+			return ret;
 	}
 
 	/* check if the power mode needs to be changed or not? */
@@ -1208,11 +1206,10 @@ static int ufshcd_scale_gear(struct ufs_hba *hba, bool scale_up)
 			hba->pwr_info.gear_tx, hba->pwr_info.gear_rx,
 			new_pwr_info.gear_tx, new_pwr_info.gear_rx);
 
-	if (hba->use_pm_opp && !scale_up) {
-		//ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
-		//dev_err(hba->dev, "AAA dev_pm_opp_set_rate %d\n", ret);
-		//ret = 0;
-	}
+	if (ret && hba->use_pm_opp && scale_up)
+		dev_pm_opp_set_rate(hba->dev, hba->devfreq->previous_freq);
+	else if (hba->use_pm_opp && !scale_up)
+		ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
 
 	return ret;
 }
