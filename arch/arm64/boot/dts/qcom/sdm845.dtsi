@@ -1078,6 +1078,7 @@
 			#clock-cells = <1>;
 			#reset-cells = <1>;
 			#power-domain-cells = <1>;
+			power-domains = <&rpmhpd SDM845_CX>;
 		};
 
 		qfprom@784000 {
@@ -2299,13 +2300,13 @@
 			phys = <&ufs_mem_phy_lanes>;
 			phy-names = "ufsphy";
 			lanes-per-direction = <2>;
-#if 1
+#if 0
 			power-domains = <&gcc UFS_PHY_GDSC>,
 					<&rpmhpd SDM845_CX>,
 					<&rpmhpd SDM845_MX>;
 			power-domain-names = "phy", "cx", "mx";
 #else
-//			power-domains = <&gcc UFS_PHY_GDSC>;
+			power-domains = <&gcc UFS_PHY_GDSC>;
 //			power-domain-names = "phy";
 #endif
 			#reset-cells = <1>;
