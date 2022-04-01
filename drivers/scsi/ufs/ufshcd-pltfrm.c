@@ -107,6 +107,69 @@ out:
 	return ret;
 }
 
+static int ufshcd_parse_operating_points(struct ufs_hba *hba)
+{
+	struct device *dev = hba->dev;
+	struct device_node *np = dev->of_node;
+	struct ufs_clk_info *clki;
+	const char *names[16];
+	bool clocks_done;
+	int cnt, i, ret;
+
+	if (!of_find_property(dev->of_node, "operating-points-v2", NULL))
+		return 0;
+
+	cnt = of_property_count_strings(np, "clock-names");
+	if (cnt <= 0) {
+		dev_warn(dev, "%s: Missing clock-names\n",
+			 __func__);
+		return -EINVAL;
+	}
+
+	if (cnt > ARRAY_SIZE(names)) {
+		dev_info(dev, "%s: Too many clock-names\n",  __func__);
+		return -EINVAL;
+	}
+
+	/* clocks parsed by ufshcd_parse_clock_info() */
+	clocks_done = !!of_find_property(np, "freq-table-hz", NULL);
+
+	for (i = 0; i < cnt; i++) {
+		ret = of_property_read_string_index(np, "clock-names", i,
+						    &names[i]);
+		if (ret)
+			return ret;
+
+		if (clocks_done)
+			continue;
+
+		clki = devm_kzalloc(dev, sizeof(*clki), GFP_KERNEL);
+		if (!clki)
+			return -ENOMEM;
+
+		clki->name = devm_kstrdup(dev, names[i], GFP_KERNEL);
+		if (!clki->name)
+			return -ENOMEM;
+
+		if (!strcmp(names[i], "ref_clk"))
+			clki->keep_link_active = true;
+
+		list_add_tail(&clki->list, &hba->clk_list_head);
+	}
+
+	ret = devm_pm_opp_set_clknames(dev, names, i);
+	if (ret)
+		return ret;
+
+	ret = devm_pm_opp_of_add_table(dev);
+	if (ret)
+		return ret;
+
+	hba->use_pm_opp = true;
+
+	return 0;
+}
+
 #define MAX_PROP_SIZE 32
 static int ufshcd_populate_vreg(struct device *dev, const char *name,
 		struct ufs_vreg **out_vreg)
@@ -357,6 +420,12 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 	if (err) {
 		dev_err(dev, "%s: regulator init failed %d\n",
 				__func__, err);
+		goto dealloc_host;
+	}
+
+	err = ufshcd_parse_operating_points(hba);
+	if (err) {
+		dev_err(dev, "%s: OPP parse failed %d\n", __func__, err);
 		goto dealloc_host;
 	}
 

@@ -443,6 +443,7 @@ struct ufs_clk_scaling {
 	bool is_initialized;
 	bool is_busy_started;
 	bool is_suspended;
+	unsigned long target_freq;
 };
 
 #define UFS_EVENT_HIST_LENGTH 8
@@ -776,6 +777,8 @@ struct ufs_hba_monitor {
  * @auto_bkops_enabled: to track whether bkops is enabled in device
  * @vreg_info: UFS device voltage regulator information
  * @clk_list_head: UFS host controller clocks list node head
+ * @use_pm_opp: whether OPP table is provided and scaling gears should trigger
+ *              setting OPP
  * @pwr_info: holds current power mode
  * @max_pwr_info: keeps the device max valid pwm
  * @clk_scaling_lock: used to serialize device commands and clock scaling
@@ -892,6 +895,7 @@ struct ufs_hba {
 	bool auto_bkops_enabled;
 	struct ufs_vreg_info vreg_info;
 	struct list_head clk_list_head;
+	bool use_pm_opp;
 
 	/* Number of requests aborts */
 	int req_abort_count;
