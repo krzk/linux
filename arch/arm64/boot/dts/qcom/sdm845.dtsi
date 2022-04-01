@@ -2345,9 +2345,10 @@
 				<0 0>,
 				<0 0>,
 				<0 300000000>;
-			operating-points-v2 = <&ufs_opp_table>;
+			//operating-points-v2 = <&ufs_opp_table>;
 			status = "disabled";
 
+#if 0
 			ufs_opp_table: opp-table {
 				compatible = "operating-points-v2";
 
@@ -2361,6 +2362,7 @@
 					required-opps = <&rpmhpd_opp_nom>;
 				};
 			};
+#endif
 		};
 
 		ufs_mem_phy: phy@1d87000 {
