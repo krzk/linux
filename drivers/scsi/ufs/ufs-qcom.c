@@ -7,8 +7,6 @@
 #include <linux/time.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
-#include <linux/pm_domain.h>
-#include <linux/pm_opp.h>
 #include <linux/phy/phy.h>
 #include <linux/gpio/consumer.h>
 #include <linux/reset-controller.h>
@@ -704,55 +702,6 @@ static void ufs_qcom_dev_ref_clk_ctrl(struct ufs_qcom_host *host, bool enable)
 	}
 }
 
-static int ufs_qcom_pm_set_rate_needed(struct ufs_hba *hba,
-				struct ufs_pa_layer_attr *params,
-				enum ufs_notify_change_status status)
-{
-	if (!params)
-		return -1;
-
-	if (status == PRE_CHANGE) {
-		if (params->gear_rx > hba->pwr_info.gear_rx ||
-		    params->gear_tx > hba->pwr_info.gear_tx)
-			return 1;
-	} else if (status == POST_CHANGE) {
-		/* FIXME: what if RX/TX gears go down asynchronously? */
-		if (params->gear_rx == UFS_HS_G1 &&
-		    params->gear_tx == UFS_HS_G1)
-			return 0;
-	}
-
-	return -1;
-}
-
-static int ufs_qcom_pm_set_rate(struct ufs_hba *hba,
-				struct ufs_pa_layer_attr *params,
-				enum ufs_notify_change_status status)
-{
-	int ret;
-	struct ufs_clk_info *clki;
-	unsigned long pm_opp_target_rate;
-
-	pr_err("AAA %s:%d - rx %u | tx %u | %u\n", __func__, __LINE__,
-	       hba->pwr_info.gear_rx, hba->pwr_info.gear_tx, status);
-	ret = ufs_qcom_pm_set_rate_needed(hba, params, status);
-	if (ret < 0) {
-		pr_err("AAA early exit\n");
-		return 0; /* No changes needed */
-	}
-
-	clki = list_first_entry(&hba->clk_list_head, struct ufs_clk_info, list);
-	if (ret > 0)
-		pm_opp_target_rate = clki->max_freq;
-	else if (ret == 0)
-		pm_opp_target_rate = clki->min_freq;
-
-	ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
-	dev_err(hba->dev, "AAA dev_pm_opp_set_rate %d\n", ret);
-
-	return ret;
-}
-
 static int ufs_qcom_pwr_change_notify(struct ufs_hba *hba,
 				enum ufs_notify_change_status status,
 				struct ufs_pa_layer_attr *dev_max_params,
@@ -806,32 +755,6 @@ static int ufs_qcom_pwr_change_notify(struct ufs_hba *hba,
 						dev_req_params->gear_tx,
 						PA_INITIAL_ADAPT);
 		}
-
-		if (!ret) {
-			ret = ufs_qcom_pm_set_rate(hba, dev_req_params, status);
-			dev_err(hba->dev, "AAA dev_pm_opp_set_rate cx %d\n", ret);
-			/*
-			struct ufs_clk_info *clki;
-			unsigned long pm_opp_target_rate;
-			clki = list_first_entry(&hba->clk_list_head, struct ufs_clk_info, list);
-			pm_opp_target_rate = clki->max_freq;
-
-			ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
-			dev_err(hba->dev, "AAA dev_pm_opp_set_rate %d\n", ret);
-			ret = 0;
-*/
-			/*
-			ret = dev_pm_opp_set_rate(host->pm_cx, pm_opp_target_rate);
-			ret = 0;
-
-			ret = dev_pm_opp_set_rate(host->pm_mx, pm_opp_target_rate);
-			dev_err(hba->dev, "AAA dev_pm_opp_set_rate mx %d\n", ret);
-			ret = 0;
-			*/
-		}
-		//ret = dev_pm_opp_set_rate(hba->dev, pm_opp_target_rate);
-		//dev_err(hba->dev, "AAA dev_pm_opp_set_rate %d\n", ret);
-		//ret = 0;
 		break;
 	case POST_CHANGE:
 		if (ufs_qcom_cfg_timers(hba, dev_req_params->gear_rx,
@@ -855,11 +778,6 @@ static int ufs_qcom_pwr_change_notify(struct ufs_hba *hba,
 		if (ufshcd_is_hs_mode(&hba->pwr_info) &&
 			!ufshcd_is_hs_mode(dev_req_params))
 			ufs_qcom_dev_ref_clk_ctrl(host, false);
-
-		if (!ret) {
-			ret = ufs_qcom_pm_set_rate(hba, dev_req_params, status);
-			dev_err(hba->dev, "AAA dev_pm_opp_set_rate cx %d\n", ret);
-		}
 		break;
 	default:
 		ret = -EINVAL;
@@ -1600,100 +1518,13 @@ static const struct ufs_hba_variant_ops ufs_hba_qcom_vops = {
  */
 static int ufs_qcom_probe(struct platform_device *pdev)
 {
-	int err, i;
-	struct ufs_hba *hba;
-	struct ufs_qcom_host *host;
-	struct device **pm_opp_domain;
-	struct device *pm_domains[UFS_QCOM_PMDOMAINS_MAX];
-	struct device_link *links[UFS_QCOM_PMDOMAINS_MAX+1] = { 0, };
+	int err;
 	struct device *dev = &pdev->dev;
-	const char *opp_pm_names[] = { "cx", NULL };
-	const char *pm_names[UFS_QCOM_PMDOMAINS_MAX] = { "phy", "mx" };
-
-	pr_err("AAA %s:%d\n", __func__, __LINE__);
-
-	/*
-	pm_phy = dev_pm_domain_attach_by_name(dev, "phy");
-	err = pm_runtime_get_sync(pm_phy);
-	pr_err("AAA %s:%d phy %px, err %d, dev %s pm domain %px|%px\n",
-	       __func__, __LINE__, pm_phy, err,
-	       dev_name(pm_phy), pm_phy->pm_domain, dev->pm_domain);
-
-	pm_cx = dev_pm_domain_attach_by_name(dev, "cx");
-	err = pm_runtime_get_sync(pm_cx);
-	pr_err("AAA %s:%d phy %px, err %d, dev %s pm domain %px|%px\n",
-	       __func__, __LINE__, pm_cx, err,
-	       dev_name(pm_cx), pm_cx->pm_domain, dev->pm_domain);
-
-	pm_mx = dev_pm_domain_attach_by_name(dev, "mx");
-	err = pm_runtime_get_sync(pm_mx);
-	pr_err("AAA %s:%d phy %px, err %d, dev %s pm domain %px|%px\n",
-	       __func__, __LINE__, pm_mx, err,
-	       dev_name(pm_mx), pm_mx->pm_domain, dev->pm_domain);
-	       */
-	for (i = 0; i < UFS_QCOM_PMDOMAINS_MAX; i++) {
-		pm_domains[i] = dev_pm_domain_attach_by_name(dev, pm_names[i]);
-		if (IS_ERR(pm_domains[i])) {
-			err = PTR_ERR(pm_domains[i]);
-			goto err_pd;
-		}
-		links[i] = device_link_add(dev, pm_domains[i],
-					   DL_FLAG_STATELESS |
-					   DL_FLAG_RPM_ACTIVE |
-					   DL_FLAG_PM_RUNTIME);
-		if (!links[i]) {
-			err = -EINVAL;
-			goto err_pd;
-		}
-	}
-
-	err = devm_pm_opp_attach_genpd(dev, opp_pm_names, &pm_opp_domain);
-	if (err)
-		goto err_pd;
-	/* i == UFS_QCOM_PMDOMAINS_MAX */
-	links[i] = device_link_add(dev, *pm_opp_domain,
-				   DL_FLAG_STATELESS |
-				   DL_FLAG_RPM_ACTIVE |
-				   DL_FLAG_PM_RUNTIME);
-	if (!links[i]) {
-		err = -EINVAL;
-		goto err_pd;
-	}
-
-	err = devm_pm_opp_of_add_table(dev);
-	if (err) {
-		dev_err(dev, "no OPP table %d\n", err);
-		dev_err(dev, "AAAA no OPP table %d\n", err);
-		goto err_link_opp;
-	}
 
 	/* Perform generic probe */
 	err = ufshcd_pltfrm_init(pdev, &ufs_hba_qcom_vops);
-	if (err) {
+	if (err)
 		dev_err(dev, "ufshcd_pltfrm_init() failed %d\n", err);
-		goto err_link_opp;
-	}
-	hba = dev_get_drvdata(dev);
-	host = ufshcd_get_variant(hba);
-
-	host->pm_domains[0] = pm_domains[0];
-	host->pm_domains[1] = pm_domains[1];
-	host->pm_opp_domain = *pm_opp_domain;
-	for (i = 0; i < UFS_QCOM_PMDOMAINS_MAX; i++)
-		host->links[i] = links[i];
-	pr_err("AAA %s:%d %d\n", __func__, __LINE__, err);
-
-	return 0;
-
-err_link_opp:
-	/* links are UFS_QCOM_PMDOMAINS_MAX+1 size */
-	device_link_del(links[UFS_QCOM_PMDOMAINS_MAX]);
-err_pd:
-	for (i--; i >= 0 ; i--) {
-		if (links[i])
-			device_link_del(links[i]);
-		dev_pm_domain_detach(pm_domains[i], true);
-	}
 
 	return err;
 }
@@ -1707,19 +1538,9 @@ err_pd:
 static int ufs_qcom_remove(struct platform_device *pdev)
 {
 	struct ufs_hba *hba =  platform_get_drvdata(pdev);
-	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
-	int i;
 
 	pm_runtime_get_sync(&(pdev)->dev);
 	ufshcd_remove(hba);
-
-	/* links are UFS_QCOM_PMDOMAINS_MAX+1 size */
-	device_link_del(host->links[UFS_QCOM_PMDOMAINS_MAX]);
-	for (i = 0; i < UFS_QCOM_PMDOMAINS_MAX; i++) {
-		device_link_del(host->links[UFS_QCOM_PMDOMAINS_MAX]);
-		dev_pm_domain_detach(host->pm_domains[i], false);
-	}
-
 	return 0;
 }
 
