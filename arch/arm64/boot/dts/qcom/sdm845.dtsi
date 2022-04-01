@@ -2300,15 +2300,7 @@
 			phys = <&ufs_mem_phy_lanes>;
 			phy-names = "ufsphy";
 			lanes-per-direction = <2>;
-#if 0
-			power-domains = <&gcc UFS_PHY_GDSC>,
-					<&rpmhpd SDM845_CX>,
-					<&rpmhpd SDM845_MX>;
-			power-domain-names = "phy", "cx", "mx";
-#else
 			power-domains = <&gcc UFS_PHY_GDSC>;
-//			power-domain-names = "phy";
-#endif
 			#reset-cells = <1>;
 			resets = <&gcc GCC_UFS_PHY_BCR>;
 			reset-names = "rst";
@@ -2345,10 +2337,9 @@
 				<0 0>,
 				<0 0>,
 				<0 300000000>;
-			//operating-points-v2 = <&ufs_opp_table>;
+			operating-points-v2 = <&ufs_opp_table>;
 			status = "disabled";
 
-#if 0
 			ufs_opp_table: opp-table {
 				compatible = "operating-points-v2";
 
@@ -2362,7 +2353,6 @@
 					required-opps = <&rpmhpd_opp_nom>;
 				};
 			};
-#endif
 		};
 
 		ufs_mem_phy: phy@1d87000 {
