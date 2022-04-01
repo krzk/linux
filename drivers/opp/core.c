@@ -1760,7 +1760,9 @@ int _opp_add(struct device *dev, struct dev_pm_opp *new_opp,
 	if (lazy_linking_pending(opp_table))
 		return 0;
 
-	_required_opps_available(new_opp, opp_table->required_opp_count);
+	/* No required_opps for v1 bindings OPP */
+	if (new_opp->required_opps)
+		_required_opps_available(new_opp, opp_table->required_opp_count);
 
 	return 0;
 }
