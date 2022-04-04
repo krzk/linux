@@ -1227,7 +1227,8 @@ struct opp_device *_add_opp_dev(const struct device *dev,
 	return opp_dev;
 }
 
-static struct opp_table *_allocate_opp_table(struct device *dev, int index)
+static struct opp_table *_allocate_opp_table(struct device *dev, int index,
+					     enum opp_table_version version)
 {
 	struct opp_table *opp_table;
 	struct opp_device *opp_dev;
@@ -1248,6 +1249,7 @@ static struct opp_table *_allocate_opp_table(struct device *dev, int index)
 
 	/* Mark regulator count uninitialized */
 	opp_table->regulator_count = -1;
+	opp_table->version = version;
 
 	opp_dev = _add_opp_dev(dev, opp_table);
 	if (!opp_dev) {
@@ -1332,7 +1334,8 @@ static struct opp_table *_update_opp_table_clk(struct device *dev,
  * of adding an OPP table and others should wait for it to finish.
  */
 struct opp_table *_add_opp_table_indexed(struct device *dev, int index,
-					 bool getclk)
+					 bool getclk,
+					 enum opp_table_version version)
 {
 	struct opp_table *opp_table;
 
@@ -1367,7 +1370,7 @@ again:
 
 		mutex_lock(&opp_table_lock);
 	} else {
-		opp_table = _allocate_opp_table(dev, index);
+		opp_table = _allocate_opp_table(dev, index, version);
 
 		mutex_lock(&opp_table_lock);
 		if (!IS_ERR(opp_table))
@@ -1382,9 +1385,10 @@ unlock:
 	return _update_opp_table_clk(dev, opp_table, getclk);
 }
 
-static struct opp_table *_add_opp_table(struct device *dev, bool getclk)
+static struct opp_table *_add_opp_table(struct device *dev, bool getclk,
+					enum opp_table_version version)
 {
-	return _add_opp_table_indexed(dev, 0, getclk);
+	return _add_opp_table_indexed(dev, 0, getclk, version);
 }
 
 struct opp_table *dev_pm_opp_get_opp_table(struct device *dev)
@@ -1794,6 +1798,13 @@ int _opp_add_v1(struct opp_table *opp_table, struct device *dev,
 	unsigned long tol;
 	int ret;
 
+	if (opp_table->version != OPP_TABLE_VERSION_UNKNOWN &&
+	    opp_table->version != OPP_TABLE_VERSION_1) {
+		dev_warn(dev, "%s: Mixing v1 and v2 OPP bindings not supported (%lu)\n",
+			 __func__, freq);
+		return -EINVAL;
+	}
+
 	new_opp = _opp_allocate(opp_table);
 	if (!new_opp)
 		return -ENOMEM;
@@ -1844,7 +1855,7 @@ struct opp_table *dev_pm_opp_set_supported_hw(struct device *dev,
 {
 	struct opp_table *opp_table;
 
-	opp_table = _add_opp_table(dev, false);
+	opp_table = _add_opp_table(dev, false, OPP_TABLE_VERSION_2);
 	if (IS_ERR(opp_table))
 		return opp_table;
 
@@ -1932,7 +1943,7 @@ struct opp_table *dev_pm_opp_set_prop_name(struct device *dev, const char *name)
 {
 	struct opp_table *opp_table;
 
-	opp_table = _add_opp_table(dev, false);
+	opp_table = _add_opp_table(dev, false, OPP_TABLE_VERSION_2);
 	if (IS_ERR(opp_table))
 		return opp_table;
 
@@ -1994,7 +2005,7 @@ struct opp_table *dev_pm_opp_set_regulators(struct device *dev,
 	struct regulator *reg;
 	int ret, i;
 
-	opp_table = _add_opp_table(dev, false);
+	opp_table = _add_opp_table(dev, false, OPP_TABLE_VERSION_UNKNOWN);
 	if (IS_ERR(opp_table))
 		return opp_table;
 
@@ -2149,7 +2160,7 @@ struct opp_table *dev_pm_opp_set_clkname(struct device *dev, const char *name)
 	struct opp_table *opp_table;
 	int ret;
 
-	opp_table = _add_opp_table(dev, false);
+	opp_table = _add_opp_table(dev, false, OPP_TABLE_VERSION_UNKNOWN);
 	if (IS_ERR(opp_table))
 		return opp_table;
 
@@ -2247,7 +2258,7 @@ struct opp_table *dev_pm_opp_register_set_opp_helper(struct device *dev,
 	if (!set_opp)
 		return ERR_PTR(-EINVAL);
 
-	opp_table = _add_opp_table(dev, false);
+	opp_table = _add_opp_table(dev, false, OPP_TABLE_VERSION_UNKNOWN);
 	if (IS_ERR(opp_table))
 		return opp_table;
 
@@ -2380,7 +2391,7 @@ struct opp_table *dev_pm_opp_attach_genpd(struct device *dev,
 	int index = 0, ret = -EINVAL;
 	const char * const *name = names;
 
-	opp_table = _add_opp_table(dev, false);
+	opp_table = _add_opp_table(dev, false, OPP_TABLE_VERSION_UNKNOWN);
 	if (IS_ERR(opp_table))
 		return opp_table;
 
@@ -2637,7 +2648,7 @@ int dev_pm_opp_add(struct device *dev, unsigned long freq, unsigned long u_volt)
 	struct opp_table *opp_table;
 	int ret;
 
-	opp_table = _add_opp_table(dev, true);
+	opp_table = _add_opp_table(dev, true, OPP_TABLE_VERSION_1);
 	if (IS_ERR(opp_table))
 		return PTR_ERR(opp_table);
 
