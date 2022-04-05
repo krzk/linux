@@ -281,12 +281,16 @@ static int ti_opp_supply_set_opp(struct dev_pm_set_opp_data *data)
 	struct dev_pm_opp_supply *new_supply_vbb = &data->new_opp.supplies[1];
 	struct device *dev = data->dev;
 	unsigned long old_freq = data->old_opp.rate, freq = data->new_opp.rate;
-	struct clk *clk = data->clk;
 	struct regulator *vdd_reg = data->regulators[0];
 	struct regulator *vbb_reg = data->regulators[1];
+	struct clk *clk;
 	int vdd_uv;
 	int ret;
 
+	if (WARN_ON_ONCE(!data->clk_count))
+		return -EINVAL;
+
+	clk = data->clks[0].clk;
 	vdd_uv = _get_optimal_vdd_voltage(dev, &opp_data,
 					  new_supply_vdd->u_volt);
 

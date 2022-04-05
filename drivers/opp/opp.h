@@ -149,7 +149,9 @@ enum opp_table_access {
  * @supported_hw: Array of version number to support.
  * @supported_hw_count: Number of elements in supported_hw array.
  * @prop_name: A name to postfix to many DT properties, while parsing them.
- * @clk: Device's clock handle
+ * @clks: Device clocks handles (clk bulk API).
+ * @clk_count: Number of clocks. Its value can be -1 (uninitialized), 0 (no
+ * clock handle provided)  or > 0 (has clock handles).
  * @regulators: Supply regulators
  * @regulator_count: Number of power supply regulators. Its value can be -1
  * (uninitialized), 0 (no opp-microvolt property) or > 0 (has opp-microvolt
@@ -200,7 +202,8 @@ struct opp_table {
 	unsigned int *supported_hw;
 	unsigned int supported_hw_count;
 	const char *prop_name;
-	struct clk *clk;
+	struct clk_bulk_data *clks;
+	int clk_count;
 	struct regulator **regulators;
 	int regulator_count;
 	struct icc_path **paths;

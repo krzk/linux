@@ -66,6 +66,18 @@ static struct opp_table *_find_opp_table_unlocked(struct device *dev)
 	return ERR_PTR(-ENODEV);
 }
 
+static void _put_clocks(struct opp_table *opp_table)
+{
+	if (!opp_table->clks)
+		return;
+
+	clk_bulk_put(opp_table->clk_count, opp_table->clks);
+
+	kfree(opp_table->clks);
+	opp_table->clks = NULL;
+	opp_table->clk_count = -1;
+};
+
 /**
  * _find_opp_table() - find opp_table struct using device pointer
  * @dev:	device pointer used to lookup OPP table
@@ -874,10 +886,22 @@ static int _set_opp_voltage(struct device *dev, struct regulator *reg,
 	return ret;
 }
 
-static inline int _generic_set_opp_clk_only(struct device *dev, struct clk *clk,
+static inline int _generic_set_opp_clk_only(struct device *dev,
+					    struct opp_table *opp_table,
 					    unsigned long freq)
 {
+	struct clk *clk;
 	int ret;
+
+	/* This function only supports single clock per device */
+	if (WARN_ON(opp_table->clk_count > 1)) {
+		dev_err(dev, "multiple clocks are not supported\n");
+		return -EINVAL;
+	}
+
+	if (!opp_table->clks)
+		return 0;
+	clk = opp_table->clks[0].clk;
 
 	/* We may reach here for devices which don't change frequency */
 	if (IS_ERR(clk))
@@ -903,8 +927,9 @@ static int _generic_set_opp_regulator(struct opp_table *opp_table,
 	int ret;
 
 	/* This function only supports single regulator per device */
-	if (WARN_ON(opp_table->regulator_count > 1)) {
-		dev_err(dev, "multiple regulators are not supported\n");
+	if (WARN_ON(opp_table->regulator_count > 1) ||
+	    WARN_ON(opp_table->clk_count > 1)) {
+		dev_err(dev, "multiple clocks/regulators are not supported\n");
 		return -EINVAL;
 	}
 
@@ -916,7 +941,7 @@ static int _generic_set_opp_regulator(struct opp_table *opp_table,
 	}
 
 	/* Change frequency */
-	ret = _generic_set_opp_clk_only(dev, opp_table->clk, freq);
+	ret = _generic_set_opp_clk_only(dev, opp_table, freq);
 	if (ret)
 		goto restore_voltage;
 
@@ -940,7 +965,7 @@ static int _generic_set_opp_regulator(struct opp_table *opp_table,
 	return 0;
 
 restore_freq:
-	if (_generic_set_opp_clk_only(dev, opp_table->clk, old_opp->rate))
+	if (_generic_set_opp_clk_only(dev, opp_table, old_opp->rate))
 		dev_err(dev, "%s: failed to restore old-freq (%lu Hz)\n",
 			__func__, old_opp->rate);
 restore_voltage:
@@ -987,8 +1012,8 @@ static int _set_opp_custom(const struct opp_table *opp_table,
 	int size;
 
 	/*
-	 * We support this only if dev_pm_opp_set_regulators() was called
-	 * earlier.
+	 * We support this only if dev_pm_opp_set_regulators() or
+	 * dev_pm_opp_set_clknames() were called earlier.
 	 */
 	if (opp_table->sod_supplies) {
 		size = sizeof(*old_opp->supplies) * opp_table->regulator_count;
@@ -999,8 +1024,13 @@ static int _set_opp_custom(const struct opp_table *opp_table,
 		data->regulator_count = 0;
 	}
 
+	if (opp_table->clks)
+		data->clk_count = opp_table->clk_count;
+	else
+		data->clk_count = 0;
+
 	data->regulators = opp_table->regulators;
-	data->clk = opp_table->clk;
+	data->clks = opp_table->clks;
 	data->dev = dev;
 	data->old_opp.rate = old_opp->rate;
 	data->new_opp.rate = freq;
@@ -1089,8 +1119,8 @@ static void _find_current_opp(struct device *dev, struct opp_table *opp_table)
 	struct dev_pm_opp *opp = ERR_PTR(-ENODEV);
 	unsigned long freq;
 
-	if (!IS_ERR(opp_table->clk)) {
-		freq = clk_get_rate(opp_table->clk);
+	if (opp_table->clks && !IS_ERR(opp_table->clks[0].clk)) {
+		freq = clk_get_rate(opp_table->clks[0].clk);
 		opp = _find_freq_ceil(opp_table, &freq);
 	}
 
@@ -1190,7 +1220,7 @@ static int _set_opp(struct device *dev, struct opp_table *opp_table,
 						 scaling_down);
 	} else {
 		/* Only frequency scaling */
-		ret = _generic_set_opp_clk_only(dev, opp_table->clk, freq);
+		ret = _generic_set_opp_clk_only(dev, opp_table, freq);
 	}
 
 	if (ret)
@@ -1255,11 +1285,12 @@ int dev_pm_opp_set_rate(struct device *dev, unsigned long target_freq)
 		 * equivalent to a clk_set_rate()
 		 */
 		if (!_get_opp_count(opp_table)) {
-			ret = _generic_set_opp_clk_only(dev, opp_table->clk, target_freq);
+			ret = _generic_set_opp_clk_only(dev, opp_table, target_freq);
 			goto put_opp_table;
 		}
 
-		freq = clk_round_rate(opp_table->clk, target_freq);
+		if (opp_table->clks)
+			freq = clk_round_rate(opp_table->clks[0].clk, target_freq);
 		if ((long)freq <= 0)
 			freq = target_freq;
 
@@ -1366,7 +1397,8 @@ static struct opp_table *_allocate_opp_table(struct device *dev, int index)
 	INIT_LIST_HEAD(&opp_table->dev_list);
 	INIT_LIST_HEAD(&opp_table->lazy);
 
-	/* Mark regulator count uninitialized */
+	/* Mark regulator/clk count uninitialized */
+	opp_table->clk_count = -1;
 	opp_table->regulator_count = -1;
 
 	opp_dev = _add_opp_dev(dev, opp_table);
@@ -1415,21 +1447,29 @@ static struct opp_table *_update_opp_table_clk(struct device *dev,
 	 * Return early if we don't need to get clk or we have already tried it
 	 * earlier.
 	 */
-	if (!getclk || IS_ERR(opp_table) || opp_table->clk)
+	if (!getclk || IS_ERR(opp_table) || opp_table->clks)
 		return opp_table;
+
+	opp_table->clks = kcalloc(1, sizeof(*opp_table->clks), GFP_KERNEL);
+	if (!opp_table->clks)
+		return ERR_PTR(-ENOMEM);
 
 	/* Find clk for the device */
-	opp_table->clk = clk_get(dev, NULL);
-
-	ret = PTR_ERR_OR_ZERO(opp_table->clk);
-	if (!ret)
+	ret = clk_bulk_get(dev, 1, opp_table->clks);
+	if (!ret) {
+		opp_table->clk_count = 1;
 		return opp_table;
+	}
 
 	if (ret == -ENOENT) {
+		opp_table->clk_count = 0;
 		dev_dbg(dev, "%s: Couldn't find clock: %d\n", __func__, ret);
 		return opp_table;
 	}
 
+	kfree(opp_table->clks);
+	opp_table->clks = NULL;
+	opp_table->clk_count = -1;
 	dev_pm_opp_put_opp_table(opp_table);
 	dev_err_probe(dev, ret, "Couldn't find clock\n");
 
@@ -1528,9 +1568,7 @@ static void _opp_table_kref_release(struct kref *kref)
 
 	_of_clear_opp_table(opp_table);
 
-	/* Release clk */
-	if (!IS_ERR(opp_table->clk))
-		clk_put(opp_table->clk);
+	_put_clocks(opp_table);
 
 	if (opp_table->paths) {
 		for (i = 0; i < opp_table->path_count; i++)
@@ -2264,39 +2302,7 @@ EXPORT_SYMBOL_GPL(devm_pm_opp_set_regulators);
  */
 struct opp_table *dev_pm_opp_set_clkname(struct device *dev, const char *name)
 {
-	struct opp_table *opp_table;
-	int ret;
-
-	opp_table = _add_opp_table(dev, false);
-	if (IS_ERR(opp_table))
-		return opp_table;
-
-	/* This should be called before OPPs are initialized */
-	if (WARN_ON(!list_empty(&opp_table->opp_list))) {
-		ret = -EBUSY;
-		goto err;
-	}
-
-	/* clk shouldn't be initialized at this point */
-	if (WARN_ON(opp_table->clk)) {
-		ret = -EBUSY;
-		goto err;
-	}
-
-	/* Find clk for the device */
-	opp_table->clk = clk_get(dev, name);
-	if (IS_ERR(opp_table->clk)) {
-		ret = dev_err_probe(dev, PTR_ERR(opp_table->clk),
-				    "%s: Couldn't find clock\n", __func__);
-		goto err;
-	}
-
-	return opp_table;
-
-err:
-	dev_pm_opp_put_opp_table(opp_table);
-
-	return ERR_PTR(ret);
+	return dev_pm_opp_set_clknames(dev, &name, 1);
 }
 EXPORT_SYMBOL_GPL(dev_pm_opp_set_clkname);
 
@@ -2306,20 +2312,9 @@ EXPORT_SYMBOL_GPL(dev_pm_opp_set_clkname);
  */
 void dev_pm_opp_put_clkname(struct opp_table *opp_table)
 {
-	if (unlikely(!opp_table))
-		return;
-
-	clk_put(opp_table->clk);
-	opp_table->clk = ERR_PTR(-EINVAL);
-
-	dev_pm_opp_put_opp_table(opp_table);
+	return dev_pm_opp_put_clknames(opp_table);
 }
 EXPORT_SYMBOL_GPL(dev_pm_opp_put_clkname);
-
-static void devm_pm_opp_clkname_release(void *data)
-{
-	dev_pm_opp_put_clkname(data);
-}
 
 /**
  * devm_pm_opp_set_clkname() - Set clk name for the device
@@ -2332,16 +2327,113 @@ static void devm_pm_opp_clkname_release(void *data)
  */
 int devm_pm_opp_set_clkname(struct device *dev, const char *name)
 {
+	return devm_pm_opp_set_clknames(dev, &name, 1);
+}
+EXPORT_SYMBOL_GPL(devm_pm_opp_set_clkname);
+
+/**
+ * dev_pm_opp_set_clknames() - Set clk names for the device
+ * @dev: Device for which clock names are being set.
+ * @names: Array of pointers to the names of the clocks.
+ * @count: Number of clocks.
+ *
+ * See: dev_pm_opp_set_clkname()
+ */
+struct opp_table *dev_pm_opp_set_clknames(struct device *dev,
+					  const char * const names[],
+					  unsigned int count)
+{
+	struct opp_table *opp_table;
+	int ret, i;
+
+	opp_table = _add_opp_table(dev, false);
+	if (IS_ERR(opp_table))
+		return opp_table;
+
+	/* This should be called before OPPs are initialized */
+	if (WARN_ON(!list_empty(&opp_table->opp_list))) {
+		ret = -EBUSY;
+		goto err;
+	}
+
+	/* clk shouldn't be initialized at this point */
+	if (WARN_ON(opp_table->clks)) {
+		ret = -EBUSY;
+		goto err;
+	}
+
+	opp_table->clks = kcalloc(count, sizeof(*opp_table->clks), GFP_KERNEL);
+	if (!opp_table->clks) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	for (i = 0; i < count; i++)
+		opp_table->clks[i].id = names[i];
+
+	ret = clk_bulk_get(dev, count, opp_table->clks);
+	if (ret)
+		goto free_clks;
+
+	opp_table->clk_count = count;
+
+	return opp_table;
+
+free_clks:
+	kfree(opp_table->clks);
+	opp_table->clks = NULL;
+	opp_table->clk_count = -1;
+err:
+	dev_pm_opp_put_opp_table(opp_table);
+
+	return ERR_PTR(ret);
+}
+EXPORT_SYMBOL_GPL(dev_pm_opp_set_clknames);
+
+/**
+ * dev_pm_opp_put_clknames() - Releases resources blocked for clk.
+ * @opp_table: OPP table returned from dev_pm_opp_set_clknames().
+ */
+void dev_pm_opp_put_clknames(struct opp_table *opp_table)
+{
+	if (unlikely(!opp_table))
+		return;
+
+	_put_clocks(opp_table);
+
+	dev_pm_opp_put_opp_table(opp_table);
+}
+EXPORT_SYMBOL_GPL(dev_pm_opp_put_clknames);
+
+static void devm_pm_opp_clknames_release(void *data)
+{
+	dev_pm_opp_put_clknames(data);
+}
+
+/**
+ * devm_pm_opp_set_clknames() - Set clock names for the device
+ * @dev: Device for which clock names are being set.
+ * @names: Array of pointers to the names of the clocks.
+ * @count: Number of clocks.
+ *
+ * This is a resource-managed variant of dev_pm_opp_set_clknames().
+ *
+ * Return: 0 on success and errorno otherwise.
+ */
+int devm_pm_opp_set_clknames(struct device *dev,
+			     const char * const names[],
+			     unsigned int count)
+{
 	struct opp_table *opp_table;
 
-	opp_table = dev_pm_opp_set_clkname(dev, name);
+	opp_table = dev_pm_opp_set_clknames(dev, names, count);
 	if (IS_ERR(opp_table))
 		return PTR_ERR(opp_table);
 
-	return devm_add_action_or_reset(dev, devm_pm_opp_clkname_release,
+	return devm_add_action_or_reset(dev, devm_pm_opp_clknames_release,
 					opp_table);
 }
-EXPORT_SYMBOL_GPL(devm_pm_opp_set_clkname);
+EXPORT_SYMBOL_GPL(devm_pm_opp_set_clknames);
 
 /**
  * dev_pm_opp_register_set_opp_helper() - Register custom set OPP helper
@@ -2756,7 +2848,8 @@ int dev_pm_opp_add(struct device *dev, unsigned long freq, unsigned long u_volt)
 	if (IS_ERR(opp_table))
 		return PTR_ERR(opp_table);
 
-	/* Fix regulator count for dynamic OPPs */
+	/* Fix regulator/clk count for dynamic OPPs */
+	opp_table->clk_count = 1;
 	opp_table->regulator_count = 1;
 
 	ret = _opp_add_v1(opp_table, dev, freq, u_volt, true);

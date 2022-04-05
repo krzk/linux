@@ -75,7 +75,8 @@ struct dev_pm_opp_info {
  * @new_opp:	New OPP info
  * @regulators:	Array of regulator pointers
  * @regulator_count: Number of regulators
- * @clk:	Pointer to clk
+ * @clks:	Device clocks handles (clk bulk API)
+ * @clk_count:	Number of clocks
  * @dev:	Pointer to the struct device
  *
  * This structure contains all information required for setting an OPP.
@@ -86,7 +87,8 @@ struct dev_pm_set_opp_data {
 
 	struct regulator **regulators;
 	unsigned int regulator_count;
-	struct clk *clk;
+	struct clk_bulk_data *clks;
+	unsigned int clk_count;
 	struct device *dev;
 };
 
@@ -165,6 +167,13 @@ int devm_pm_opp_set_regulators(struct device *dev, const char * const names[], u
 struct opp_table *dev_pm_opp_set_clkname(struct device *dev, const char *name);
 void dev_pm_opp_put_clkname(struct opp_table *opp_table);
 int devm_pm_opp_set_clkname(struct device *dev, const char *name);
+struct opp_table *dev_pm_opp_set_clknames(struct device *dev,
+					  const char * const names[],
+					  unsigned int count);
+void dev_pm_opp_put_clknames(struct opp_table *opp_table);
+int devm_pm_opp_set_clknames(struct device *dev,
+			     const char * const names[],
+			     unsigned int count);
 struct opp_table *dev_pm_opp_register_set_opp_helper(struct device *dev, int (*set_opp)(struct dev_pm_set_opp_data *data));
 void dev_pm_opp_unregister_set_opp_helper(struct opp_table *opp_table);
 int devm_pm_opp_register_set_opp_helper(struct device *dev, int (*set_opp)(struct dev_pm_set_opp_data *data));
@@ -401,6 +410,22 @@ static inline struct opp_table *dev_pm_opp_set_clkname(struct device *dev, const
 static inline void dev_pm_opp_put_clkname(struct opp_table *opp_table) {}
 
 static inline int devm_pm_opp_set_clkname(struct device *dev, const char *name)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline struct opp_table *dev_pm_opp_set_clknames(struct device *dev,
+							const char * const names[],
+							unsigned int count)
+{
+	return ERR_PTR(-EOPNOTSUPP);
+}
+
+static inline void dev_pm_opp_put_clknames(struct opp_table *opp_table) {}
+
+static inline int devm_pm_opp_set_clknames(struct device *dev,
+					   const char * const names[],
+					   unsigned int count)
 {
 	return -EOPNOTSUPP;
 }
