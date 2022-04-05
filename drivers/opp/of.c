@@ -767,6 +767,47 @@ void dev_pm_opp_of_remove_table(struct device *dev)
 }
 EXPORT_SYMBOL_GPL(dev_pm_opp_of_remove_table);
 
+static int _read_clocks(struct dev_pm_opp *opp, struct opp_table *opp_table,
+			struct device_node *np)
+{
+	int count, ret;
+	u64 *freq;
+
+	count = of_property_count_u64_elems(np, "opp-hz");
+	if (count < 0) {
+		pr_err("%s: Invalid %s property (%d)\n",
+			__func__, of_node_full_name(np), count);
+		return count;
+	}
+
+	if (count != opp_table->clk_count) {
+		pr_err("%s: number of rates %d does not match number of clocks %d in %s\n",
+		       __func__, count, opp_table->clk_count,
+		       of_node_full_name(np));
+		return -EINVAL;
+	}
+
+	freq = kmalloc_array(count, sizeof(*freq), GFP_KERNEL);
+	if (!freq)
+		return -ENOMEM;
+
+	ret = of_property_read_u64_array(np, "opp-hz", freq, count);
+	if (ret) {
+		pr_err("%s: error parsing %s: %d\n", __func__,
+		       of_node_full_name(np), ret);
+		ret = -EINVAL;
+		goto free_freq;
+	}
+
+	opp->rates = freq;
+	return 0;
+
+free_freq:
+	kfree(freq);
+
+	return ret;
+}
+
 static int _read_bw(struct dev_pm_opp *new_opp, struct opp_table *table,
 		    struct device_node *np, bool peak)
 {
@@ -826,6 +867,13 @@ static int _read_opp_key(struct dev_pm_opp *new_opp, struct opp_table *table,
 		found = true;
 	}
 	*rate_not_available = !!ret;
+
+	if (!ret) {
+		ret = _read_clocks(new_opp, table, np);
+		/* The properties were found but we failed to parse them */
+		if (ret && ret != -ENODEV)
+			return ret;
+	}
 
 	/*
 	 * Bandwidth consists of peak and average (optional) values:

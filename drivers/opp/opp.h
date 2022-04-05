@@ -60,6 +60,7 @@ extern struct list_head opp_tables, lazy_opp_tables;
  * @pstate: Device's power domain's performance state.
  * @rate:	Frequency in hertz
  * @level:	Performance level
+ * @rates:	Frequency rates for the clocks.
  * @supplies:	Power supplies voltage/current values
  * @bandwidth:	Interconnect bandwidth values
  * @clock_latency_ns: Latency (in nanoseconds) of switching to this OPP's
@@ -84,6 +85,7 @@ struct dev_pm_opp {
 	unsigned long rate;
 	unsigned int level;
 
+	u64 *rates;
 	struct dev_pm_opp_supply *supplies;
 	struct dev_pm_opp_icc_bw *bandwidth;
 
@@ -149,7 +151,9 @@ enum opp_table_access {
  * @supported_hw: Array of version number to support.
  * @supported_hw_count: Number of elements in supported_hw array.
  * @prop_name: A name to postfix to many DT properties, while parsing them.
- * @clk: Device's clock handle
+ * @clks: Device clocks handles
+ * @clk_count: Number of clocks. Its value can be -1 (uninitialized), 0 (no
+ * clock handle provided)  or > 0 (has clock handles).
  * @regulators: Supply regulators
  * @regulator_count: Number of power supply regulators. Its value can be -1
  * (uninitialized), 0 (no opp-microvolt property) or > 0 (has opp-microvolt
@@ -200,7 +204,8 @@ struct opp_table {
 	unsigned int *supported_hw;
 	unsigned int supported_hw_count;
 	const char *prop_name;
-	struct clk *clk;
+	struct clk **clks;
+	int clk_count;
 	struct regulator **regulators;
 	int regulator_count;
 	struct icc_path **paths;
