@@ -105,7 +105,7 @@ struct scsi_cmnd {
 
 	unsigned transfersize;	/* How much we are guaranteed to
 				   transfer with each SCSI transfer
-				   (ie, between disconnect / 
+				   (ie, between disconnect /
 				   reconnects.   Probably == sector
 				   size */
 	unsigned resid_len;	/* residual count */
