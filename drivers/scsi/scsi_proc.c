@@ -208,7 +208,7 @@ out:
  */
 void scsi_proc_host_add(struct Scsi_Host *shost)
 {
-	struct scsi_host_template *sht = shost->hostt;
+	const struct scsi_host_template *sht = shost->hostt;
 	struct proc_dir_entry *p;
 	struct sht_proc_dir *dir;
 	char name[10];
