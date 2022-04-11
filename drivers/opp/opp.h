@@ -124,12 +124,6 @@ enum opp_table_access {
 	OPP_TABLE_ACCESS_SHARED = 2,
 };
 
-enum opp_table_version {
-	OPP_TABLE_VERSION_UNKNOWN = 0,
-	OPP_TABLE_VERSION_1 = 1,
-	OPP_TABLE_VERSION_2 = 2,
-};
-
 /**
  * struct opp_table - Device opp structure
  * @node:	table node - contains the devices with OPPs that
@@ -144,7 +138,6 @@ enum opp_table_version {
  * @clock_latency_ns_max: Max clock latency in nanoseconds.
  * @parsed_static_opps: Count of devices for which OPPs are initialized from DT.
  * @shared_opp: OPP is shared between multiple devices.
- * @version: OPP bindings version to disallow mixing (e.g. v1 and v2).
  * @current_rate: Currently configured frequency.
  * @current_opp: Currently configured OPP for the table.
  * @suspend_opp: Pointer to OPP to be used during device suspend.
@@ -195,7 +188,6 @@ struct opp_table {
 
 	unsigned int parsed_static_opps;
 	enum opp_table_access shared_opp;
-	enum opp_table_version version;
 	unsigned long current_rate;
 	struct dev_pm_opp *current_opp;
 	struct dev_pm_opp *suspend_opp;
@@ -240,9 +232,7 @@ int _opp_compare_key(struct dev_pm_opp *opp1, struct dev_pm_opp *opp2);
 int _opp_add(struct device *dev, struct dev_pm_opp *new_opp, struct opp_table *opp_table, bool rate_not_available);
 int _opp_add_v1(struct opp_table *opp_table, struct device *dev, unsigned long freq, long u_volt, bool dynamic);
 void _dev_pm_opp_cpumask_remove_table(const struct cpumask *cpumask, int last_cpu);
-struct opp_table *_add_opp_table_indexed(struct device *dev, int index,
-					 bool getclk,
-					 enum opp_table_version version);
+struct opp_table *_add_opp_table_indexed(struct device *dev, int index, bool getclk);
 void _put_opp_list_kref(struct opp_table *opp_table);
 void _required_opps_available(struct dev_pm_opp *opp, int count);
 
