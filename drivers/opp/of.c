@@ -169,9 +169,6 @@ static void _opp_table_alloc_required_tables(struct opp_table *opp_table,
 		return;
 	}
 
-	if (opp_table->version == OPP_TABLE_VERSION_1)
-		goto skip_required_opp;
-
 	count = of_count_phandle_with_args(np, "required-opps", NULL);
 	if (count <= 0)
 		goto put_np;
@@ -196,7 +193,6 @@ static void _opp_table_alloc_required_tables(struct opp_table *opp_table,
 			lazy = true;
 	}
 
-skip_required_opp:
 	/* Let's do the linking later on */
 	if (lazy)
 		list_add(&opp_table->lazy, &lazy_opp_tables);
@@ -887,13 +883,6 @@ static struct dev_pm_opp *_opp_add_static_v2(struct opp_table *opp_table,
 	int ret;
 	bool rate_not_available = false;
 
-	if (opp_table->version != OPP_TABLE_VERSION_UNKNOWN &&
-	    opp_table->version != OPP_TABLE_VERSION_2) {
-		dev_warn(dev, "%s: Mixing v1 and v2 OPP bindings not supported\n",
-			 __func__);
-		return ERR_PTR(-EINVAL);
-	}
-
 	new_opp = _opp_allocate(opp_table);
 	if (!new_opp)
 		return ERR_PTR(-ENOMEM);
@@ -996,9 +985,6 @@ static int _of_add_opp_table_v2(struct device *dev, struct opp_table *opp_table)
 	opp_table->parsed_static_opps = 1;
 	mutex_unlock(&opp_table->lock);
 
-	WARN_ON(opp_table->version != OPP_TABLE_VERSION_UNKNOWN);
-	opp_table->version = OPP_TABLE_VERSION_2;
-
 	/* We have opp-table node now, iterate over it and add OPPs */
 	for_each_available_child_of_node(opp_table->np, np) {
 		opp = _opp_add_static_v2(opp_table, dev, np);
@@ -1034,7 +1020,6 @@ static int _of_add_opp_table_v2(struct device *dev, struct opp_table *opp_table)
 
 remove_static_opp:
 	_opp_remove_all_static(opp_table);
-	opp_table->version = OPP_TABLE_VERSION_UNKNOWN;
 
 	return ret;
 }
@@ -1055,9 +1040,6 @@ static int _of_add_opp_table_v1(struct device *dev, struct opp_table *opp_table)
 
 	opp_table->parsed_static_opps = 1;
 	mutex_unlock(&opp_table->lock);
-
-	WARN_ON(opp_table->version != OPP_TABLE_VERSION_UNKNOWN);
-	opp_table->version = OPP_TABLE_VERSION_1;
 
 	prop = of_find_property(dev->of_node, "operating-points", NULL);
 	if (!prop) {
@@ -1098,7 +1080,6 @@ static int _of_add_opp_table_v1(struct device *dev, struct opp_table *opp_table)
 
 remove_static_opp:
 	_opp_remove_all_static(opp_table);
-	opp_table->version = OPP_TABLE_VERSION_UNKNOWN;
 
 	return ret;
 }
@@ -1119,8 +1100,7 @@ static int _of_add_table_indexed(struct device *dev, int index, bool getclk)
 			index = 0;
 	}
 
-	opp_table = _add_opp_table_indexed(dev, index, getclk,
-					   OPP_TABLE_VERSION_UNKNOWN);
+	opp_table = _add_opp_table_indexed(dev, index, getclk);
 	if (IS_ERR(opp_table))
 		return PTR_ERR(opp_table);
 
