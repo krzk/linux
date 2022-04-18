@@ -34,6 +34,7 @@ description: |
         mdm9615
         msm8226
         msm8916
+        msm8939
         msm8974
         msm8992
         msm8994
@@ -147,6 +148,12 @@ properties:
           - enum:
               - samsung,s3ve3g
           - const: qcom,msm8226
+
+      - items:
+          - enum:
+              - sony,kanuti-tulip
+              - square,apq8039-t2
+          - const: qcom,msm8939
 
       - items:
           - enum:
