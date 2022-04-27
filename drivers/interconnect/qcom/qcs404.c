@@ -1086,6 +1086,7 @@ static struct platform_driver qcs404_noc_driver = {
 	.driver = {
 		.name = "qnoc-qcs404",
 		.of_match_table = qcs404_noc_of_match,
+		.sync_state = icc_sync_state,
 	},
 };
 module_platform_driver(qcs404_noc_driver);
