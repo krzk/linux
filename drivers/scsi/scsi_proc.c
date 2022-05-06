@@ -41,10 +41,23 @@
 /* 4K page size, but our output routines, use some slack for overruns */
 #define PROC_BLOCK_SIZE (3*1024)
 
+/*
+ * Used to store the procfs directory if a driver implements the
+ * show_info method.
+ */
+struct sht_proc_dir {
+	int cnt;
+	struct list_head list;
+	struct proc_dir_entry *proc_dir;
+	const struct scsi_host_template *sht;
+};
+
 static struct proc_dir_entry *proc_scsi;
 
 /* Protect sht->present and sht->proc_dir */
 static DEFINE_MUTEX(global_host_template_mutex);
+
+static LIST_HEAD(sht_proc_dir_list);
 
 static ssize_t proc_scsi_host_write(struct file *file, const char __user *buf,
                            size_t count, loff_t *ppos)
@@ -91,6 +104,37 @@ static const struct proc_ops proc_scsi_ops = {
 	.proc_write	= proc_scsi_host_write
 };
 
+static struct sht_proc_dir *
+scsi_proc_find_sht_proc_dir(const struct scsi_host_template *sht)
+{
+	struct sht_proc_dir *dir;
+
+	lockdep_assert_held(&global_host_template_mutex);
+
+	list_for_each_entry(dir, &sht_proc_dir_list, list) {
+		if (dir->sht == sht)
+			return dir;
+	}
+
+	return NULL;
+}
+
+struct proc_dir_entry *
+scsi_proc_get_proc_dir(const struct scsi_host_template *sht)
+{
+	struct proc_dir_entry *proc_dir = NULL;
+	struct sht_proc_dir *dir;
+
+	mutex_lock(&global_host_template_mutex);
+	dir = scsi_proc_find_sht_proc_dir(sht);
+	if (dir)
+		proc_dir = dir->proc_dir;
+	mutex_unlock(&global_host_template_mutex);
+
+	return proc_dir;
+}
+EXPORT_SYMBOL_GPL(scsi_proc_get_proc_dir);
+
 /**
  * scsi_proc_hostdir_add - Create directory in /proc for a scsi host
  * @sht: owner of this directory
@@ -98,18 +142,36 @@ static const struct proc_ops proc_scsi_ops = {
  * Sets sht->proc_dir to the new directory.
  */
 
-void scsi_proc_hostdir_add(struct scsi_host_template *sht)
+void scsi_proc_hostdir_add(const struct scsi_host_template *sht)
 {
+	struct sht_proc_dir *dir;
+
 	if (!sht->show_info)
 		return;
 
 	mutex_lock(&global_host_template_mutex);
-	if (!sht->present++) {
-		sht->proc_dir = proc_mkdir(sht->proc_name, proc_scsi);
-		if (!sht->proc_dir)
-			printk(KERN_ERR "%s: proc_mkdir failed for %s\n",
-			       __func__, sht->proc_name);
+	list_for_each_entry(dir, &sht_proc_dir_list, list) {
+		if (dir->sht == sht) {
+			dir->cnt++;
+			goto out;
+		}
 	}
+	dir = kzalloc(sizeof(*dir), GFP_KERNEL);
+	if (!dir)
+		goto out;
+
+	dir->proc_dir = proc_mkdir(sht->proc_name, proc_scsi);
+	if (!dir->proc_dir) {
+		printk(KERN_ERR "%s: proc_mkdir failed for %s\n",
+		       __func__, sht->proc_name);
+		kfree(dir);
+		goto out;
+	}
+
+	dir->cnt++;
+	list_add_tail(&dir->list, &sht_proc_dir_list);
+
+out:
 	mutex_unlock(&global_host_template_mutex);
 }
 
@@ -117,16 +179,25 @@ void scsi_proc_hostdir_add(struct scsi_host_template *sht)
  * scsi_proc_hostdir_rm - remove directory in /proc for a scsi host
  * @sht: owner of directory
  */
-void scsi_proc_hostdir_rm(struct scsi_host_template *sht)
+void scsi_proc_hostdir_rm(const struct scsi_host_template *sht)
 {
+	struct sht_proc_dir *dir = NULL;
+
 	if (!sht->show_info)
 		return;
 
 	mutex_lock(&global_host_template_mutex);
-	if (!--sht->present && sht->proc_dir) {
+	dir = scsi_proc_find_sht_proc_dir(sht);
+	if (!dir)
+		goto out;
+
+	if (!--dir->cnt) {
+		list_del(&dir->list);
 		remove_proc_entry(sht->proc_name, proc_scsi);
-		sht->proc_dir = NULL;
+		kfree(dir);
 	}
+
+out:
 	mutex_unlock(&global_host_template_mutex);
 }
 
@@ -139,18 +210,23 @@ void scsi_proc_host_add(struct Scsi_Host *shost)
 {
 	struct scsi_host_template *sht = shost->hostt;
 	struct proc_dir_entry *p;
+	struct sht_proc_dir *dir;
 	char name[10];
 
-	if (!sht->proc_dir)
-		return;
+	mutex_lock(&global_host_template_mutex);
+	dir = scsi_proc_find_sht_proc_dir(sht);
+	if (!dir)
+		goto out;
 
 	sprintf(name,"%d", shost->host_no);
 	p = proc_create_data(name, S_IRUGO | S_IWUSR,
-		sht->proc_dir, &proc_scsi_ops, shost);
+		dir->proc_dir, &proc_scsi_ops, shost);
 	if (!p)
 		printk(KERN_ERR "%s: Failed to register host %d in"
 		       "%s\n", __func__, shost->host_no,
 		       sht->proc_name);
+out:
+	mutex_unlock(&global_host_template_mutex);
 }
 
 /**
@@ -159,13 +235,18 @@ void scsi_proc_host_add(struct Scsi_Host *shost)
  */
 void scsi_proc_host_rm(struct Scsi_Host *shost)
 {
+	struct sht_proc_dir *dir;
 	char name[10];
 
-	if (!shost->hostt->proc_dir)
-		return;
+	mutex_lock(&global_host_template_mutex);
+	dir = scsi_proc_find_sht_proc_dir(shost->hostt);
+	if (!dir)
+		goto out;
 
 	sprintf(name,"%d", shost->host_no);
-	remove_proc_entry(name, shost->hostt->proc_dir);
+	remove_proc_entry(name, dir->proc_dir);
+out:
+	mutex_unlock(&global_host_template_mutex);
 }
 /**
  * proc_print_scsidevice - return data about this host
