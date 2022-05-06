@@ -655,9 +655,6 @@ static const struct scsi_host_template usb_stor_host_template = {
 
 	/* sysfs device attributes */
 	.sdev_groups =			usb_sdev_groups,
-
-	/* module management */
-	.module =			THIS_MODULE
 };
 
 void usb_stor_host_template_init(struct scsi_host_template *sht,
@@ -666,7 +663,6 @@ void usb_stor_host_template_init(struct scsi_host_template *sht,
 	*sht = usb_stor_host_template;
 	sht->name = name;
 	sht->proc_name = name;
-	sht->module = owner;
 }
 EXPORT_SYMBOL_GPL(usb_stor_host_template_init);
 

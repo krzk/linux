@@ -4189,7 +4189,8 @@ int ata_scsi_add_hosts(struct ata_host *host, struct scsi_host_template *sht)
 		struct Scsi_Host *shost;
 
 		rc = -ENOMEM;
-		shost = scsi_host_alloc(sht, sizeof(struct ata_port *));
+		shost = __scsi_host_alloc(sht, sizeof(struct ata_port *),
+					  host->dev->driver->owner);
 		if (!shost)
 			goto err_alloc;
 

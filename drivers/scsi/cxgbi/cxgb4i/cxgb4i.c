@@ -99,7 +99,6 @@ static const struct cxgb4_uld_info cxgb4i_uld_info = {
 };
 
 static struct scsi_host_template cxgb4i_host_template = {
-	.module		= THIS_MODULE,
 	.name		= DRV_MODULE_NAME,
 	.proc_name	= DRV_MODULE_NAME,
 	.can_queue	= CXGB4I_SCSI_HOST_QDEPTH,

@@ -2251,7 +2251,6 @@ static umode_t bnx2i_attr_is_visible(int param_type, int param)
  * used while registering with the scsi host and iSCSI transport module.
  */
 static struct scsi_host_template bnx2i_host_template = {
-	.module			= THIS_MODULE,
 	.name			= "QLogic Offload iSCSI Initiator",
 	.proc_name		= "bnx2i",
 	.queuecommand		= iscsi_queuecommand,

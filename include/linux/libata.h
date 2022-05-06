@@ -1366,14 +1366,7 @@ extern const struct ata_port_operations ata_base_port_ops;
 extern const struct ata_port_operations sata_port_ops;
 extern const struct attribute_group *ata_common_sdev_groups[];
 
-/*
- * All sht initializers (BASE, PIO, BMDMA, NCQ) must be instantiated
- * by the edge drivers.  Because the 'module' field of sht must be the
- * edge driver's module reference, otherwise the driver can be unloaded
- * even if the scsi_device is being accessed.
- */
 #define __ATA_BASE_SHT(drv_name)				\
-	.module			= THIS_MODULE,			\
 	.name			= drv_name,			\
 	.ioctl			= ata_scsi_ioctl,		\
 	ATA_SCSI_COMPAT_IOCTL					\

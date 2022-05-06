@@ -454,7 +454,7 @@ static void scsi_device_dev_release_usercontext(struct work_struct *work)
 
 	sdev = container_of(work, struct scsi_device, ew.work);
 
-	mod = sdev->host->hostt->module;
+	mod = sdev->host->owner;
 
 	scsi_dh_release_device(sdev);
 
@@ -526,8 +526,8 @@ static void scsi_device_dev_release(struct device *dev)
 	struct scsi_device *sdp = to_scsi_device(dev);
 
 	/* Set module pointer as NULL in case of module unloading */
-	if (!try_module_get(sdp->host->hostt->module))
-		sdp->host->hostt->module = NULL;
+	if (!try_module_get(sdp->host->owner))
+		sdp->host->owner = NULL;
 
 	execute_in_process_context(scsi_device_dev_release_usercontext,
 				   &sdp->ew);

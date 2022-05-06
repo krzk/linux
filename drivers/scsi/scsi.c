@@ -565,7 +565,7 @@ int scsi_device_get(struct scsi_device *sdev)
 		goto fail;
 	if (!get_device(&sdev->sdev_gendev))
 		goto fail;
-	if (!try_module_get(sdev->host->hostt->module))
+	if (!try_module_get(sdev->host->owner))
 		goto fail_put_device;
 	return 0;
 
@@ -586,7 +586,7 @@ EXPORT_SYMBOL(scsi_device_get);
  */
 void scsi_device_put(struct scsi_device *sdev)
 {
-	struct module *mod = sdev->host->hostt->module;
+	struct module *mod = sdev->host->owner;
 
 	put_device(&sdev->sdev_gendev);
 	module_put(mod);

@@ -7774,7 +7774,6 @@ static struct scsi_host_template sdebug_driver_template = {
 	.cmd_per_lun =		DEF_CMD_PER_LUN,
 	.max_sectors =		-1U,
 	.max_segment_size =	-1U,
-	.module =		THIS_MODULE,
 	.track_queue_depth =	1,
 };
 

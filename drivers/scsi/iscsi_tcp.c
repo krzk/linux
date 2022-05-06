@@ -989,7 +989,6 @@ static int iscsi_sw_tcp_slave_configure(struct scsi_device *sdev)
 }
 
 static struct scsi_host_template iscsi_sw_tcp_sht = {
-	.module			= THIS_MODULE,
 	.name			= "iSCSI Initiator over TCP/IP",
 	.queuecommand           = iscsi_queuecommand,
 	.change_queue_depth	= scsi_change_queue_depth,

@@ -949,7 +949,7 @@ int usb_stor_probe1(struct us_data **pus,
 	 * Ask the SCSI layer to allocate a host structure, with extra
 	 * space at the end for our private us_data structure.
 	 */
-	host = scsi_host_alloc(sht, sizeof(*us));
+	host = __scsi_host_alloc(sht, sizeof(*us), intf->dev.driver->owner);
 	if (!host) {
 		dev_warn(&intf->dev, "Unable to allocate the scsi host\n");
 		return -ENOMEM;

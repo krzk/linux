@@ -84,7 +84,6 @@ struct scsi_host_template {
 	 */
 	void (*commit_rqs)(struct Scsi_Host *, u16);
 
-	struct module *module;
 	const char *name;
 
 	/*
@@ -548,6 +547,7 @@ struct Scsi_Host {
 	struct completion     * eh_action; /* Wait for specific actions on the
 					      host. */
 	wait_queue_head_t       host_wait;
+	struct module *owner;
 	struct scsi_host_template *hostt;
 	struct scsi_transport_template *transportt;
 
@@ -737,7 +737,13 @@ static inline int scsi_host_in_recovery(struct Scsi_Host *shost)
 extern int scsi_queue_work(struct Scsi_Host *, struct work_struct *);
 extern void scsi_flush_work(struct Scsi_Host *);
 
-extern struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *, int);
+/*
+ * use a macro to avoid include chaining to get THIS_MODULE
+ */
+#define scsi_host_alloc(sht, privsize) \
+	__scsi_host_alloc(sht, privsize, THIS_MODULE);
+extern struct Scsi_Host *__scsi_host_alloc(struct scsi_host_template *, int,
+					   struct module *);
 extern int __must_check scsi_add_host_with_dma(struct Scsi_Host *,
 					       struct device *,
 					       struct device *);

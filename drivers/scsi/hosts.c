@@ -375,7 +375,8 @@ static struct device_type scsi_host_type = {
  * Return value:
  * 	Pointer to a new Scsi_Host
  **/
-struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *sht, int privsize)
+struct Scsi_Host *__scsi_host_alloc(struct scsi_host_template *sht, int privsize,
+				    struct module *owner)
 {
 	struct Scsi_Host *shost;
 	int index;
@@ -419,6 +420,7 @@ struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *sht, int privsize)
 	 * they actually do something sensible with such commands.
 	 */
 	shost->max_cmd_len = 12;
+	shost->owner = owner;
 	shost->hostt = sht;
 	shost->this_id = sht->this_id;
 	shost->can_queue = sht->can_queue;
@@ -516,7 +518,7 @@ struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *sht, int privsize)
 
 	return NULL;
 }
-EXPORT_SYMBOL(scsi_host_alloc);
+EXPORT_SYMBOL(__scsi_host_alloc);
 
 static int __scsi_host_match(struct device *dev, const void *data)
 {
