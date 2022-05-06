@@ -358,12 +358,6 @@ struct scsi_host_template {
 	const char *proc_name;
 
 	/*
-	 * Used to store the procfs directory if a driver implements the
-	 * show_info method.
-	 */
-	struct proc_dir_entry *proc_dir;
-
-	/*
 	 * This determines if we will use a non-interrupt driven
 	 * or an interrupt driven scheme.  It is set to the maximum number
 	 * of simultaneous commands a single hw queue in HBA will accept.

@@ -100,13 +100,20 @@ extern void scsi_evt_thread(struct work_struct *work);
 
 /* scsi_proc.c */
 #ifdef CONFIG_SCSI_PROC_FS
-extern void scsi_proc_hostdir_add(struct scsi_host_template *);
-extern void scsi_proc_hostdir_rm(struct scsi_host_template *);
+struct proc_dir_entry *
+scsi_proc_get_proc_dir(const struct scsi_host_template *sht);
+extern void scsi_proc_hostdir_add(const struct scsi_host_template *);
+extern void scsi_proc_hostdir_rm(const struct scsi_host_template *);
 extern void scsi_proc_host_add(struct Scsi_Host *);
 extern void scsi_proc_host_rm(struct Scsi_Host *);
 extern int scsi_init_procfs(void);
 extern void scsi_exit_procfs(void);
 #else
+static inline struct proc_dir_entry *
+scsi_proc_get_proc_dir(const struct scsi_host_template *sht)
+{
+	return NULL;
+}
 # define scsi_proc_hostdir_add(sht)	do { } while (0)
 # define scsi_proc_hostdir_rm(sht)	do { } while (0)
 # define scsi_proc_host_add(shost)	do { } while (0)

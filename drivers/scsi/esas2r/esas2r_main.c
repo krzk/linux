@@ -42,6 +42,7 @@
  */
 
 #include "esas2r.h"
+#include "../scsi_priv.h"
 
 MODULE_DESCRIPTION(ESAS2R_DRVR_NAME ": " ESAS2R_LONGNAME " driver");
 MODULE_AUTHOR("ATTO Technology, Inc.");
@@ -637,10 +638,14 @@ static void __exit esas2r_exit(void)
 	esas2r_log(ESAS2R_LOG_INFO, "%s called", __func__);
 
 	if (esas2r_proc_major > 0) {
+		struct proc_dir_entry *sht_pde;
+
 		esas2r_log(ESAS2R_LOG_INFO, "unregister proc");
 
-		remove_proc_entry(ATTONODE_NAME,
-				  esas2r_proc_host->hostt->proc_dir);
+		sht_pde = scsi_proc_get_proc_dir(esas2r_proc_host->hostt);
+		if (sht_pde)
+			remove_proc_entry(ATTONODE_NAME, sht_pde);
+
 		unregister_chrdev(esas2r_proc_major, ESAS2R_DRVR_NAME);
 
 		esas2r_proc_major = 0;
@@ -730,10 +735,13 @@ const char *esas2r_info(struct Scsi_Host *sh)
 			       esas2r_proc_major);
 
 		if (esas2r_proc_major > 0) {
-			struct proc_dir_entry *pde;
+			struct proc_dir_entry *pde, *sht_pde;
 
-			pde = proc_create(ATTONODE_NAME, 0,
-					  sh->hostt->proc_dir,
+			sht_pde = scsi_proc_get_proc_dir(sh->hostt);
+			if (!sht_pde)
+				return "";
+
+			pde = proc_create(ATTONODE_NAME, 0, sht_pde,
 					  &esas2r_proc_ops);
 
 			if (!pde) {
