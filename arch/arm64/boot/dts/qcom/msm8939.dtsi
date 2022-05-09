@@ -1381,6 +1381,41 @@
 			};
 		};
 
+		venus: video-codec@1d00000 {
+			compatible = "qcom,msm8939-venus";
+			reg = <0x01d00000 0xff000>;
+			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
+			power-domains = <&gcc VENUS_GDSC>;
+			clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
+				 <&gcc GCC_VENUS0_AHB_CLK>,
+				 <&gcc GCC_VENUS0_AXI_CLK>;
+			clock-names = "core", "iface", "bus";
+
+			interconnects = <&bimc MASTER_AMPSS_M0 &pcnoc SLAVE_VENUS_CFG>,
+					<&snoc_mm MASTER_VIDEO_P0 &bimc SLAVE_EBI_CH0>;
+			interconnect-names = "cpu-cfg", "video-mem";
+
+			iommus = <&apps_iommu 5>;
+			memory-region = <&venus_mem>;
+
+			resets = <&gcc GCC_VENUS0_BCR>;
+			status = "okay";
+
+			video-decoder {
+				compatible = "venus-decoder";
+				clocks = <&gcc GCC_VENUS0_CORE0_VCODEC0_CLK>;
+				clock-names = "vcodec0_core";
+				power-domains = <&gcc VENUS_CORE0_GDSC>;
+			};
+
+			video-encoder {
+				compatible = "venus-encoder";
+				clocks = <&gcc GCC_VENUS0_CORE1_VCODEC0_CLK>;
+				clock-names = "vcodec1_core";
+				power-domains = <&gcc VENUS_CORE1_GDSC>;
+			};
+		};
+
 		apps_iommu: iommu@1ef0000 {
 			compatible = "qcom,msm8916-iommu", "qcom,msm-iommu-v1";
 			reg = <0x01ef0000 0x3000>;
