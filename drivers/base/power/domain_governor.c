@@ -369,6 +369,7 @@ static bool cpu_power_down_ok(struct dev_pm_domain *pd)
 				domain_wakeup = next_hrtimer;
 		}
 	}
+	genpd->next_hrtimer = domain_wakeup;
 
 	/* The minimum idle duration is from now - until the next wakeup. */
 	idle_duration_ns = ktime_to_ns(ktime_sub(domain_wakeup, now));
