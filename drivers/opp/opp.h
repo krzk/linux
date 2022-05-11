@@ -61,6 +61,7 @@ extern struct list_head opp_tables, lazy_opp_tables;
  * @rate:	Frequency in hertz
  * @level:	Performance level
  * @supplies:	Power supplies voltage/current values
+ * @rates:	Frequency rates for the clocks (equal to @rate for one clock)
  * @bandwidth:	Interconnect bandwidth values
  * @clock_latency_ns: Latency (in nanoseconds) of switching to this OPP's
  *		frequency from any other OPP's frequency.
@@ -85,6 +86,7 @@ struct dev_pm_opp {
 	unsigned int level;
 
 	struct dev_pm_opp_supply *supplies;
+	unsigned long *rates;
 	struct dev_pm_opp_icc_bw *bandwidth;
 
 	unsigned long clock_latency_ns;

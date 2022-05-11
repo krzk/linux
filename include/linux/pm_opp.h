@@ -60,12 +60,15 @@ struct dev_pm_opp_icc_bw {
 /**
  * struct dev_pm_opp_info - OPP freq/voltage/current values
  * @rate:	Target clk rate in hz
+ * @rates:	Array of clock frequencies for all clocks (equal to @rate for
+ *		one clock)
  * @supplies:	Array of voltage/current values for all power supplies
  *
  * This structure stores the freq/voltage/current values for a single OPP.
  */
 struct dev_pm_opp_info {
 	unsigned long rate;
+	unsigned long *rates;
 	struct dev_pm_opp_supply *supplies;
 };
 

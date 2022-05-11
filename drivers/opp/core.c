@@ -1033,7 +1033,9 @@ static int _set_opp_custom(const struct opp_table *opp_table,
 	data->clks = opp_table->clks;
 	data->dev = dev;
 	data->old_opp.rate = old_opp->rate;
+	data->old_opp.rates = old_opp->rates;
 	data->new_opp.rate = freq;
+	data->new_opp.rates = opp->rates;
 
 	return opp_table->set_opp(data);
 }
@@ -1307,6 +1309,11 @@ int dev_pm_opp_set_rate(struct device *dev, unsigned long target_freq)
 				__func__, freq, ret);
 			goto put_opp_table;
 		}
+		/*
+		 * opp->rates are used for scaling clocks, so be sure accurate
+		 * 'freq' is used, instead what was defined via e.g. Devicetree.
+		 */
+		opp->rates[0] = freq;
 	}
 
 	ret = _set_opp(dev, opp_table, opp, freq);
@@ -1761,23 +1768,29 @@ EXPORT_SYMBOL_GPL(dev_pm_opp_remove_all_dynamic);
 struct dev_pm_opp *_opp_allocate(struct opp_table *table)
 {
 	struct dev_pm_opp *opp;
-	int supply_count, supply_size, icc_size;
+	int rate_count, rate_size, supply_count, supply_size, icc_size;
 
 	/* Allocate space for at least one supply */
 	supply_count = table->regulator_count > 0 ? table->regulator_count : 1;
 	supply_size = sizeof(*opp->supplies) * supply_count;
+	/* Allocate space for at least one rate */
+	rate_count = table->clk_count > 0 ? table->clk_count : 1;
+	rate_size = sizeof(*opp->rates) * rate_count;
 	icc_size = sizeof(*opp->bandwidth) * table->path_count;
 
 	/* allocate new OPP node and supplies structures */
-	opp = kzalloc(sizeof(*opp) + supply_size + icc_size, GFP_KERNEL);
+	opp = kzalloc(sizeof(*opp) + rate_size + supply_size + icc_size,
+		      GFP_KERNEL);
 
 	if (!opp)
 		return NULL;
 
 	/* Put the supplies at the end of the OPP structure as an empty array */
 	opp->supplies = (struct dev_pm_opp_supply *)(opp + 1);
+	opp->rates = (unsigned long *)(opp->supplies + supply_count);
 	if (icc_size)
-		opp->bandwidth = (struct dev_pm_opp_icc_bw *)(opp->supplies + supply_count);
+		opp->bandwidth = (struct dev_pm_opp_icc_bw *)(opp->rates + rate_count);
+
 	INIT_LIST_HEAD(&opp->node);
 
 	return opp;
@@ -1957,6 +1970,7 @@ int _opp_add_v1(struct opp_table *opp_table, struct device *dev,
 
 	/* populate the opp table */
 	new_opp->rate = freq;
+	new_opp->rates[0] = freq;
 	tol = u_volt * opp_table->voltage_tolerance_v1 / 100;
 	new_opp->supplies[0].u_volt = u_volt;
 	new_opp->supplies[0].u_volt_min = u_volt - tol;
