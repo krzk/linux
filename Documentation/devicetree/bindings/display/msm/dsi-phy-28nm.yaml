@@ -19,6 +19,13 @@ properties:
       - qcom,dsi-phy-28nm-lp
       - qcom,dsi-phy-28nm-8960
 
+  clocks:
+    maxItems: 2
+
+  clock-names:
+    - items:
+        - const: iface
+        - const: ref
   reg:
     items:
       - description: dsi pll register set
@@ -40,6 +47,8 @@ properties:
 
 required:
   - compatible
+  - clocks
+  - clock-names
   - reg
   - reg-names
   - vddio-supply
