@@ -316,8 +316,8 @@ static int mhi_ep_read_channel(struct mhi_ep_cntrl *mhi_cntrl,
 		read_addr = mhi_chan->tre_loc + read_offset;
 		write_addr = result->buf_addr + write_offset;
 
-		dev_dbg(dev, "Reading %zd bytes from channel (%u)\n", tr_len, ring->ch_id);
-		ret = mhi_cntrl->read_from_host(mhi_cntrl, read_addr, write_addr, tr_len);
+		dev_dbg(dev, "Transferring %zd bytes from channel (%u)\n", tr_len, ring->ch_id);
+		ret = mhi_cntrl->transfer_from_host(mhi_cntrl, read_addr, write_addr, tr_len);
 		if (ret < 0) {
 			dev_err(&mhi_chan->mhi_dev->dev, "Error reading from channel\n");
 			return ret;
@@ -477,8 +477,8 @@ int mhi_ep_queue_skb(struct mhi_ep_device *mhi_dev, struct sk_buff *skb)
 		read_addr = skb->data + read_offset;
 		write_addr = MHI_TRE_DATA_GET_PTR(el);
 
-		dev_dbg(dev, "Writing %zd bytes to channel (%u)\n", tr_len, ring->ch_id);
-		ret = mhi_cntrl->write_to_host(mhi_cntrl, read_addr, write_addr, tr_len);
+		dev_dbg(dev, "Transferring %zd bytes to channel (%u)\n", tr_len, ring->ch_id);
+		ret = mhi_cntrl->transfer_to_host(mhi_cntrl, read_addr, write_addr, tr_len);
 		if (ret < 0) {
 			dev_err(dev, "Error writing to the channel\n");
 			goto err_exit;

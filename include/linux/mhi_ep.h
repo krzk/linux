@@ -134,8 +134,15 @@ struct mhi_ep_cntrl {
 			 void __iomem **virt, size_t size);
 	void (*unmap_free)(struct mhi_ep_cntrl *mhi_cntrl, u64 pci_addr, phys_addr_t phys,
 			   void __iomem *virt, size_t size);
-	int (*read_from_host)(struct mhi_ep_cntrl *mhi_cntrl, u64 from, void *to, size_t size);
-	int (*write_to_host)(struct mhi_ep_cntrl *mhi_cntrl, void *from, u64 to, size_t size);
+
+	int (*read_from_host)(struct mhi_ep_cntrl *mhi_cntrl, u64 from, void *to,
+			      size_t size);
+	int (*write_to_host)(struct mhi_ep_cntrl *mhi_cntrl, void *from, u64 to,
+			     size_t size);
+	int (*transfer_from_host)(struct mhi_ep_cntrl *mhi_cntrl, u64 from, void *to,
+			      size_t size);
+	int (*transfer_to_host)(struct mhi_ep_cntrl *mhi_cntrl, void *from, u64 to,
+			     size_t size);
 
 	enum mhi_state mhi_state;
 

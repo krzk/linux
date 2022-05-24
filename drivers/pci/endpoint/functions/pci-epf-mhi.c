@@ -296,6 +296,8 @@ static int pci_epf_mhi_notifier(struct notifier_block *nb, unsigned long val, vo
 		mhi_cntrl->unmap_free = pci_epf_mhi_unmap_free;
 		mhi_cntrl->read_from_host = pci_epf_mhi_read_from_host;
 		mhi_cntrl->write_to_host = pci_epf_mhi_write_to_host;
+		mhi_cntrl->transfer_from_host = pci_epf_mhi_read_from_host;
+		mhi_cntrl->transfer_to_host = pci_epf_mhi_write_to_host;
 
 		/* Register the MHI EP controller */
 		ret = mhi_ep_register_controller(mhi_cntrl, info->config);
