@@ -7,6 +7,7 @@
 #include <linux/debugfs.h>
 #include <linux/err.h>
 #include <linux/io.h>
+#include <linux/qcom_scm.h>
 #include <linux/module.h>
 #include <linux/nvmem-consumer.h>
 #include <linux/of.h>
@@ -594,6 +595,113 @@ static void tsens_disable_irq(struct tsens_priv *priv)
 	regmap_field_write(priv->rf[INT_EN], 0);
 }
 
+static int tsens_reenable_hw_after_scm(struct tsens_priv *priv)
+{
+	/*
+	 * Re-enable watchdog, unmask the bark and
+	 * disable cycle completion monitoring.
+	 */
+	regmap_field_write(priv->rf[WDOG_BARK_CLEAR], 1);
+	regmap_field_write(priv->rf[WDOG_BARK_CLEAR], 0);
+	regmap_field_write(priv->rf[WDOG_BARK_MASK], 0);
+	regmap_field_write(priv->rf[CC_MON_MASK], 1);
+
+	/* Re-enable interrupts */
+	tsens_enable_irq(priv);
+
+	return 0;
+}
+
+static int tsens_health_check_and_reinit(struct tsens_priv *priv,
+					 int hw_id)
+{
+	int ret, trdy, first_round, sw_reg;
+	unsigned long timeout;
+
+	/* First check if TRDY is SET */
+	ret = regmap_field_read(priv->rf[TRDY], &trdy);
+	if (ret)
+		goto err;
+
+	if (!trdy) {
+		ret = regmap_field_read(priv->rf[FIRST_ROUND_COMPLETE], &first_round);
+		if (ret)
+			goto err;
+
+		if (!first_round) {
+			WARN_ON(!mutex_is_locked(&priv->reinit_mutex));
+
+			/* Wait for 2 ms for tsens controller to recover */
+			timeout = jiffies + msecs_to_jiffies(RESET_TIMEOUT_MS);
+			do {
+				ret = regmap_field_read(priv->rf[FIRST_ROUND_COMPLETE],
+						&first_round);
+				if (ret)
+					goto err;
+
+				if (first_round) {
+					dev_dbg(priv->dev, "tsens controller recovered\n");
+					return 0; /* success */
+				}
+			} while (time_before(jiffies, timeout));
+
+			spin_lock(&priv->reinit_lock);
+
+			/*
+			 * Invoke SCM call only if SW register write is
+			 * reflecting in controller. Try it for 2 ms.
+			 * In case that fails mark the tsens controller
+			 * as unrecoverable.
+			 */
+			timeout = jiffies + msecs_to_jiffies(RESET_TIMEOUT_MS);
+			do {
+				ret = regmap_field_write(priv->rf[INT_EN], CRITICAL_INT_EN);
+				if (ret)
+					goto err;
+
+				ret = regmap_field_read(priv->rf[INT_EN], &sw_reg);
+				if (ret)
+					goto err;
+			} while ((sw_reg & CRITICAL_INT_EN) && (time_before(jiffies, timeout)));
+
+			if (!(sw_reg & CRITICAL_INT_EN)) {
+				ret = -ENOTRECOVERABLE;
+				goto err;
+			}
+
+			/*
+			 * tsens controller did not recover,
+			 * proceed with SCM call to re-init it.
+			 */
+			ret = qcom_scm_tsens_reinit();
+			if (ret) {
+				dev_err(priv->dev, "tsens reinit scm call failed (%d)\n", ret);
+				goto err;
+			}
+
+			/*
+			 * After the SCM call, we need to re-enable
+			 * the interrupts and also set active threshold
+			 * for each sensor.
+			 */
+			ret = tsens_reenable_hw_after_scm(priv);
+			if (ret) {
+				dev_err(priv->dev,
+					"tsens re-enable after scm call failed (%d)\n", ret);
+				goto err;
+			}
+
+			/* Notify reinit wa worker */
+			queue_work(system_highpri_wq, &priv->reinit_wa_notify);
+
+			spin_unlock(&priv->reinit_lock);
+		}
+	}
+
+err:
+	return ret;
+}
+
 int get_temp_tsens_valid(const struct tsens_sensor *s, int *temp)
 {
 	struct tsens_priv *priv = s->priv;
@@ -606,6 +714,21 @@ int get_temp_tsens_valid(const struct tsens_sensor *s, int *temp)
 	/* VER_0 doesn't have VALID bit */
 	if (tsens_version(priv) == VER_0)
 		goto get_temp;
+
+	/*
+	 * For some tsens controllers, its suggested to
+	 * monitor the controller health periodically
+	 * and in case an issue is detected to reinit
+	 * tsens controller via trustzone.
+	 */
+	if (priv->needs_reinit_wa) {
+		mutex_lock(&priv->reinit_mutex);
+		ret = tsens_health_check_and_reinit(priv, hw_id);
+		mutex_unlock(&priv->reinit_mutex);
+
+		if (ret)
+			return ret;
+	}
 
 	/* Valid bit is 0 for 6 AHB clock cycles.
 	 * At 19.2MHz, 1 AHB clock is ~60ns.
@@ -739,6 +862,40 @@ static const struct regmap_config tsens_srot_config = {
 	.reg_stride	= 4,
 };
 
+static void __tsens_reinit_worker(struct tsens_priv *priv)
+{
+	int ret, temp;
+	unsigned int i;
+	struct tsens_irq_data d;
+
+	for (i = 0; i < priv->num_sensors; i++) {
+		const struct tsens_sensor *s = &priv->sensor[i];
+		u32 hw_id = s->hw_id;
+
+		if (!s->tzd)
+			continue;
+		if (!tsens_threshold_violated(priv, hw_id, &d))
+			continue;
+
+		ret = get_temp_tsens_valid(s, &temp);
+		if (ret) {
+			dev_err(priv->dev, "[%u] error reading sensor during reinit\n", hw_id);
+			continue;
+		}
+
+		tsens_read_irq_state(priv, hw_id, s, &d);
+
+		if ((d.up_thresh < temp) || (d.low_thresh > temp)) {
+			dev_dbg(priv->dev, "[%u] TZ update trigger during reinit (%d mC)\n",
+				hw_id, temp);
+			thermal_zone_device_update(s->tzd, THERMAL_EVENT_UNSPECIFIED);
+		} else {
+			dev_dbg(priv->dev, "[%u] no violation during reinit (%d)\n",
+				hw_id, temp);
+		}
+	}
+}
+
 int __init init_common(struct tsens_priv *priv)
 {
 	void __iomem *tm_base, *srot_base;
@@ -857,6 +1014,14 @@ int __init init_common(struct tsens_priv *priv)
 	priv->rf[TRDY] = devm_regmap_field_alloc(dev, priv->tm_map, priv->fields[TRDY]);
 	if (IS_ERR(priv->rf[TRDY])) {
 		ret = PTR_ERR(priv->rf[TRDY]);
+		goto err_put_device;
+	}
+
+	priv->rf[FIRST_ROUND_COMPLETE] = devm_regmap_field_alloc(dev,
+								priv->tm_map,
+								priv->fields[FIRST_ROUND_COMPLETE]);
+	if (IS_ERR(priv->rf[FIRST_ROUND_COMPLETE])) {
+		ret = PTR_ERR(priv->rf[FIRST_ROUND_COMPLETE]);
 		goto err_put_device;
 	}
 
@@ -1082,6 +1247,14 @@ static int tsens_register(struct tsens_priv *priv)
 	return ret;
 }
 
+static void tsens_reinit_worker_notify(struct work_struct *work)
+{
+	struct tsens_priv *priv = container_of(work, struct tsens_priv,
+					       reinit_wa_notify);
+
+	__tsens_reinit_worker(priv);
+}
+
 static int tsens_probe(struct platform_device *pdev)
 {
 	int ret, i;
@@ -1123,6 +1296,11 @@ static int tsens_probe(struct platform_device *pdev)
 
 	priv->dev = dev;
 	priv->num_sensors = num_sensors;
+	priv->needs_reinit_wa = data->needs_reinit_wa;
+
+	if (priv->needs_reinit_wa && !qcom_scm_is_available())
+		return -EPROBE_DEFER;
+
 	priv->ops = data->ops;
 	for (i = 0;  i < priv->num_sensors; i++) {
 		if (data->hw_ids)
@@ -1137,6 +1315,25 @@ static int tsens_probe(struct platform_device *pdev)
 
 	if (!priv->ops || !priv->ops->init || !priv->ops->get_temp)
 		return -EINVAL;
+
+	/*
+	 * Reinitialization workaround is currently supported only for
+	 * tsens controller versions v2.
+	 *
+	 * If incorrect platform data is passed to this effect, ignore
+	 * the requested setting and move forward.
+	 */
+	if (priv->needs_reinit_wa && (tsens_version(priv) < VER_2_X)) {
+		dev_warn(dev,
+			 "%s: Reinit quirk available only for tsens v2\n", __func__);
+		priv->needs_reinit_wa = false;
+	}
+
+	mutex_init(&priv->reinit_mutex);
+	spin_lock_init(&priv->reinit_lock);
+
+	if (priv->needs_reinit_wa)
+		INIT_WORK(&priv->reinit_wa_notify, tsens_reinit_worker_notify);
 
 	ret = priv->ops->init(priv);
 	if (ret < 0) {
