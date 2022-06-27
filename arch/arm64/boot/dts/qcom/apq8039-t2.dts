@@ -587,6 +587,7 @@
 
 	ulpi {
 		usb_hs_phy: phy {
+			qcom,enable-vbus-pullup;
 			v1p8-supply = <&pm8916_l7>;
 			v3p3-supply = <&pm8916_l13>;
 		};
