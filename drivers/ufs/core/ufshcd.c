@@ -1089,6 +1089,8 @@ static int ufshcd_scale_clks(struct ufs_hba *hba, bool scale_up,
 	if (ret)
 		goto out;
 
+	pr_err("AAA ufs scale clocks to %lu, using pm %d\n",
+	       freq, hba->use_pm_opp);
 	if (hba->use_pm_opp)
 		ret = dev_pm_opp_set_rate(hba->dev, freq);
 	else

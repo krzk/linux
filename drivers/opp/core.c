@@ -853,6 +853,7 @@ int dev_pm_opp_config_clks_simple(struct device *dev,
 {
 	int ret, i;
 
+	dev_err(dev, "scaling %d %d clocks\n", scaling_down, opp_table->clk_count);
 	if (scaling_down) {
 		for (i = opp_table->clk_count - 1; i >= 0; i--) {
 			ret = clk_set_rate(opp_table->clks[i], opp->rates[i]);
@@ -2141,6 +2142,7 @@ static int _opp_set_clknames(struct opp_table *opp_table, struct device *dev,
 	if (!count && !names[1])
 		count = 1;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	/* Fail early for invalid configurations */
 	if (!count || (!config_clks && count > 1))
 		return -EINVAL;
@@ -2153,6 +2155,8 @@ static int _opp_set_clknames(struct opp_table *opp_table, struct device *dev,
 					GFP_KERNEL);
 	if (!opp_table->clks)
 		return -ENOMEM;
+
+	dev_err(dev, "AAA %s:%d setting clocks %u\n", __func__, __LINE__, count);
 
 	/* Find clks for the device */
 	for (i = 0; i < count; i++) {
@@ -2190,9 +2194,11 @@ static int _opp_set_clknames(struct opp_table *opp_table, struct device *dev,
 		opp_table->clk = opp_table->clks[0];
 	}
 
+	dev_err(dev, "AAA %s:%d setting clocks %u\n", __func__, __LINE__, count);
 	return 0;
 
 free_clks:
+	dev_err(dev, "AAA %s:%d setting clocks %u\n", __func__, __LINE__, count);
 	_put_clks(opp_table, i);
 	return ret;
 }
@@ -2438,6 +2444,7 @@ int dev_pm_opp_set_config(struct device *dev, struct dev_pm_opp_config *config)
 		goto err;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	/* Configure property names */
 	if (config->prop_name) {
 		ret = _opp_set_prop_name(opp_table, config->prop_name);
@@ -2467,6 +2474,7 @@ int dev_pm_opp_set_config(struct device *dev, struct dev_pm_opp_config *config)
 		data->flags |= OPP_CONFIG_SUPPORTED_HW;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	/* Configure supplies */
 	if (config->regulator_names) {
 		ret = _opp_set_regulators(opp_table, dev,

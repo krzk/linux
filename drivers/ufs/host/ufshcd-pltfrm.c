@@ -122,9 +122,11 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 		.clk_count = 0,
 	};
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	if (!of_find_property(dev->of_node, "operating-points-v2", NULL))
 		return 0;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	cnt = of_property_count_strings(np, "clock-names");
 	if (cnt <= 0) {
 		dev_warn(dev, "%s: Missing clock-names\n",
@@ -132,23 +134,28 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 		return -EINVAL;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	if (of_find_property(np, "freq-table-hz", NULL)) {
 		dev_info(dev, "%s: operating-points and freq-table-hz are incompatible\n",
 			 __func__);
 		return -EINVAL;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	names = devm_kcalloc(dev, cnt, sizeof(*names), GFP_KERNEL);
 	if (!names)
 		return -ENOMEM;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	for (i = 0; i < cnt; i++) {
 		const char *name;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 		ret = of_property_read_string_index(np, "clock-names", i,
 						    &name);
 		if (ret)
 			return ret;
+	pr_err("%s:%d %d %s\n", __func__, __LINE__, i, name);
 
 		clki = devm_kzalloc(dev, sizeof(*clki), GFP_KERNEL);
 		if (!clki)
@@ -176,6 +183,7 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 	if (ret)
 		return ret;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	//ret = devm_pm_opp_register_set_opp_helper(dev, ufshcd_set_opp);
 	//if (ret)
 	//	return ret;
@@ -183,9 +191,11 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 	ret = devm_pm_opp_of_add_table(dev);
 	if (ret)
 		return ret;
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	hba->use_pm_opp = true;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return 0;
 }
 
@@ -432,12 +442,14 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 
 	hba->vops = vops;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_parse_clock_info(hba);
 	if (err) {
 		dev_err(dev, "%s: clock parse failed %d\n",
 				__func__, err);
 		goto dealloc_host;
 	}
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_parse_regulator_info(hba);
 	if (err) {
 		dev_err(dev, "%s: regulator init failed %d\n",
@@ -445,12 +457,14 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 		goto dealloc_host;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_parse_operating_points(hba);
 	if (err) {
 		dev_err(dev, "%s: OPP parse failed %d\n", __func__, err);
 		goto dealloc_host;
 	}
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	ufshcd_init_lanes_per_dir(hba);
 
 	err = ufshcd_init(hba, mmio_base, irq);
@@ -462,9 +476,11 @@ int ufshcd_pltfrm_init(struct platform_device *pdev,
 	pm_runtime_set_active(dev);
 	pm_runtime_enable(dev);
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	return 0;
 
 dealloc_host:
+	pr_err("%s:%d\n", __func__, __LINE__);
 	ufshcd_dealloc_host(hba);
 out:
 	return err;

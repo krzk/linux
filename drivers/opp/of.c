@@ -782,6 +782,7 @@ static int _read_rate(struct dev_pm_opp *new_opp, struct opp_table *opp_table,
 		return -ENODEV;
 
 	count = prop->length / sizeof(u64);
+	pr_err("%s:%d %pOF count %d\n", __func__, __LINE__, np, count);
 	if (opp_table->clk_count != count) {
 		pr_err("%s: Count mismatch between opp-hz and clk_count (%d %d)\n",
 		       __func__, count, opp_table->clk_count);
@@ -862,10 +863,13 @@ static int _read_opp_key(struct dev_pm_opp *new_opp,
 	int ret;
 
 	ret = _read_rate(new_opp, opp_table, np);
+	pr_err("%s:%d ret %d opp_table->clk_count %d\n", __func__, __LINE__,
+	       ret, opp_table->clk_count);
 	if (ret && ret != -ENODEV)
 		return ret;
 	else if (opp_table->clk_count == 1)
 		found = true;
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	/*
 	 * Bandwidth consists of peak and average (optional) values:
