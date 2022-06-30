@@ -2345,6 +2345,7 @@
 						 0
 						 // FIXME: value 0 copied from freq-table-hz
 						 0>;
+					opp-level = <1>; /* UFS HS gear 1 */
 					required-opps = <&rpmhpd_opp_svs>;
 				};
 
@@ -2358,6 +2359,7 @@
 						 0
 						 0
 						 300000000>;
+					opp-level = <3>; /* UFS HS gear 3 */
 					required-opps = <&rpmhpd_opp_nom>;
 				};
 			};
