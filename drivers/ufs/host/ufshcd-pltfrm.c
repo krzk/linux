@@ -114,8 +114,13 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 	struct device *dev = hba->dev;
 	struct device_node *np = dev->of_node;
 	struct ufs_clk_info *clki;
-	const char *names[16];
+	const char **names;
 	int cnt, i, ret;
+
+	struct dev_pm_opp_config config = {
+		.clk_names = NULL,
+		.clk_count = 0,
+	};
 
 	if (!of_find_property(dev->of_node, "operating-points-v2", NULL))
 		return 0;
@@ -127,20 +132,21 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 		return -EINVAL;
 	}
 
-	if (cnt > ARRAY_SIZE(names)) {
-		dev_info(dev, "%s: Too many clock-names\n",  __func__);
-		return -EINVAL;
-	}
-
 	if (of_find_property(np, "freq-table-hz", NULL)) {
 		dev_info(dev, "%s: operating-points and freq-table-hz are incompatible\n",
 			 __func__);
 		return -EINVAL;
 	}
 
+	names = devm_kcalloc(dev, cnt, sizeof(*names), GFP_KERNEL);
+	if (!names)
+		return -ENOMEM;
+
 	for (i = 0; i < cnt; i++) {
+		const char *name;
+
 		ret = of_property_read_string_index(np, "clock-names", i,
-						    &names[i]);
+						    &name);
 		if (ret)
 			return ret;
 
@@ -148,9 +154,10 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 		if (!clki)
 			return -ENOMEM;
 
-		clki->name = devm_kstrdup(dev, names[i], GFP_KERNEL);
+		clki->name = devm_kstrdup(dev, name, GFP_KERNEL);
 		if (!clki->name)
 			return -ENOMEM;
+		names[i] = clki->name;
 
 		if (!strcmp(names[i], "ref_clk"))
 			clki->keep_link_active = true;
@@ -158,13 +165,20 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 		list_add_tail(&clki->list, &hba->clk_list_head);
 	}
 
-	ret = devm_pm_opp_set_clknames(dev, names, i);
+	config.clk_names = names;
+	config.clk_count = cnt;
+	config.config_clks = dev_pm_opp_config_clks_simple;
+
+	dev_err(dev, "ufs AAA parsed %d clocks with %s as first\n",
+		cnt, names[0]);
+
+	ret = devm_pm_opp_set_config(dev, &config);
 	if (ret)
 		return ret;
 
-	ret = devm_pm_opp_register_set_opp_helper(dev, ufshcd_set_opp);
-	if (ret)
-		return ret;
+	//ret = devm_pm_opp_register_set_opp_helper(dev, ufshcd_set_opp);
+	//if (ret)
+	//	return ret;
 
 	ret = devm_pm_opp_of_add_table(dev);
 	if (ret)

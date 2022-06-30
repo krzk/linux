@@ -1037,6 +1037,7 @@ out:
 	return ret;
 }
 
+#if 0
 /**
  * ufshcd_set_opp - scale UFS controller clocks, called via PM OPP
  * @data: PM OPP data
@@ -1067,6 +1068,7 @@ int ufshcd_set_opp(struct dev_pm_set_opp_data *data)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(ufshcd_set_opp);
+#endif
 
 /**
  * ufshcd_scale_clks - scale up or scale down UFS controller clocks
