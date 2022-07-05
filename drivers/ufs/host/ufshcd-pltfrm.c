@@ -119,7 +119,6 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 
 	struct dev_pm_opp_config config = {
 		.clk_names = NULL,
-		.clk_count = 0,
 	};
 
 	pr_err("%s:%d\n", __func__, __LINE__);
@@ -142,7 +141,11 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 	}
 
 	pr_err("%s:%d\n", __func__, __LINE__);
-	names = devm_kcalloc(dev, cnt, sizeof(*names), GFP_KERNEL);
+	/*
+	 * Space for 'cnt' names of 'cnt' clocks plus NULL terminating entry for
+	 * devm_pm_opp_set_config().
+	 */
+	names = devm_kcalloc(dev, cnt + 1, sizeof(*names), GFP_KERNEL);
 	if (!names)
 		return -ENOMEM;
 
@@ -173,7 +176,6 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 	}
 
 	config.clk_names = names;
-	config.clk_count = cnt;
 	config.config_clks = dev_pm_opp_config_clks_simple;
 
 	dev_err(dev, "ufs AAA parsed %d clocks with %s as first\n",
