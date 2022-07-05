@@ -8727,9 +8727,22 @@ static int ufshcd_init_clocks(struct ufs_hba *hba)
 			}
 			clki->curr_freq = clki->max_freq;
 		}
-		dev_dbg(dev, "%s: clk: %s, rate: %lu\n", __func__,
+		dev_err(dev, "%s: AAA clk: %s, rate: %lu\n", __func__,
 				clki->name, clk_get_rate(clki->clk));
 	}
+
+#if 0
+	if (clki->max_freq) {
+		struct dev_pm_opp *opp;
+		unsigned long freq = ULONG_MAX;
+		int ret;
+
+		opp = dev_pm_opp_find_freq_floor(dev, &freq);
+		dev_err(dev, "AAA ufs %s -> freq %lu\n", __func__, freq);
+		dev_pm_opp_put(opp);
+		dev_err(dev, "AAA ufs %s -> freq %lu\n", __func__, freq);
+	}
+#endif
 out:
 	return ret;
 }
@@ -8776,26 +8789,32 @@ static int ufshcd_hba_init(struct ufs_hba *hba)
 	if (err)
 		goto out;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_init_clocks(hba);
 	if (err)
 		goto out_disable_hba_vreg;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_setup_clocks(hba, true);
 	if (err)
 		goto out_disable_hba_vreg;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_init_vreg(hba);
 	if (err)
 		goto out_disable_clks;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_setup_vreg(hba, true);
 	if (err)
 		goto out_disable_clks;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	err = ufshcd_variant_hba_init(hba);
 	if (err)
 		goto out_disable_vreg;
 
+	pr_err("%s:%d\n", __func__, __LINE__);
 	ufs_debugfs_hba_init(hba);
 	pr_err("%s:%d\n", __func__, __LINE__);
 
@@ -8805,6 +8824,7 @@ static int ufshcd_hba_init(struct ufs_hba *hba)
 	pr_err("%s:%d\n", __func__, __LINE__);
 
 	hba->is_powered = true;
+	pr_err("%s:%d\n", __func__, __LINE__);
 	goto out;
 
 out_disable_vreg:
@@ -8814,6 +8834,7 @@ out_disable_clks:
 out_disable_hba_vreg:
 	ufshcd_setup_hba_vreg(hba, false);
 out:
+	pr_err("%s:%d ret %d\n", __func__, __LINE__, err);
 	return err;
 }
 

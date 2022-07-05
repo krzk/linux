@@ -153,12 +153,12 @@ static int ufshcd_parse_operating_points(struct ufs_hba *hba)
 	for (i = 0; i < cnt; i++) {
 		const char *name;
 
-	pr_err("%s:%d\n", __func__, __LINE__);
+		pr_err("%s:%d\n", __func__, __LINE__);
 		ret = of_property_read_string_index(np, "clock-names", i,
 						    &name);
 		if (ret)
 			return ret;
-	pr_err("%s:%d %d %s\n", __func__, __LINE__, i, name);
+		pr_err("%s:%d %d %s\n", __func__, __LINE__, i, name);
 
 		clki = devm_kzalloc(dev, sizeof(*clki), GFP_KERNEL);
 		if (!clki)
