@@ -8564,6 +8564,54 @@ out:
 	return ret;
 }
 
+static int ufshcd_init_pm(struct ufs_hba *hba)
+{
+	int err;
+	struct dev_pm_opp *opp;
+	unsigned long freq = ULONG_MAX;
+	struct device *dev = hba->dev;
+
+	opp = dev_pm_opp_find_freq_floor(dev, &freq);
+	if (IS_ERR(opp))
+		return PTR_ERR(opp);
+	dev_pm_opp_put(opp);
+
+	dev_err(dev, "AAA ufs %s -> freq %lu\n", __func__, freq);
+	err = ufshcd_devfreq_scale(hba, freq, true);
+	if (err)
+		dev_err(hba->dev, "%s: failed to scale clocks up %d\n",
+			__func__, err);
+
+	dev_err(dev, "AAA ufs %s -> freq %lu\n", __func__, freq);
+	return err;
+#if 0
+	if (clki->max_freq) {
+		struct dev_pm_opp *opp;
+		unsigned long freq = ULONG_MAX;
+		int ret;
+
+		opp = dev_pm_opp_find_freq_floor(dev, &freq);
+		dev_err(dev, "AAA ufs %s -> freq %lu\n", __func__, freq);
+		dev_pm_opp_put(opp);
+	}
+
+	int ret = 0;
+	struct device *dev = hba->dev;
+	struct ufs_vreg_info *info = &hba->vreg_info;
+
+	ret = ufshcd_get_vreg(dev, info->vcc);
+	if (ret)
+		goto out;
+
+	ret = ufshcd_get_vreg(dev, info->vccq);
+	if (!ret)
+		ret = ufshcd_get_vreg(dev, info->vccq2);
+out:
+	return ret;
+#endif
+}
+
+
 static int ufshcd_init_hba_vreg(struct ufs_hba *hba)
 {
 	struct ufs_vreg_info *info = &hba->vreg_info;
@@ -8749,6 +8797,12 @@ static int ufshcd_hba_init(struct ufs_hba *hba)
 		goto out_disable_vreg;
 
 	ufs_debugfs_hba_init(hba);
+	pr_err("%s:%d\n", __func__, __LINE__);
+
+	err = ufshcd_init_pm(hba);
+	if (err)
+		goto out_disable_vreg;
+	pr_err("%s:%d\n", __func__, __LINE__);
 
 	hba->is_powered = true;
 	goto out;
