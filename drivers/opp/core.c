@@ -1182,6 +1182,7 @@ int dev_pm_opp_set_rate(struct device *dev, unsigned long target_freq)
 	bool forced = false;
 	int ret;
 
+	dev_err(dev, "AAA -> %lu\n", target_freq);
 	opp_table = _find_opp_table(dev);
 	if (IS_ERR(opp_table)) {
 		dev_err(dev, "%s: device's opp table doesn't exist\n", __func__);

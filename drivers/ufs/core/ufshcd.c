@@ -1327,6 +1327,7 @@ static int ufshcd_devfreq_scale(struct ufs_hba *hba, unsigned long freq,
 	int ret = 0;
 	bool is_writelock = true;
 
+	pr_err("%s AAA scale %d -> %lu\n", __func__, scale_up, freq);
 	ret = ufshcd_clock_scaling_prepare(hba);
 	if (ret)
 		return ret;
