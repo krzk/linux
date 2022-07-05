@@ -1667,6 +1667,10 @@ static ssize_t ufshcd_clkscale_enable_store(struct device *dev,
 		unsigned long freq = ULONG_MAX;
 
 		opp = dev_pm_opp_find_freq_floor(dev, &freq);
+		if (IS_ERR(opp)) {
+			err = PTR_ERR(opp);
+			goto out_release;
+		}
 		dev_pm_opp_put(opp);
 
 		ufshcd_suspend_clkscaling(hba);
@@ -1676,6 +1680,7 @@ static ssize_t ufshcd_clkscale_enable_store(struct device *dev,
 					__func__, err);
 	}
 
+out_release:
 	ufshcd_release(hba);
 	ufshcd_rpm_put_sync(hba);
 out:
