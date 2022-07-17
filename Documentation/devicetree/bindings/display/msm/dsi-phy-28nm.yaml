@@ -30,6 +30,9 @@ properties:
   '#clock-cells':
     const: 1
 
+  "#phy-cells":
+    const: 0
+
   reg:
     items:
       - description: dsi pll register set
@@ -54,6 +57,7 @@ required:
   - clocks
   - clock-names
   - "#clock-cells"
+  - "#phy-cells"
   - reg
   - reg-names
   - vddio-supply
