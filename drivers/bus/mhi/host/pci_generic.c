@@ -934,6 +934,7 @@ static int mhi_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	/* start health check */
 	mod_timer(&mhi_pdev->health_check_timer, jiffies + HEALTH_CHECK_PERIOD);
 
+#if 0
 	/* Only allow runtime-suspend if PME capable (for wakeup) */
 	if (pci_pme_capable(pdev, PCI_D3hot)) {
 		pm_runtime_set_autosuspend_delay(&pdev->dev, 2000);
@@ -941,6 +942,7 @@ static int mhi_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		pm_runtime_mark_last_busy(&pdev->dev);
 		pm_runtime_put_noidle(&pdev->dev);
 	}
+#endif
 
 	return 0;
 
