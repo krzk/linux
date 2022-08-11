@@ -121,7 +121,6 @@ struct pci_epf_mhi {
 	struct mutex lock;
 	void __iomem *mmio;
 	resource_size_t mmio_phys;
-	enum pci_notify_event event;
 	struct dma_chan *dma_chan_tx;
 	struct dma_chan *dma_chan_rx;
 	u32 mmio_size;
@@ -445,114 +444,130 @@ static void pci_epf_mhi_dma_deinit(struct pci_epf_mhi *epf_mhi)
 	epf_mhi->dma_chan_rx = NULL;
 }
 
-static int pci_epf_mhi_notifier(struct notifier_block *nb, unsigned long val, void *data)
+int pci_epf_mhi_core_init(struct pci_epf *epf)
 {
-	struct pci_epf *epf = container_of(nb, struct pci_epf, nb);
 	struct pci_epf_mhi *epf_mhi = epf_get_drvdata(epf);
 	const struct pci_epf_mhi_ep_info *info = epf_mhi->info;
 	struct pci_epf_bar *epf_bar = &epf->bar[info->bar_num];
+	struct pci_epc *epc = epf->epc;
+	struct device *dev = &epf->dev;
+	int ret;
+
+	epf_bar->phys_addr = epf_mhi->mmio_phys;
+	epf_bar->size = epf_mhi->mmio_size;
+	epf_bar->barno = info->bar_num;
+	epf_bar->flags = info->epf_flags;
+	ret = pci_epc_set_bar(epc, epf->func_no, epf->vfunc_no, epf_bar);
+	if (ret) {
+		dev_err(dev, "Failed to set BAR: %d\n", ret);
+		return ret;
+	}
+
+	ret = pci_epc_set_msi(epc, epf->func_no, epf->vfunc_no,
+			      order_base_2(info->msi_count));
+	if (ret) {
+		dev_err(dev, "Failed to set MSI configuration: %d\n", ret);
+		return ret;
+	}
+
+	ret = pci_epc_write_header(epc, epf->func_no, epf->vfunc_no, epf->header);
+	if (ret) {
+		dev_err(dev, "Failed to set Configuration header: %d\n", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+int pci_epf_mhi_link_up(struct pci_epf *epf)
+{
+	struct pci_epf_mhi *epf_mhi = epf_get_drvdata(epf);
+	const struct pci_epf_mhi_ep_info *info = epf_mhi->info;
 	struct mhi_ep_cntrl *mhi_cntrl = &epf_mhi->mhi_cntrl;
 	struct pci_epc *epc = epf->epc;
 	struct device *dev = &epf->dev;
 	int ret;
 
-	switch (val) {
-	case CORE_INIT:
-		epf_bar->phys_addr = epf_mhi->mmio_phys;
-		epf_bar->size = epf_mhi->mmio_size;
-		epf_bar->barno = info->bar_num;
-		epf_bar->flags = info->epf_flags;
-		ret = pci_epc_set_bar(epc, epf->func_no, epf->vfunc_no, epf_bar);
+	if (info->flags & MHI_EPF_USE_DMA) {
+		ret = pci_epf_mhi_dma_init(epf_mhi);
 		if (ret) {
-			dev_err(dev, "Failed to set BAR: %d\n", ret);
-			return NOTIFY_BAD;
+			dev_err(dev, "Failed to initialize DMA: %d\n", ret);
+			return ret;
 		}
+	}
 
-		ret = pci_epc_set_msi(epc, epf->func_no, epf->vfunc_no,
-				      order_base_2(info->msi_count));
+	mhi_cntrl->mmio = epf_mhi->mmio;
+	mhi_cntrl->irq = epf_mhi->irq;
+	mhi_cntrl->mru = info->mru;
+
+	/* Assign the struct dev of PCI EP as MHI controller device */
+	mhi_cntrl->cntrl_dev = epc->dev.parent;
+	mhi_cntrl->raise_irq = pci_epf_mhi_raise_irq;
+	mhi_cntrl->alloc_map = pci_epf_mhi_alloc_map;
+	mhi_cntrl->unmap_free = pci_epf_mhi_unmap_free;
+	mhi_cntrl->read_from_host = pci_epf_mhi_iatu_read;
+	mhi_cntrl->write_to_host = pci_epf_mhi_iatu_write;
+	if (info->flags & MHI_EPF_USE_DMA) {
+		mhi_cntrl->transfer_from_host = pci_epf_mhi_edma_read;
+		mhi_cntrl->transfer_to_host = pci_epf_mhi_edma_write;
+	} else {
+		mhi_cntrl->transfer_from_host = pci_epf_mhi_iatu_read;
+		mhi_cntrl->transfer_to_host = pci_epf_mhi_iatu_write;
+	}
+
+	/* Register the MHI EP controller */
+	ret = mhi_ep_register_controller(mhi_cntrl, info->config);
+	if (ret) {
+		dev_err(dev, "Failed to register MHI EP controller: %d\n", ret);
+		if (info->flags & MHI_EPF_USE_DMA)
+			pci_epf_mhi_dma_deinit(epf_mhi);
+
+		return ret;
+	}
+
+	epf_mhi->mhi_registered = true;
+
+	return 0;
+}
+
+int pci_epf_mhi_link_down(struct pci_epf *epf)
+{
+	struct pci_epf_mhi *epf_mhi = epf_get_drvdata(epf);
+	const struct pci_epf_mhi_ep_info *info = epf_mhi->info;
+	struct mhi_ep_cntrl *mhi_cntrl = &epf_mhi->mhi_cntrl;
+
+	if (epf_mhi->mhi_registered) {
+		mhi_ep_power_down(mhi_cntrl);
+		if (info->flags & MHI_EPF_USE_DMA)
+			pci_epf_mhi_dma_deinit(epf_mhi);
+		mhi_ep_unregister_controller(mhi_cntrl);
+		epf_mhi->mhi_registered = false;
+	}
+
+	return 0;
+}
+
+int pci_epf_mhi_bme(struct pci_epf *epf)
+{
+	struct pci_epf_mhi *epf_mhi = epf_get_drvdata(epf);
+	const struct pci_epf_mhi_ep_info *info = epf_mhi->info;
+	struct mhi_ep_cntrl *mhi_cntrl = &epf_mhi->mhi_cntrl;
+	struct device *dev = &epf->dev;
+	int ret;
+
+	/* Power up the MHI EP stack if link is up and stack is in power down state */
+	if (!mhi_cntrl->enabled && epf_mhi->mhi_registered) {
+		ret = mhi_ep_power_up(mhi_cntrl);
 		if (ret) {
-			dev_err(dev, "Failed to set MSI configuration: %d\n", ret);
-			return NOTIFY_BAD;
-		}
-
-		ret = pci_epc_write_header(epc, epf->func_no, epf->vfunc_no, epf->header);
-		if (ret) {
-			dev_err(dev, "Failed to set Configuration header: %d\n", ret);
-			return NOTIFY_BAD;
-		}
-
-		break;
-	case LINK_UP:
-		if (info->flags & MHI_EPF_USE_DMA) {
-			ret = pci_epf_mhi_dma_init(epf_mhi);
-			if (ret) {
-				dev_err(dev, "Failed to initialize DMA: %d\n", ret);
-				return NOTIFY_BAD;
-			}
-		}
-
-		mhi_cntrl->mmio = epf_mhi->mmio;
-		mhi_cntrl->irq = epf_mhi->irq;
-		mhi_cntrl->mru = info->mru;
-
-		/* Assign the struct dev of PCI EP as MHI controller device */
-		mhi_cntrl->cntrl_dev = epc->dev.parent;
-		mhi_cntrl->raise_irq = pci_epf_mhi_raise_irq;
-		mhi_cntrl->alloc_map = pci_epf_mhi_alloc_map;
-		mhi_cntrl->unmap_free = pci_epf_mhi_unmap_free;
-		mhi_cntrl->read_from_host = pci_epf_mhi_iatu_read;
-		mhi_cntrl->write_to_host = pci_epf_mhi_iatu_write;
-		if (info->flags & MHI_EPF_USE_DMA) {
-			mhi_cntrl->transfer_from_host = pci_epf_mhi_edma_read;
-			mhi_cntrl->transfer_to_host = pci_epf_mhi_edma_write;
-		} else {
-			mhi_cntrl->transfer_from_host = pci_epf_mhi_iatu_read;
-			mhi_cntrl->transfer_to_host = pci_epf_mhi_iatu_write;
-		}
-
-		/* Register the MHI EP controller */
-		ret = mhi_ep_register_controller(mhi_cntrl, info->config);
-		if (ret) {
-			dev_err(dev, "Failed to register MHI EP controller: %d\n", ret);
-			if (info->flags & MHI_EPF_USE_DMA)
-				pci_epf_mhi_dma_deinit(epf_mhi);
-
-			return NOTIFY_BAD;
-		}
-
-		epf_mhi->mhi_registered = true;
-		break;
-	case LINK_DOWN:
-		if (epf_mhi->mhi_registered) {
-			mhi_ep_power_down(mhi_cntrl);
+			dev_err(dev, "Failed to power up MHI EP: %d\n", ret);
 			if (info->flags & MHI_EPF_USE_DMA)
 				pci_epf_mhi_dma_deinit(epf_mhi);
 			mhi_ep_unregister_controller(mhi_cntrl);
 			epf_mhi->mhi_registered = false;
 		}
-
-		break;
-	case BME:
-		/* Power up the MHI EP stack if link is up and stack is in power down state */
-		if (!mhi_cntrl->enabled && epf_mhi->mhi_registered) {
-			ret = mhi_ep_power_up(mhi_cntrl);
-			if (ret) {
-				dev_err(dev, "Failed to power up MHI EP: %d\n", ret);
-				if (info->flags & MHI_EPF_USE_DMA)
-					pci_epf_mhi_dma_deinit(epf_mhi);
-				mhi_ep_unregister_controller(mhi_cntrl);
-				epf_mhi->mhi_registered = false;
-				return NOTIFY_BAD;
-			}
-		}
-
-		break;
-	default:
-		dev_err(&epf->dev, "Invalid MHI EP notifier event: %d\n", epf_mhi->event);
-		return NOTIFY_BAD;
 	}
 
-	return NOTIFY_OK;
+	return 0;
 }
 
 static int pci_epf_mhi_bind(struct pci_epf *epf)
@@ -585,9 +600,6 @@ static int pci_epf_mhi_bind(struct pci_epf *epf)
 
 	epf_mhi->irq = ret;
 
-	epf->nb.notifier_call = pci_epf_mhi_notifier;
-	pci_epc_register_notifier(epc, &epf->nb);
-
 	return 0;
 }
 
@@ -598,8 +610,6 @@ static void pci_epf_mhi_unbind(struct pci_epf *epf)
 	struct pci_epf_bar *epf_bar = &epf->bar[info->bar_num];
 	struct mhi_ep_cntrl *mhi_cntrl = &epf_mhi->mhi_cntrl;
 	struct pci_epc *epc = epf->epc;
-
-	pci_epc_unregister_notifier(epc, &epf->nb);
 
 	/*
 	 * Forcefully power down the MHI EP stack. Only way to bring the MHI EP stack
@@ -617,6 +627,13 @@ static void pci_epf_mhi_unbind(struct pci_epf *epf)
 	pci_epc_clear_bar(epc, epf->func_no, epf->vfunc_no, epf_bar);
 }
 
+static struct pci_epc_event_ops pci_epf_mhi_event_ops = {
+	.core_init = pci_epf_mhi_core_init,
+	.link_up = pci_epf_mhi_link_up,
+	.link_down = pci_epf_mhi_link_down,
+	.bme = pci_epf_mhi_bme,
+};
+
 static int pci_epf_mhi_probe(struct pci_epf *epf, const struct pci_epf_device_id *id)
 {
 	struct pci_epf_mhi_ep_info *info = (struct pci_epf_mhi_ep_info *) id->driver_data;
@@ -630,6 +647,8 @@ static int pci_epf_mhi_probe(struct pci_epf *epf, const struct pci_epf_device_id
 	epf->header = info->epf_header;
 	epf_mhi->info = info;
 	epf_mhi->epf = epf;
+
+	epf->event_ops = &pci_epf_mhi_event_ops;
 
 	mutex_init(&epf_mhi->lock);
 
