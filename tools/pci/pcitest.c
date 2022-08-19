@@ -157,7 +157,7 @@ static int run_test(struct pci_test *test)
 
 int main(int argc, char **argv)
 {
-	int c;
+	int c, ret;
 	struct pci_test *test;
 
 	test = calloc(1, sizeof(*test));
@@ -249,5 +249,8 @@ usage:
 		return -EINVAL;
 	}
 
-	return run_test(test);
+	ret = run_test(test);
+	free(test);
+
+	return ret;
 }
