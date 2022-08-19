@@ -144,92 +144,92 @@ pcitest.sh Output
 	# pcitest.sh
 	BAR tests
 
-	BAR0:           OKAY
-	BAR1:           OKAY
-	BAR2:           OKAY
-	BAR3:           OKAY
-	BAR4:           NOT OKAY
-	BAR5:           NOT OKAY
+	BAR0:           SUCCESS
+	BAR1:           SUCCESS
+	BAR2:           SUCCESS
+	BAR3:           SUCCESS
+	BAR4:           FAILED
+	BAR5:           FAILED
 
 	Interrupt tests
 
-	SET IRQ TYPE TO LEGACY:         OKAY
-	LEGACY IRQ:     NOT OKAY
-	SET IRQ TYPE TO MSI:            OKAY
-	MSI1:           OKAY
-	MSI2:           OKAY
-	MSI3:           OKAY
-	MSI4:           OKAY
-	MSI5:           OKAY
-	MSI6:           OKAY
-	MSI7:           OKAY
-	MSI8:           OKAY
-	MSI9:           OKAY
-	MSI10:          OKAY
-	MSI11:          OKAY
-	MSI12:          OKAY
-	MSI13:          OKAY
-	MSI14:          OKAY
-	MSI15:          OKAY
-	MSI16:          OKAY
-	MSI17:          NOT OKAY
-	MSI18:          NOT OKAY
-	MSI19:          NOT OKAY
-	MSI20:          NOT OKAY
-	MSI21:          NOT OKAY
-	MSI22:          NOT OKAY
-	MSI23:          NOT OKAY
-	MSI24:          NOT OKAY
-	MSI25:          NOT OKAY
-	MSI26:          NOT OKAY
-	MSI27:          NOT OKAY
-	MSI28:          NOT OKAY
-	MSI29:          NOT OKAY
-	MSI30:          NOT OKAY
-	MSI31:          NOT OKAY
-	MSI32:          NOT OKAY
-	SET IRQ TYPE TO MSI-X:          OKAY
-	MSI-X1:         OKAY
-	MSI-X2:         OKAY
-	MSI-X3:         OKAY
-	MSI-X4:         OKAY
-	MSI-X5:         OKAY
-	MSI-X6:         OKAY
-	MSI-X7:         OKAY
-	MSI-X8:         OKAY
-	MSI-X9:         NOT OKAY
-	MSI-X10:        NOT OKAY
-	MSI-X11:        NOT OKAY
-	MSI-X12:        NOT OKAY
-	MSI-X13:        NOT OKAY
-	MSI-X14:        NOT OKAY
-	MSI-X15:        NOT OKAY
-	MSI-X16:        NOT OKAY
+	SET IRQ TYPE TO LEGACY:         SUCCESS
+	LEGACY IRQ:     FAILED
+	SET IRQ TYPE TO MSI:            SUCCESS
+	MSI1:           SUCCESS
+	MSI2:           SUCCESS
+	MSI3:           SUCCESS
+	MSI4:           SUCCESS
+	MSI5:           SUCCESS
+	MSI6:           SUCCESS
+	MSI7:           SUCCESS
+	MSI8:           SUCCESS
+	MSI9:           SUCCESS
+	MSI10:          SUCCESS
+	MSI11:          SUCCESS
+	MSI12:          SUCCESS
+	MSI13:          SUCCESS
+	MSI14:          SUCCESS
+	MSI15:          SUCCESS
+	MSI16:          SUCCESS
+	MSI17:          FAILED
+	MSI18:          FAILED
+	MSI19:          FAILED
+	MSI20:          FAILED
+	MSI21:          FAILED
+	MSI22:          FAILED
+	MSI23:          FAILED
+	MSI24:          FAILED
+	MSI25:          FAILED
+	MSI26:          FAILED
+	MSI27:          FAILED
+	MSI28:          FAILED
+	MSI29:          FAILED
+	MSI30:          FAILED
+	MSI31:          FAILED
+	MSI32:          FAILED
+	SET IRQ TYPE TO MSI-X:          SUCCESS
+	MSI-X1:         SUCCESS
+	MSI-X2:         SUCCESS
+	MSI-X3:         SUCCESS
+	MSI-X4:         SUCCESS
+	MSI-X5:         SUCCESS
+	MSI-X6:         SUCCESS
+	MSI-X7:         SUCCESS
+	MSI-X8:         SUCCESS
+	MSI-X9:         FAILED
+	MSI-X10:        FAILED
+	MSI-X11:        FAILED
+	MSI-X12:        FAILED
+	MSI-X13:        FAILED
+	MSI-X14:        FAILED
+	MSI-X15:        FAILED
+	MSI-X16:        FAILED
 	[...]
-	MSI-X2047:      NOT OKAY
-	MSI-X2048:      NOT OKAY
+	MSI-X2047:      FAILED
+	MSI-X2048:      FAILED
 
 	Read Tests
 
-	SET IRQ TYPE TO MSI:            OKAY
-	READ (      1 bytes):           OKAY
-	READ (   1024 bytes):           OKAY
-	READ (   1025 bytes):           OKAY
-	READ (1024000 bytes):           OKAY
-	READ (1024001 bytes):           OKAY
+	SET IRQ TYPE TO MSI:            SUCCESS
+	READ (      1 bytes):           SUCCESS
+	READ (   1024 bytes):           SUCCESS
+	READ (   1025 bytes):           SUCCESS
+	READ (1024000 bytes):           SUCCESS
+	READ (1024001 bytes):           SUCCESS
 
 	Write Tests
 
-	WRITE (      1 bytes):          OKAY
-	WRITE (   1024 bytes):          OKAY
-	WRITE (   1025 bytes):          OKAY
-	WRITE (1024000 bytes):          OKAY
-	WRITE (1024001 bytes):          OKAY
+	WRITE (      1 bytes):          SUCCESS
+	WRITE (   1024 bytes):          SUCCESS
+	WRITE (   1025 bytes):          SUCCESS
+	WRITE (1024000 bytes):          SUCCESS
+	WRITE (1024001 bytes):          SUCCESS
 
 	Copy Tests
 
-	COPY (      1 bytes):           OKAY
-	COPY (   1024 bytes):           OKAY
-	COPY (   1025 bytes):           OKAY
-	COPY (1024000 bytes):           OKAY
-	COPY (1024001 bytes):           OKAY
+	COPY (      1 bytes):           SUCCESS
+	COPY (   1024 bytes):           SUCCESS
+	COPY (   1025 bytes):           SUCCESS
+	COPY (1024000 bytes):           SUCCESS
+	COPY (1024001 bytes):           SUCCESS
