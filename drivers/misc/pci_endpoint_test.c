@@ -832,10 +832,8 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
 	for (bar = 0; bar < PCI_STD_NUM_BARS; bar++) {
 		if (pci_resource_flags(pdev, bar) & IORESOURCE_MEM) {
 			base = pci_ioremap_bar(pdev, bar);
-			if (!base) {
+			if (!base)
 				dev_err(dev, "Failed to read BAR%d\n", bar);
-				WARN_ON(bar == test_reg_bar);
-			}
 			test->bar[bar] = base;
 		}
 	}
