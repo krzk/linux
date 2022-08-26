@@ -2831,7 +2831,7 @@ static struct gdsc titan_top_gdsc = {
 	.pd = {
 		.name = "titan_top_gdsc",
 	},
-	.flags = POLL_CFG_GDSCR,
+	.flags = POLL_CFG_GDSCR | ALWAYS_ON,
 	.pwrsts = PWRSTS_OFF_ON,
 };
 
