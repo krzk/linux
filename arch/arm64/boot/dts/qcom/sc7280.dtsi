@@ -3927,7 +3927,6 @@
 				power-domains = <&rpmhpd SC7280_CX>;
 
 				phys = <&mdss_dsi_phy>;
-				phy-names = "dsi";
 
 				#address-cells = <1>;
 				#size-cells = <0>;
