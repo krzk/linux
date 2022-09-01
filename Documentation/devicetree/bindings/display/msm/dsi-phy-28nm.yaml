@@ -26,6 +26,10 @@ properties:
     - items:
         - const: iface
         - const: ref
+
+  '#clock-cells':
+    const: 1
+
   reg:
     items:
       - description: dsi pll register set
@@ -49,6 +53,7 @@ required:
   - compatible
   - clocks
   - clock-names
+  - "#clock-cells"
   - reg
   - reg-names
   - vddio-supply
