@@ -361,6 +361,10 @@
 	};
 };
 
+&qmi_tmd_devices {
+	status = "okay";
+};
+
 &qupv3_id_1 {
 	status = "okay";
 };
