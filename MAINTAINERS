@@ -17124,6 +17124,16 @@ S:	Maintained
 F:	Documentation/devicetree/bindings/mtd/qcom,nandc.yaml
 F:	drivers/mtd/nand/raw/qcom_nandc.c
 
+QUALCOMM QMI COOLING DRIVER (THERMAL MITIGATION DEVICE DRIVER)
+M:	Bhupesh Sharma <bhupesh.sharma@linaro.org>
+L:	linux-pm@vger.kernel.org
+L:	linux-arm-msm@vger.kernel.org
+S:	Maintained
+F:	Documentation/devicetree/bindings/thermal/qcom,qmi-tmd-device.yaml
+F:	Documentation/devicetree/bindings/thermal/qcom,tmd-device.yaml
+F:	drivers/thermal/qcom/qmi_cooling/
+F:	include/dt-bindings/thermal/qcom,tmd.h
+
 QUALCOMM RMNET DRIVER
 M:	Subash Abhinov Kasiviswanathan <quic_subashab@quicinc.com>
 M:	Sean Tranchetti <quic_stranche@quicinc.com>
