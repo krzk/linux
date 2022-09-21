@@ -422,7 +422,7 @@
 };
 
 &usb_1_dwc3 {
-	dr_mode = "host";
+	dr_mode = "peripheral";
 
 	pinctrl-names = "default";
 	pinctrl-0 = <&usb2phy_ac_en1_default>;
@@ -436,7 +436,7 @@
 };
 
 &usb_1_qmpphy {
-	status = "disabled";
+	status = "okay";
 };
 
 &usb_2 {
