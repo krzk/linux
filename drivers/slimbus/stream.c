@@ -206,6 +206,7 @@ int slim_stream_prepare(struct slim_stream_runtime *rt,
 	struct slim_port *port;
 	int num_ports, i, port_id;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	if (rt->ports) {
 		dev_err(&rt->dev->dev, "Stream already Prepared\n");
 		return -EINVAL;
@@ -255,6 +256,7 @@ int slim_stream_prepare(struct slim_stream_runtime *rt,
 		slim_connect_port_channel(rt, port);
 		i++;
 	}
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 
 	return 0;
 }
@@ -354,6 +356,7 @@ int slim_stream_enable(struct slim_stream_runtime *stream)
 	struct slim_controller *ctrl = stream->dev->ctrl;
 	int ret, i;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	if (ctrl->enable_stream) {
 		ret = ctrl->enable_stream(stream);
 		if (ret)
@@ -385,6 +388,7 @@ int slim_stream_enable(struct slim_stream_runtime *stream)
 	}
 	txn.mc = SLIM_MSG_MC_RECONFIGURE_NOW;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	return slim_do_transfer(ctrl, &txn);
 }
 EXPORT_SYMBOL_GPL(slim_stream_enable);
@@ -407,9 +411,11 @@ int slim_stream_disable(struct slim_stream_runtime *stream)
 	struct slim_controller *ctrl = stream->dev->ctrl;
 	int ret, i;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	if (!stream->ports || !stream->num_ports)
 		return -EINVAL;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	if (ctrl->disable_stream)
 		ctrl->disable_stream(stream);
 
@@ -422,6 +428,7 @@ int slim_stream_disable(struct slim_stream_runtime *stream)
 
 	txn.mc = SLIM_MSG_MC_RECONFIGURE_NOW;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	return slim_do_transfer(ctrl, &txn);
 }
 EXPORT_SYMBOL_GPL(slim_stream_disable);
@@ -441,15 +448,18 @@ int slim_stream_unprepare(struct slim_stream_runtime *stream)
 {
 	int i;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	if (!stream->ports || !stream->num_ports)
 		return 0;
 
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 	for (i = 0; i < stream->num_ports; i++)
 		slim_disconnect_port(stream, &stream->ports[i]);
 
 	kfree(stream->ports);
 	stream->ports = NULL;
 	stream->num_ports = 0;
+	pr_err("%s:%d AAAA\n", __func__, __LINE__);
 
 	return 0;
 }
