@@ -18,17 +18,33 @@ description: |
     samsung,exynos5433-cmu-isp
 
 select:
-  properties:
-    compatible:
-      pattern: "^samsung,.*(s3c|s5pv|exynos)[0-9a-z]+.*$"
+  allOf:
+    - properties:
+        $nodename:
+          pattern: '^[a-z]'
+    - properties:
+        compatible:
+          contains:
+            pattern: "^samsung,.*(s3c|s5pv|exynos)[0-9a-z]+.*$"
   required:
     - compatible
 
 properties:
   compatible:
     oneOf:
-      - description: Preferred naming style for compatibles of SoC components
-        pattern: "^samsung,(s3c|s5pv|exynos|exynosautov)[0-9]+-.*$"
+      - description: Preferred naming style for compatibles of S3C/S5P/Exynos SoC components
+        minItems: 1
+        items:
+          - pattern: "^samsung,(s3c|s5pv|exynos|exynosautov)[0-9]+-.*$"
+          - {}
+          - {}
+
+      - description: Preferred naming style for compatibles of Tesla FSD SoC components
+        minItems: 1
+        items:
+          - pattern: "^tesla,fsd-.*$"
+          - {}
+          - {}
 
       # Legacy compatibles with wild-cards - list cannot grow with new bindings:
       - enum:
