@@ -11,7 +11,7 @@ struct slim_present_rate_test_entry {
 };
 
 static const struct slim_present_rate_test_entry slim_present_rate_test_data[] = {
-	//{ 0,		0 },
+	{ 0,		0 },
 	{ 12000,	1 },
 	{ 24000,	2 },
 	{ 48000,	3 },
@@ -34,7 +34,7 @@ static const struct slim_present_rate_test_entry slim_present_rate_test_data[] =
 	{ 128000,	21 },
 	{ 256000,	22 },
 	{ 512000,	23 },
-	//{ 1,	-EINVAL },
+	{ 1,	-EINVAL },
 };
 
 static void slim_present_rate(struct kunit *test)
