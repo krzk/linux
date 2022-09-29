@@ -11,3 +11,5 @@ slim-qcom-ctrl-y			:= qcom-ctrl.o
 
 obj-$(CONFIG_SLIM_QCOM_NGD_CTRL)	+= slim-qcom-ngd-ctrl.o
 slim-qcom-ngd-ctrl-y			:= qcom-ngd-ctrl.o
+
+obj-$(CONFIG_SLIMBUS_TEST)		+= stream_kunit.o

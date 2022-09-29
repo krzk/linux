@@ -34,4 +34,10 @@ config SLIM_QCOM_NGD_CTRL
 	  communicating with slave HW directly over the bus using messaging
 	  interface, and communicating with master component residing on ADSP
 	  for bandwidth and data-channel management.
+
+config SLIMBUS_TEST
+        tristate "Test units for SLIMbus core" if !KUNIT_ALL_TESTS
+        depends on KUNIT=y
+        default KUNIT_ALL_TESTS
+
 endif
