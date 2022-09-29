@@ -422,6 +422,7 @@ struct slim_controller {
 	int			(*wakeup)(struct slim_controller *ctrl);
 };
 
+int slim_get_prate_code(int rate);
 int slim_device_report_present(struct slim_controller *ctrl,
 			       struct slim_eaddr *e_addr, u8 *laddr);
 void slim_report_absent(struct slim_device *sbdev);

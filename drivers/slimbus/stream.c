@@ -177,7 +177,7 @@ static int slim_deactivate_remove_channel(struct slim_stream_runtime *stream,
 	return slim_do_transfer(sdev->ctrl, &txn);
 }
 
-static int slim_get_prate_code(int rate)
+int slim_get_prate_code(int rate)
 {
 	int i;
 
