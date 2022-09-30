@@ -142,21 +142,35 @@ static int slim_deactivate_remove_channel(struct slim_stream_runtime *stream,
 	return slim_do_transfer(sdev->ctrl, &txn);
 }
 
+/*
+ * Presence Rate table for all Natural Frequencies
+ * The Presence rate of a constant bitrate stream is mean flow rate of the
+ * stream expressed in occupied Segments of that Data Channel per second.
+ * Table 66 from SLIMbus 2.0 Specs
+ *
+ * Returns index of the table corresponding to the Presence rate code for the
+ * respective rate in the table.
+ *
+ * For accurate matches, sets bit 0x80.
+ */
 int slim_get_prate_code(int rate)
 {
 	int ratem, ratefam, pr, exp = 0;
 	bool done = false, exact = true;
 
-	if (rate < 0)
+	if (rate < 4000)
 		return -EINVAL;
 
-	ratem = ((rate == SLIM_FREQ_441) || (rate == SLIM_FREQ_882)) ?
-			(rate/SLIM_BASE_FREQ_11) : (rate/SLIM_BASE_FREQ_4);
+	//if (rate % SLIM_BASE_FREQ_11 == 0) {
+	if (rate % SLIM_BASE_FREQ_11 < 100) {
+		ratem = rate / SLIM_BASE_FREQ_11;
+		ratefam = 2;
+	} else {
+		ratem = rate / SLIM_BASE_FREQ_4;
+		ratefam = 1;
+	}
 
-	ratefam = ((rate == SLIM_FREQ_441) || (rate == SLIM_FREQ_882)) ?
-			2 : 1;
-
-	while (!done) {
+	while (!done && ratem) {
 		while ((ratem & 0x1) != 0x1) {
 			ratem >>= 1;
 			exp++;

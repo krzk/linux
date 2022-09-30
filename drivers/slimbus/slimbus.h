@@ -88,10 +88,6 @@
 
 #define SLIM_MAX_TIDS			256
 
-/* slimbus supported frequency values */
-#define	SLIM_FREQ_441	44100
-#define	SLIM_FREQ_882	88200
-
 /* slimbus base frequency values */
 #define	SLIM_BASE_FREQ_11	11025
 #define	SLIM_BASE_FREQ_4	4000
