@@ -322,6 +322,7 @@
 				exit-latency-us = <1061>;
 				min-residency-us = <4488>;
 				local-timer-stop;
+				status = "disabled";
 			};
 		};
 
