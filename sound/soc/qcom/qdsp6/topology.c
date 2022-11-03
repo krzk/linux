@@ -1269,6 +1269,7 @@ int audioreach_tplg_init(struct snd_soc_component *component)
 	if (!tplg_fw_name)
 		return -ENOMEM;
 
+	pr_err("%s:%d loading topology: %s\n", __func__, __LINE__, tplg_fw_name);
 	ret = request_firmware(&fw, tplg_fw_name, dev);
 	if (ret < 0) {
 		dev_err(dev, "tplg firmware loading %s failed %d \n", tplg_fw_name, ret);

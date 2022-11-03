@@ -2560,6 +2560,7 @@ int snd_soc_tplg_component_load(struct snd_soc_component *comp,
 	if (!comp || !comp->card || !comp->card->dev || !fw)
 		return -EINVAL;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	/* setup parsing context */
 	memset(&tplg, 0, sizeof(tplg));
 	tplg.fw = fw;

@@ -2270,7 +2270,7 @@ int snd_sof_load_topology(struct snd_soc_component *scomp, const char *file)
 	const struct firmware *fw;
 	int ret;
 
-	dev_dbg(scomp->dev, "loading topology:%s\n", file);
+	dev_err(scomp->dev, "loading topology:%s\n", file);
 
 	ret = request_firmware(&fw, file, scomp->dev);
 	if (ret < 0) {
