@@ -146,7 +146,7 @@ int set_memory_encrypted(unsigned long addr, int numpages)
 
 	/* make specified pages unshared, (swiotlb, dma_free) */
 	for (i = 0; i < numpages; ++i) {
-		uv_remove_shared(addr);
+		uv_remove_shared(virt_to_phys((void *)addr));
 		addr += PAGE_SIZE;
 	}
 	return 0;
@@ -157,7 +157,7 @@ int set_memory_decrypted(unsigned long addr, int numpages)
 	int i;
 	/* make specified pages shared (swiotlb, dma_alloca) */
 	for (i = 0; i < numpages; ++i) {
-		uv_set_shared(addr);
+		uv_set_shared(virt_to_phys((void *)addr));
 		addr += PAGE_SIZE;
 	}
 	return 0;
