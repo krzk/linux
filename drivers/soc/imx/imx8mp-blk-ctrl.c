@@ -21,6 +21,16 @@
 #define  USB_CLOCK_MODULE_EN	BIT(1)
 #define  PCIE_PHY_APB_RST	BIT(4)
 #define  PCIE_PHY_INIT_RST	BIT(5)
+#define GPR_REG2		0x8
+#define  P_PLL_MASK		GENMASK(5, 0)
+#define  M_PLL_MASK		GENMASK(15, 6)
+#define  S_PLL_MASK		GENMASK(18, 16)
+#define  P_PLL			(0xc << 0)
+#define  M_PLL			(0x320 << 6)
+#define  S_PLL			(0x4 << 16)
+#define GPR_REG3		0xc
+#define  PLL_CKE		BIT(17)
+#define  PLL_RST		BIT(31)
 
 struct imx8mp_blk_ctrl_domain;
 
@@ -86,6 +96,18 @@ static void imx8mp_hsio_blk_ctrl_power_on(struct imx8mp_blk_ctrl *bc,
 	case IMX8MP_HSIOBLK_PD_PCIE_PHY:
 		regmap_set_bits(bc->regmap, GPR_REG0,
 				PCIE_PHY_APB_RST | PCIE_PHY_INIT_RST);
+
+		/* Set the PLL configurations, P = 12, M = 800, S = 4. */
+		regmap_update_bits(bc->regmap, GPR_REG2,
+				   P_PLL_MASK | M_PLL_MASK | S_PLL_MASK,
+				   P_PLL | M_PLL | S_PLL);
+		udelay(1);
+
+		regmap_update_bits(bc->regmap, GPR_REG3, PLL_RST, PLL_RST);
+		udelay(10);
+
+		/* Set 1b'1 to pll_cke of GPR_REG3 */
+		regmap_update_bits(bc->regmap, GPR_REG3, PLL_CKE, PLL_CKE);
 		break;
 	default:
 		break;
