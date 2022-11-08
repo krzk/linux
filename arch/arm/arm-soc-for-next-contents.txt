@@ -1,0 +1,16 @@
+arm/soc
+
+arm/dt
+	<no branch> (1e15c02cf8c8085d0e6e548bfa2ee0b2f6231221)
+		git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-nomadik tags/ux500-dts-for-v6.2
+	asahi/dt
+		https://github.com/AsahiLinux/linux tags/asahi-soc-dt-6.2
+
+arm/drivers
+
+arm/defconfig
+
+arm/late
+
+arm/fixes
+
