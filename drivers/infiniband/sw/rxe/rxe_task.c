@@ -4,10 +4,6 @@
  * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
  */
 
-#include <linux/kernel.h>
-#include <linux/interrupt.h>
-#include <linux/hardirq.h>
-
 #include "rxe.h"
 
 int __rxe_do_task(struct rxe_task *task)
@@ -28,29 +24,29 @@ int __rxe_do_task(struct rxe_task *task)
  * a second caller finds the task already running
  * but looks just after the last call to func
  */
-void rxe_do_task(struct tasklet_struct *t)
+static void do_task(struct tasklet_struct *t)
 {
 	int cont;
 	int ret;
 	struct rxe_task *task = from_tasklet(task, t, tasklet);
 	unsigned int iterations = RXE_MAX_ITERATIONS;
 
-	spin_lock_bh(&task->state_lock);
+	spin_lock_bh(&task->lock);
 	switch (task->state) {
 	case TASK_STATE_START:
 		task->state = TASK_STATE_BUSY;
-		spin_unlock_bh(&task->state_lock);
+		spin_unlock_bh(&task->lock);
 		break;
 
 	case TASK_STATE_BUSY:
 		task->state = TASK_STATE_ARMED;
 		fallthrough;
 	case TASK_STATE_ARMED:
-		spin_unlock_bh(&task->state_lock);
+		spin_unlock_bh(&task->lock);
 		return;
 
 	default:
-		spin_unlock_bh(&task->state_lock);
+		spin_unlock_bh(&task->lock);
 		pr_warn("%s failed with bad state %d\n", __func__, task->state);
 		return;
 	}
@@ -59,7 +55,7 @@ void rxe_do_task(struct tasklet_struct *t)
 		cont = 0;
 		ret = task->func(task->arg);
 
-		spin_lock_bh(&task->state_lock);
+		spin_lock_bh(&task->lock);
 		switch (task->state) {
 		case TASK_STATE_BUSY:
 			if (ret) {
@@ -88,24 +84,22 @@ void rxe_do_task(struct tasklet_struct *t)
 			pr_warn("%s failed with bad state %d\n", __func__,
 				task->state);
 		}
-		spin_unlock_bh(&task->state_lock);
+		spin_unlock_bh(&task->lock);
 	} while (cont);
 
 	task->ret = ret;
 }
 
-int rxe_init_task(struct rxe_task *task,
-		  void *arg, int (*func)(void *), char *name)
+int rxe_init_task(struct rxe_task *task, void *arg, int (*func)(void *))
 {
 	task->arg	= arg;
 	task->func	= func;
-	snprintf(task->name, sizeof(task->name), "%s", name);
 	task->destroyed	= false;
 
-	tasklet_setup(&task->tasklet, rxe_do_task);
+	tasklet_setup(&task->tasklet, do_task);
 
 	task->state = TASK_STATE_START;
-	spin_lock_init(&task->state_lock);
+	spin_lock_init(&task->lock);
 
 	return 0;
 }
@@ -121,23 +115,28 @@ void rxe_cleanup_task(struct rxe_task *task)
 	task->destroyed = true;
 
 	do {
-		spin_lock_bh(&task->state_lock);
+		spin_lock_bh(&task->lock);
 		idle = (task->state == TASK_STATE_START);
-		spin_unlock_bh(&task->state_lock);
+		spin_unlock_bh(&task->lock);
 	} while (!idle);
 
 	tasklet_kill(&task->tasklet);
 }
 
-void rxe_run_task(struct rxe_task *task, int sched)
+void rxe_run_task(struct rxe_task *task)
 {
 	if (task->destroyed)
 		return;
 
-	if (sched)
-		tasklet_schedule(&task->tasklet);
-	else
-		rxe_do_task(&task->tasklet);
+	do_task(&task->tasklet);
+}
+
+void rxe_sched_task(struct rxe_task *task)
+{
+	if (task->destroyed)
+		return;
+
+	tasklet_schedule(&task->tasklet);
 }
 
 void rxe_disable_task(struct rxe_task *task)
