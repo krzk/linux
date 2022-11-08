@@ -23,6 +23,7 @@
 #include <crypto/hash.h>
 #include "misc.h"
 #include "ctree.h"
+#include "fs.h"
 #include "disk-io.h"
 #include "transaction.h"
 #include "btrfs_inode.h"
@@ -33,6 +34,8 @@
 #include "extent_map.h"
 #include "subpage.h"
 #include "zoned.h"
+#include "file-item.h"
+#include "super.h"
 
 static const char* const btrfs_compress_types[] = { "", "zlib", "lzo", "zstd" };
 
@@ -183,7 +186,7 @@ static void end_compressed_bio_read(struct btrfs_bio *bbio)
 		u64 start = bbio->file_offset + offset;
 
 		if (!status &&
-		    (!csum || !btrfs_check_data_csum(inode, bbio, offset,
+		    (!csum || !btrfs_check_data_csum(bi, bbio, offset,
 						     bv.bv_page, bv.bv_offset))) {
 			btrfs_clean_io_failure(bi, start, bv.bv_page,
 					       bv.bv_offset);
@@ -191,9 +194,9 @@ static void end_compressed_bio_read(struct btrfs_bio *bbio)
 			int ret;
 
 			refcount_inc(&cb->pending_ios);
-			ret = btrfs_repair_one_sector(inode, bbio, offset,
+			ret = btrfs_repair_one_sector(BTRFS_I(inode), bbio, offset,
 						      bv.bv_page, bv.bv_offset,
-						      btrfs_submit_data_read_bio);
+						      true);
 			if (ret) {
 				refcount_dec(&cb->pending_ios);
 				status = errno_to_blk_status(ret);
@@ -1243,12 +1246,13 @@ int btrfs_decompress(int type, unsigned char *data_in, struct page *dest_page,
 	return ret;
 }
 
-void __init btrfs_init_compress(void)
+int __init btrfs_init_compress(void)
 {
 	btrfs_init_workspace_manager(BTRFS_COMPRESS_NONE);
 	btrfs_init_workspace_manager(BTRFS_COMPRESS_ZLIB);
 	btrfs_init_workspace_manager(BTRFS_COMPRESS_LZO);
 	zstd_init_workspace_manager();
+	return 0;
 }
 
 void __cold btrfs_exit_compress(void)

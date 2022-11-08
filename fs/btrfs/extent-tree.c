@@ -36,6 +36,12 @@
 #include "rcu-string.h"
 #include "zoned.h"
 #include "dev-replace.h"
+#include "fs.h"
+#include "accessors.h"
+#include "extent-tree.h"
+#include "root-tree.h"
+#include "file-item.h"
+#include "orphan.h"
 
 #undef SCRAMBLE_DELAYED_REFS
 
@@ -5971,40 +5977,6 @@ int btrfs_drop_subtree(struct btrfs_trans_handle *trans,
 	kfree(wc);
 	btrfs_free_path(path);
 	return ret;
-}
-
-/*
- * helper to account the unused space of all the readonly block group in the
- * space_info. takes mirrors into account.
- */
-u64 btrfs_account_ro_block_groups_free_space(struct btrfs_space_info *sinfo)
-{
-	struct btrfs_block_group *block_group;
-	u64 free_bytes = 0;
-	int factor;
-
-	/* It's df, we don't care if it's racy */
-	if (list_empty(&sinfo->ro_bgs))
-		return 0;
-
-	spin_lock(&sinfo->lock);
-	list_for_each_entry(block_group, &sinfo->ro_bgs, ro_list) {
-		spin_lock(&block_group->lock);
-
-		if (!block_group->ro) {
-			spin_unlock(&block_group->lock);
-			continue;
-		}
-
-		factor = btrfs_bg_type_to_factor(block_group->flags);
-		free_bytes += (block_group->length -
-			       block_group->used) * factor;
-
-		spin_unlock(&block_group->lock);
-	}
-	spin_unlock(&sinfo->lock);
-
-	return free_bytes;
 }
 
 int btrfs_error_unpin_extent_range(struct btrfs_fs_info *fs_info,

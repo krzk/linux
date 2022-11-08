@@ -27,6 +27,14 @@
 #include "subpage.h"
 #include "zoned.h"
 #include "inode-item.h"
+#include "space-info.h"
+#include "fs.h"
+#include "accessors.h"
+#include "extent-tree.h"
+#include "root-tree.h"
+#include "file-item.h"
+#include "relocation.h"
+#include "super.h"
 
 /*
  * Relocation overview
@@ -470,7 +478,7 @@ static noinline_for_stack struct btrfs_backref_node *build_backref_tree(
 	int ret;
 	int err = 0;
 
-	iter = btrfs_backref_iter_alloc(rc->extent_root->fs_info, GFP_NOFS);
+	iter = btrfs_backref_iter_alloc(rc->extent_root->fs_info);
 	if (!iter)
 		return ERR_PTR(-ENOMEM);
 	path = btrfs_alloc_path();
@@ -1109,10 +1117,12 @@ int replace_file_extents(struct btrfs_trans_handle *trans,
 				inode = find_next_inode(root, key.objectid);
 				first = 0;
 			} else if (inode && btrfs_ino(BTRFS_I(inode)) < key.objectid) {
-				btrfs_add_delayed_iput(inode);
+				btrfs_add_delayed_iput(BTRFS_I(inode));
 				inode = find_next_inode(root, key.objectid);
 			}
 			if (inode && btrfs_ino(BTRFS_I(inode)) == key.objectid) {
+				struct extent_state *cached_state = NULL;
+
 				end = key.offset +
 				      btrfs_file_extent_num_bytes(leaf, fi);
 				WARN_ON(!IS_ALIGNED(key.offset,
@@ -1120,14 +1130,15 @@ int replace_file_extents(struct btrfs_trans_handle *trans,
 				WARN_ON(!IS_ALIGNED(end, fs_info->sectorsize));
 				end--;
 				ret = try_lock_extent(&BTRFS_I(inode)->io_tree,
-						      key.offset, end);
+						      key.offset, end,
+						      &cached_state);
 				if (!ret)
 					continue;
 
 				btrfs_drop_extent_map_range(BTRFS_I(inode),
 							    key.offset, end, true);
 				unlock_extent(&BTRFS_I(inode)->io_tree,
-					      key.offset, end, NULL);
+					      key.offset, end, &cached_state);
 			}
 		}
 
@@ -1170,7 +1181,7 @@ int replace_file_extents(struct btrfs_trans_handle *trans,
 	if (dirty)
 		btrfs_mark_buffer_dirty(leaf);
 	if (inode)
-		btrfs_add_delayed_iput(inode);
+		btrfs_add_delayed_iput(BTRFS_I(inode));
 	return ret;
 }
 
@@ -1516,6 +1527,8 @@ static int invalidate_extent_cache(struct btrfs_root *root,
 
 	objectid = min_key->objectid;
 	while (1) {
+		struct extent_state *cached_state = NULL;
+
 		cond_resched();
 		iput(inode);
 
@@ -1566,9 +1579,9 @@ static int invalidate_extent_cache(struct btrfs_root *root,
 		}
 
 		/* the lock_extent waits for read_folio to complete */
-		lock_extent(&BTRFS_I(inode)->io_tree, start, end, NULL);
+		lock_extent(&BTRFS_I(inode)->io_tree, start, end, &cached_state);
 		btrfs_drop_extent_map_range(BTRFS_I(inode), start, end, true);
-		unlock_extent(&BTRFS_I(inode)->io_tree, start, end, NULL);
+		unlock_extent(&BTRFS_I(inode)->io_tree, start, end, &cached_state);
 	}
 	return 0;
 }
@@ -2861,25 +2874,27 @@ static noinline_for_stack int prealloc_file_extent_cluster(
 	if (ret)
 		return ret;
 
-	btrfs_inode_lock(&inode->vfs_inode, 0);
+	btrfs_inode_lock(inode, 0);
 	for (nr = 0; nr < cluster->nr; nr++) {
+		struct extent_state *cached_state = NULL;
+
 		start = cluster->boundary[nr] - offset;
 		if (nr + 1 < cluster->nr)
 			end = cluster->boundary[nr + 1] - 1 - offset;
 		else
 			end = cluster->end - offset;
 
-		lock_extent(&inode->io_tree, start, end, NULL);
+		lock_extent(&inode->io_tree, start, end, &cached_state);
 		num_bytes = end + 1 - start;
 		ret = btrfs_prealloc_file_range(&inode->vfs_inode, 0, start,
 						num_bytes, num_bytes,
 						end + 1, &alloc_hint);
 		cur_offset = end + 1;
-		unlock_extent(&inode->io_tree, start, end, NULL);
+		unlock_extent(&inode->io_tree, start, end, &cached_state);
 		if (ret)
 			break;
 	}
-	btrfs_inode_unlock(&inode->vfs_inode, 0);
+	btrfs_inode_unlock(inode, 0);
 
 	if (cur_offset < prealloc_end)
 		btrfs_free_reserved_data_space_noquota(inode->root->fs_info,
@@ -2891,6 +2906,7 @@ static noinline_for_stack int setup_relocation_extent_mapping(struct inode *inod
 				u64 start, u64 end, u64 block_start)
 {
 	struct extent_map *em;
+	struct extent_state *cached_state = NULL;
 	int ret = 0;
 
 	em = alloc_extent_map();
@@ -2903,9 +2919,9 @@ static noinline_for_stack int setup_relocation_extent_mapping(struct inode *inod
 	em->block_start = block_start;
 	set_bit(EXTENT_FLAG_PINNED, &em->flags);
 
-	lock_extent(&BTRFS_I(inode)->io_tree, start, end, NULL);
+	lock_extent(&BTRFS_I(inode)->io_tree, start, end, &cached_state);
 	ret = btrfs_replace_extent_map_range(BTRFS_I(inode), em, false);
-	unlock_extent(&BTRFS_I(inode)->io_tree, start, end, NULL);
+	unlock_extent(&BTRFS_I(inode)->io_tree, start, end, &cached_state);
 	free_extent_map(em);
 
 	return ret;
@@ -2983,6 +2999,7 @@ static int relocate_one_page(struct inode *inode, struct file_ra_state *ra,
 	 */
 	cur = max(page_start, cluster->boundary[*cluster_nr] - offset);
 	while (cur <= page_end) {
+		struct extent_state *cached_state = NULL;
 		u64 extent_start = cluster->boundary[*cluster_nr] - offset;
 		u64 extent_end = get_cluster_boundary_end(cluster,
 						*cluster_nr) - offset;
@@ -2998,13 +3015,15 @@ static int relocate_one_page(struct inode *inode, struct file_ra_state *ra,
 			goto release_page;
 
 		/* Mark the range delalloc and dirty for later writeback */
-		lock_extent(&BTRFS_I(inode)->io_tree, clamped_start, clamped_end, NULL);
+		lock_extent(&BTRFS_I(inode)->io_tree, clamped_start, clamped_end,
+			    &cached_state);
 		ret = btrfs_set_extent_delalloc(BTRFS_I(inode), clamped_start,
-						clamped_end, 0, NULL);
+						clamped_end, 0, &cached_state);
 		if (ret) {
-			clear_extent_bits(&BTRFS_I(inode)->io_tree,
-					clamped_start, clamped_end,
-					EXTENT_LOCKED | EXTENT_BOUNDARY);
+			clear_extent_bit(&BTRFS_I(inode)->io_tree,
+					 clamped_start, clamped_end,
+					 EXTENT_LOCKED | EXTENT_BOUNDARY,
+					 &cached_state);
 			btrfs_delalloc_release_metadata(BTRFS_I(inode),
 							clamped_len, true);
 			btrfs_delalloc_release_extents(BTRFS_I(inode),
@@ -3031,7 +3050,8 @@ static int relocate_one_page(struct inode *inode, struct file_ra_state *ra,
 					boundary_start, boundary_end,
 					EXTENT_BOUNDARY);
 		}
-		unlock_extent(&BTRFS_I(inode)->io_tree, clamped_start, clamped_end, NULL);
+		unlock_extent(&BTRFS_I(inode)->io_tree, clamped_start, clamped_end,
+			      &cached_state);
 		btrfs_delalloc_release_extents(BTRFS_I(inode), clamped_len);
 		cur += clamped_len;
 
@@ -3388,24 +3408,27 @@ int add_data_references(struct reloc_control *rc,
 			struct btrfs_path *path,
 			struct rb_root *blocks)
 {
-	struct btrfs_fs_info *fs_info = rc->extent_root->fs_info;
-	struct ulist *leaves = NULL;
+	struct btrfs_backref_walk_ctx ctx = { 0 };
 	struct ulist_iterator leaf_uiter;
 	struct ulist_node *ref_node = NULL;
-	const u32 blocksize = fs_info->nodesize;
+	const u32 blocksize = rc->extent_root->fs_info->nodesize;
 	int ret = 0;
 
 	btrfs_release_path(path);
-	ret = btrfs_find_all_leafs(NULL, fs_info, extent_key->objectid,
-				   0, &leaves, NULL, true);
+
+	ctx.bytenr = extent_key->objectid;
+	ctx.ignore_extent_item_pos = true;
+	ctx.fs_info = rc->extent_root->fs_info;
+
+	ret = btrfs_find_all_leafs(&ctx);
 	if (ret < 0)
 		return ret;
 
 	ULIST_ITER_INIT(&leaf_uiter);
-	while ((ref_node = ulist_next(leaves, &leaf_uiter))) {
+	while ((ref_node = ulist_next(ctx.refs, &leaf_uiter))) {
 		struct extent_buffer *eb;
 
-		eb = read_tree_block(fs_info, ref_node->val, 0, 0, 0, NULL);
+		eb = read_tree_block(ctx.fs_info, ref_node->val, 0, 0, 0, NULL);
 		if (IS_ERR(eb)) {
 			ret = PTR_ERR(eb);
 			break;
@@ -3421,7 +3444,7 @@ int add_data_references(struct reloc_control *rc,
 	}
 	if (ret < 0)
 		free_block_list(blocks);
-	ulist_free(leaves);
+	ulist_free(ctx.refs);
 	return ret;
 }
 
@@ -3905,8 +3928,7 @@ static struct reloc_control *alloc_reloc_control(struct btrfs_fs_info *fs_info)
 	INIT_LIST_HEAD(&rc->dirty_subvol_roots);
 	btrfs_backref_init_cache(fs_info, &rc->backref_cache, 1);
 	mapping_tree_init(&rc->reloc_root_tree);
-	extent_io_tree_init(fs_info, &rc->processed_blocks,
-			    IO_TREE_RELOC_BLOCKS, NULL);
+	extent_io_tree_init(fs_info, &rc->processed_blocks, IO_TREE_RELOC_BLOCKS);
 	return rc;
 }
 

@@ -21,6 +21,10 @@
 #include "raid56.h"
 #include "block-group.h"
 #include "zoned.h"
+#include "fs.h"
+#include "accessors.h"
+#include "file-item.h"
+#include "scrub.h"
 
 /*
  * This is only the first step towards a full-features scrub. It reads all
@@ -55,6 +59,17 @@ struct scrub_ctx;
 #define SCRUB_MAX_SECTORS_PER_BLOCK	(BTRFS_MAX_METADATA_BLOCKSIZE / SZ_4K)
 
 #define SCRUB_MAX_PAGES			(DIV_ROUND_UP(BTRFS_MAX_METADATA_BLOCKSIZE, PAGE_SIZE))
+
+/*
+ * Maximum number of mirrors that can be available for all profiles counting
+ * the target device of dev-replace as one. During an active device replace
+ * procedure, the target device of the copy operation is a mirror for the
+ * filesystem data as well that can be used to read data in order to repair
+ * read errors on other disks.
+ *
+ * Current value is derived from RAID1C4 with 4 copies.
+ */
+#define BTRFS_MAX_MIRRORS (4 + 1)
 
 struct scrub_recover {
 	refcount_t		refs;
@@ -284,7 +299,7 @@ static struct scrub_block *alloc_scrub_block(struct scrub_ctx *sctx,
  * Will also allocate new pages for @sblock if needed.
  */
 static struct scrub_sector *alloc_scrub_sector(struct scrub_block *sblock,
-					       u64 logical, gfp_t gfp)
+					       u64 logical)
 {
 	const pgoff_t page_index = (logical - sblock->logical) >> PAGE_SHIFT;
 	struct scrub_sector *ssector;
@@ -292,7 +307,7 @@ static struct scrub_sector *alloc_scrub_sector(struct scrub_block *sblock,
 	/* We must never have scrub_block exceed U32_MAX in size. */
 	ASSERT(logical - sblock->logical < U32_MAX);
 
-	ssector = kzalloc(sizeof(*ssector), gfp);
+	ssector = kzalloc(sizeof(*ssector), GFP_KERNEL);
 	if (!ssector)
 		return NULL;
 
@@ -300,7 +315,7 @@ static struct scrub_sector *alloc_scrub_sector(struct scrub_block *sblock,
 	if (!sblock->pages[page_index]) {
 		int ret;
 
-		sblock->pages[page_index] = alloc_page(gfp);
+		sblock->pages[page_index] = alloc_page(GFP_KERNEL);
 		if (!sblock->pages[page_index]) {
 			kfree(ssector);
 			return NULL;
@@ -794,8 +809,8 @@ nomem:
 	return ERR_PTR(-ENOMEM);
 }
 
-static int scrub_print_warning_inode(u64 inum, u64 offset, u64 root,
-				     void *warn_ctx)
+static int scrub_print_warning_inode(u64 inum, u64 offset, u64 num_bytes,
+				     u64 root, void *warn_ctx)
 {
 	u32 nlink;
 	int ret;
@@ -894,7 +909,6 @@ static void scrub_print_warning(const char *errstr, struct scrub_block *sblock)
 	struct btrfs_extent_item *ei;
 	struct scrub_warning swarn;
 	unsigned long ptr = 0;
-	u64 extent_item_pos;
 	u64 flags = 0;
 	u64 ref_root;
 	u32 item_size;
@@ -926,7 +940,6 @@ static void scrub_print_warning(const char *errstr, struct scrub_block *sblock)
 	if (ret < 0)
 		goto out;
 
-	extent_item_pos = swarn.logical - found_key.objectid;
 	swarn.extent_item_size = found_key.offset;
 
 	eb = path->nodes[0];
@@ -949,12 +962,18 @@ static void scrub_print_warning(const char *errstr, struct scrub_block *sblock)
 		} while (ret != 1);
 		btrfs_release_path(path);
 	} else {
+		struct btrfs_backref_walk_ctx ctx = { 0 };
+
 		btrfs_release_path(path);
+
+		ctx.bytenr = found_key.objectid;
+		ctx.extent_item_pos = swarn.logical - found_key.objectid;
+		ctx.fs_info = fs_info;
+
 		swarn.path = path;
 		swarn.dev = dev;
-		iterate_extent_inodes(fs_info, found_key.objectid,
-					extent_item_pos, 1,
-					scrub_print_warning_inode, &swarn, false);
+
+		iterate_extent_inodes(&ctx, true, scrub_print_warning_inode, &swarn);
 	}
 
 out:
@@ -1480,7 +1499,7 @@ static int scrub_setup_recheck_block(struct scrub_block *original_sblock,
 			return -EIO;
 		}
 
-		recover = kzalloc(sizeof(struct scrub_recover), GFP_NOFS);
+		recover = kzalloc(sizeof(struct scrub_recover), GFP_KERNEL);
 		if (!recover) {
 			btrfs_put_bioc(bioc);
 			btrfs_bio_counter_dec(fs_info);
@@ -1503,7 +1522,7 @@ static int scrub_setup_recheck_block(struct scrub_block *original_sblock,
 			sblock = sblocks_for_recheck[mirror_index];
 			sblock->sctx = sctx;
 
-			sector = alloc_scrub_sector(sblock, logical, GFP_NOFS);
+			sector = alloc_scrub_sector(sblock, logical);
 			if (!sector) {
 				spin_lock(&sctx->stat_lock);
 				sctx->stat.malloc_errors++;
@@ -2425,7 +2444,7 @@ static int scrub_sectors(struct scrub_ctx *sctx, u64 logical, u32 len,
 		 */
 		u32 l = min(sectorsize, len);
 
-		sector = alloc_scrub_sector(sblock, logical, GFP_KERNEL);
+		sector = alloc_scrub_sector(sblock, logical);
 		if (!sector) {
 			spin_lock(&sctx->stat_lock);
 			sctx->stat.malloc_errors++;
@@ -2756,7 +2775,7 @@ static int scrub_sectors_for_parity(struct scrub_parity *sparity,
 	for (index = 0; len > 0; index++) {
 		struct scrub_sector *sector;
 
-		sector = alloc_scrub_sector(sblock, logical, GFP_KERNEL);
+		sector = alloc_scrub_sector(sblock, logical);
 		if (!sector) {
 			spin_lock(&sctx->stat_lock);
 			sctx->stat.malloc_errors++;

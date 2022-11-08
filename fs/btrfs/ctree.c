@@ -8,6 +8,7 @@
 #include <linux/rbtree.h>
 #include <linux/mm.h>
 #include <linux/error-injection.h>
+#include "messages.h"
 #include "ctree.h"
 #include "disk-io.h"
 #include "transaction.h"
@@ -17,6 +18,12 @@
 #include "qgroup.h"
 #include "tree-mod-log.h"
 #include "tree-checker.h"
+#include "fs.h"
+#include "accessors.h"
+#include "extent-tree.h"
+#include "relocation.h"
+
+static struct kmem_cache *btrfs_path_cachep;
 
 static int split_node(struct btrfs_trans_handle *trans, struct btrfs_root
 		      *root, struct btrfs_path *path, int level);
@@ -111,22 +118,6 @@ noinline void btrfs_release_path(struct btrfs_path *p)
 		free_extent_buffer(p->nodes[i]);
 		p->nodes[i] = NULL;
 	}
-}
-
-/*
- * We want the transaction abort to print stack trace only for errors where the
- * cause could be a bug, eg. due to ENOSPC, and not for common errors that are
- * caused by external factors.
- */
-bool __cold abort_should_print_stack(int errno)
-{
-	switch (errno) {
-	case -EIO:
-	case -EROFS:
-	case -ENOMEM:
-		return false;
-	}
-	return true;
 }
 
 /*
@@ -487,7 +478,7 @@ static noinline int __btrfs_cow_block(struct btrfs_trans_handle *trans,
 	} else {
 		WARN_ON(trans->transid != btrfs_header_generation(parent));
 		btrfs_tree_mod_log_insert_key(parent, parent_slot,
-					      BTRFS_MOD_LOG_KEY_REPLACE, GFP_NOFS);
+					      BTRFS_MOD_LOG_KEY_REPLACE);
 		btrfs_set_node_blockptr(parent, parent_slot,
 					cow->start);
 		btrfs_set_node_ptr_generation(parent, parent_slot,
@@ -1016,7 +1007,7 @@ static noinline int balance_level(struct btrfs_trans_handle *trans,
 			struct btrfs_disk_key right_key;
 			btrfs_node_key(right, &right_key, 0);
 			ret = btrfs_tree_mod_log_insert_key(parent, pslot + 1,
-					BTRFS_MOD_LOG_KEY_REPLACE, GFP_NOFS);
+					BTRFS_MOD_LOG_KEY_REPLACE);
 			BUG_ON(ret < 0);
 			btrfs_set_node_key(parent, &right_key, pslot + 1);
 			btrfs_mark_buffer_dirty(parent);
@@ -1062,7 +1053,7 @@ static noinline int balance_level(struct btrfs_trans_handle *trans,
 		struct btrfs_disk_key mid_key;
 		btrfs_node_key(mid, &mid_key, 0);
 		ret = btrfs_tree_mod_log_insert_key(parent, pslot,
-				BTRFS_MOD_LOG_KEY_REPLACE, GFP_NOFS);
+						    BTRFS_MOD_LOG_KEY_REPLACE);
 		BUG_ON(ret < 0);
 		btrfs_set_node_key(parent, &mid_key, pslot);
 		btrfs_mark_buffer_dirty(parent);
@@ -1164,7 +1155,7 @@ static noinline int push_nodes_for_insert(struct btrfs_trans_handle *trans,
 			orig_slot += left_nr;
 			btrfs_node_key(mid, &disk_key, 0);
 			ret = btrfs_tree_mod_log_insert_key(parent, pslot,
-					BTRFS_MOD_LOG_KEY_REPLACE, GFP_NOFS);
+					BTRFS_MOD_LOG_KEY_REPLACE);
 			BUG_ON(ret < 0);
 			btrfs_set_node_key(parent, &disk_key, pslot);
 			btrfs_mark_buffer_dirty(parent);
@@ -1218,7 +1209,7 @@ static noinline int push_nodes_for_insert(struct btrfs_trans_handle *trans,
 
 			btrfs_node_key(right, &disk_key, 0);
 			ret = btrfs_tree_mod_log_insert_key(parent, pslot + 1,
-					BTRFS_MOD_LOG_KEY_REPLACE, GFP_NOFS);
+					BTRFS_MOD_LOG_KEY_REPLACE);
 			BUG_ON(ret < 0);
 			btrfs_set_node_key(parent, &disk_key, pslot + 1);
 			btrfs_mark_buffer_dirty(parent);
@@ -2357,7 +2348,7 @@ int btrfs_search_backwards(struct btrfs_root *root, struct btrfs_key *key,
 	return ret;
 }
 
-/**
+/*
  * Search for a valid slot for the given path.
  *
  * @root:	The root node of the tree.
@@ -2416,7 +2407,7 @@ static void fixup_low_keys(struct btrfs_path *path,
 			break;
 		t = path->nodes[i];
 		ret = btrfs_tree_mod_log_insert_key(t, tslot,
-				BTRFS_MOD_LOG_KEY_REPLACE, GFP_ATOMIC);
+						    BTRFS_MOD_LOG_KEY_REPLACE);
 		BUG_ON(ret < 0);
 		btrfs_set_node_key(t, key, tslot);
 		btrfs_mark_buffer_dirty(path->nodes[i]);
@@ -2777,7 +2768,7 @@ static void insert_ptr(struct btrfs_trans_handle *trans,
 	}
 	if (level) {
 		ret = btrfs_tree_mod_log_insert_key(lower, slot,
-					    BTRFS_MOD_LOG_KEY_ADD, GFP_NOFS);
+						    BTRFS_MOD_LOG_KEY_ADD);
 		BUG_ON(ret < 0);
 	}
 	btrfs_set_node_key(lower, key, slot);
@@ -3979,14 +3970,15 @@ void btrfs_extend_item(struct btrfs_path *path, u32 data_size)
 	}
 }
 
-/**
- * setup_items_for_insert - Helper called before inserting one or more items
- * to a leaf. Main purpose is to save stack depth by doing the bulk of the work
- * in a function that doesn't call btrfs_search_slot
+/*
+ * Make space in the node before inserting one or more items.
  *
  * @root:	root we are inserting items to
  * @path:	points to the leaf/slot where we are going to insert new items
  * @batch:      information about the batch of items to insert
+ *
+ * Main purpose is to save stack depth by doing the bulk of the work in a
+ * function that doesn't call btrfs_search_slot
  */
 static void setup_items_for_insert(struct btrfs_root *root, struct btrfs_path *path,
 				   const struct btrfs_item_batch *batch)
@@ -4217,7 +4209,7 @@ static void del_ptr(struct btrfs_root *root, struct btrfs_path *path,
 			      (nritems - slot - 1));
 	} else if (level) {
 		ret = btrfs_tree_mod_log_insert_key(parent, slot,
-				BTRFS_MOD_LOG_KEY_REMOVE, GFP_NOFS);
+						    BTRFS_MOD_LOG_KEY_REMOVE);
 		BUG_ON(ret < 0);
 	}
 
@@ -4826,6 +4818,14 @@ done:
 	return ret;
 }
 
+int btrfs_next_old_item(struct btrfs_root *root, struct btrfs_path *path, u64 time_seq)
+{
+	path->slots[0]++;
+	if (path->slots[0] >= btrfs_header_nritems(path->nodes[0]))
+		return btrfs_next_old_leaf(root, path, time_seq);
+	return 0;
+}
+
 /*
  * this uses btrfs_prev_leaf to walk backwards in the tree, and keeps
  * searching until it gets past min_objectid or finds an item of 'type'
@@ -4908,4 +4908,19 @@ int btrfs_previous_extent_item(struct btrfs_root *root,
 			break;
 	}
 	return 1;
+}
+
+int __init btrfs_ctree_init(void)
+{
+	btrfs_path_cachep = kmem_cache_create("btrfs_path",
+			sizeof(struct btrfs_path), 0,
+			SLAB_MEM_SPREAD, NULL);
+	if (!btrfs_path_cachep)
+		return -ENOMEM;
+	return 0;
+}
+
+void __cold btrfs_ctree_exit(void)
+{
+	kmem_cache_destroy(btrfs_path_cachep);
 }

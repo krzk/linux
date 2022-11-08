@@ -6,6 +6,7 @@
 #ifndef BTRFS_COMPRESSION_H
 #define BTRFS_COMPRESSION_H
 
+#include <linux/blk_types.h>
 #include <linux/sizes.h>
 
 struct btrfs_inode;
@@ -77,7 +78,7 @@ static inline unsigned int btrfs_compress_level(unsigned int type_level)
 	return ((type_level & 0xF0) >> 4);
 }
 
-void __init btrfs_init_compress(void);
+int __init btrfs_init_compress(void);
 void __cold btrfs_exit_compress(void);
 
 int btrfs_compress_pages(unsigned int type_level, struct address_space *mapping,
