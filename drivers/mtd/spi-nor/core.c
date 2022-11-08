@@ -2840,10 +2840,20 @@ static void spi_nor_put_device(struct mtd_info *mtd)
 
 void spi_nor_restore(struct spi_nor *nor)
 {
+	int ret;
+
 	/* restore the addressing mode */
 	if (nor->addr_nbytes == 4 && !(nor->flags & SNOR_F_4B_OPCODES) &&
-	    nor->flags & SNOR_F_BROKEN_RESET)
-		nor->params->set_4byte_addr_mode(nor, false);
+	    nor->flags & SNOR_F_BROKEN_RESET) {
+		ret = nor->params->set_4byte_addr_mode(nor, false);
+		if (ret)
+			/*
+			 * Do not stop the execution in the hope that the flash
+			 * will default to the 3-byte address mode after the
+			 * software reset.
+			 */
+			dev_err(nor->dev, "Failed to exit 4-byte address mode, err = %d\n", ret);
+	}
 
 	if (nor->flags & SNOR_F_SOFT_RESET)
 		spi_nor_soft_reset(nor);
@@ -2935,6 +2945,27 @@ static void spi_nor_set_mtd_info(struct spi_nor *nor)
 	mtd->_put_device = spi_nor_put_device;
 }
 
+static int spi_nor_hw_reset(struct spi_nor *nor)
+{
+	struct gpio_desc *reset;
+
+	reset = devm_gpiod_get_optional(nor->dev, "reset", GPIOD_OUT_LOW);
+	if (IS_ERR_OR_NULL(reset))
+		return PTR_ERR_OR_ZERO(reset);
+
+	/*
+	 * Experimental delay values by looking at different flash device
+	 * vendors datasheets.
+	 */
+	usleep_range(1, 5);
+	gpiod_set_value_cansleep(reset, 1);
+	usleep_range(100, 150);
+	gpiod_set_value_cansleep(reset, 0);
+	usleep_range(1000, 1200);
+
+	return 0;
+}
+
 int spi_nor_scan(struct spi_nor *nor, const char *name,
 		 const struct spi_nor_hwcaps *hwcaps)
 {
@@ -2966,6 +2997,10 @@ int spi_nor_scan(struct spi_nor *nor, const char *name,
 				      GFP_KERNEL);
 	if (!nor->bouncebuf)
 		return -ENOMEM;
+
+	ret = spi_nor_hw_reset(nor);
+	if (ret)
+		return ret;
 
 	info = spi_nor_get_flash_info(nor, name);
 	if (IS_ERR(info))
