@@ -13,17 +13,17 @@
 #include <sound/soc-acpi.h>
 #include <sound/soc-dapm.h>
 
-#define MAX98373_DEV0_NAME	"i2c-MX98373:00"
-#define MAX98373_DEV1_NAME	"i2c-MX98373:01"
-#define MAX98373_CODEC_NAME	"max98373-aif1"
+#define MAX98927_DEV0_NAME	"i2c-MX98927:00"
+#define MAX98927_DEV1_NAME	"i2c-MX98927:01"
+#define MAX98927_CODEC_NAME	"max98927-aif1"
 
 static struct snd_soc_codec_conf card_codec_conf[] = {
 	{
-		.dlc = COMP_CODEC_CONF(MAX98373_DEV0_NAME),
+		.dlc = COMP_CODEC_CONF(MAX98927_DEV0_NAME),
 		.name_prefix = "Right",
 	},
 	{
-		.dlc = COMP_CODEC_CONF(MAX98373_DEV1_NAME),
+		.dlc = COMP_CODEC_CONF(MAX98927_DEV1_NAME),
 		.name_prefix = "Left",
 	},
 };
@@ -44,7 +44,7 @@ static const struct snd_soc_dapm_route card_base_routes[] = {
 };
 
 static int
-avs_max98373_be_fixup(struct snd_soc_pcm_runtime *runrime, struct snd_pcm_hw_params *params)
+avs_max98927_be_fixup(struct snd_soc_pcm_runtime *runrime, struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate, *channels;
 	struct snd_mask *fmt;
@@ -63,35 +63,32 @@ avs_max98373_be_fixup(struct snd_soc_pcm_runtime *runrime, struct snd_pcm_hw_par
 	return 0;
 }
 
-static int avs_max98373_hw_params(struct snd_pcm_substream *substream,
+static int avs_max98927_hw_params(struct snd_pcm_substream *substream,
 				  struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *runtime = asoc_substream_to_rtd(substream);
 	struct snd_soc_dai *codec_dai;
-	int ret, i;
+	int ret = 0;
+	int i;
 
 	for_each_rtd_codec_dais(runtime, i, codec_dai) {
-		if (!strcmp(codec_dai->component->name, MAX98373_DEV0_NAME)) {
+		if (!strcmp(codec_dai->component->name, MAX98927_DEV0_NAME))
 			ret = snd_soc_dai_set_tdm_slot(codec_dai, 0x30, 3, 8, 16);
-			if (ret < 0) {
-				dev_err(runtime->dev, "DEV0 TDM slot err:%d\n", ret);
-				return ret;
-			}
-		}
-		if (!strcmp(codec_dai->component->name, MAX98373_DEV1_NAME)) {
+		else if (!strcmp(codec_dai->component->name, MAX98927_DEV1_NAME))
 			ret = snd_soc_dai_set_tdm_slot(codec_dai, 0xC0, 3, 8, 16);
-			if (ret < 0) {
-				dev_err(runtime->dev, "DEV1 TDM slot err:%d\n", ret);
-				return ret;
-			}
+
+		if (ret < 0) {
+			dev_err(runtime->dev, "hw_params for %s failed: %d\n",
+				codec_dai->component->name, ret);
+			return ret;
 		}
 	}
 
 	return 0;
 }
 
-static const struct snd_soc_ops avs_max98373_ops = {
-	.hw_params = avs_max98373_hw_params,
+static const struct snd_soc_ops avs_max98927_ops = {
+	.hw_params = avs_max98927_hw_params,
 };
 
 static int avs_create_dai_link(struct device *dev, const char *platform_name, int ssp_port,
@@ -114,10 +111,10 @@ static int avs_create_dai_link(struct device *dev, const char *platform_name, in
 		return -ENOMEM;
 
 	dl->cpus->dai_name = devm_kasprintf(dev, GFP_KERNEL, "SSP%d Pin", ssp_port);
-	dl->codecs[0].name = devm_kasprintf(dev, GFP_KERNEL, MAX98373_DEV0_NAME);
-	dl->codecs[0].dai_name = devm_kasprintf(dev, GFP_KERNEL, MAX98373_CODEC_NAME);
-	dl->codecs[1].name = devm_kasprintf(dev, GFP_KERNEL, MAX98373_DEV1_NAME);
-	dl->codecs[1].dai_name = devm_kasprintf(dev, GFP_KERNEL, MAX98373_CODEC_NAME);
+	dl->codecs[0].name = devm_kasprintf(dev, GFP_KERNEL, MAX98927_DEV0_NAME);
+	dl->codecs[0].dai_name = devm_kasprintf(dev, GFP_KERNEL, MAX98927_CODEC_NAME);
+	dl->codecs[1].name = devm_kasprintf(dev, GFP_KERNEL, MAX98927_DEV1_NAME);
+	dl->codecs[1].dai_name = devm_kasprintf(dev, GFP_KERNEL, MAX98927_CODEC_NAME);
 	if (!dl->cpus->dai_name || !dl->codecs[0].name || !dl->codecs[0].dai_name ||
 	    !dl->codecs[1].name || !dl->codecs[1].dai_name)
 		return -ENOMEM;
@@ -127,14 +124,14 @@ static int avs_create_dai_link(struct device *dev, const char *platform_name, in
 	dl->platforms = platform;
 	dl->num_platforms = 1;
 	dl->id = 0;
-	dl->dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBC_CFC;
-	dl->be_hw_params_fixup = avs_max98373_be_fixup;
+	dl->dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS;
+	dl->be_hw_params_fixup = avs_max98927_be_fixup;
 	dl->nonatomic = 1;
 	dl->no_pcm = 1;
 	dl->dpcm_capture = 1;
 	dl->dpcm_playback = 1;
 	dl->ignore_pmdown_time = 1;
-	dl->ops = &avs_max98373_ops;
+	dl->ops = &avs_max98927_ops;
 
 	*dai_link = dl;
 
@@ -173,7 +170,7 @@ static int avs_create_dapm_routes(struct device *dev, int ssp_port,
 	return 0;
 }
 
-static int avs_max98373_probe(struct platform_device *pdev)
+static int avs_max98927_probe(struct platform_device *pdev)
 {
 	struct snd_soc_dapm_route *routes;
 	struct snd_soc_dai_link *dai_link;
@@ -203,7 +200,7 @@ static int avs_max98373_probe(struct platform_device *pdev)
 	if (!card)
 		return -ENOMEM;
 
-	card->name = "avs_max98373";
+	card->name = "avs_max98927";
 	card->dev = dev;
 	card->owner = THIS_MODULE;
 	card->dai_link = dai_link;
@@ -225,15 +222,15 @@ static int avs_max98373_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(dev, card);
 }
 
-static struct platform_driver avs_max98373_driver = {
-	.probe = avs_max98373_probe,
+static struct platform_driver avs_max98927_driver = {
+	.probe = avs_max98927_probe,
 	.driver = {
-		.name = "avs_max98373",
+		.name = "avs_max98927",
 		.pm = &snd_soc_pm_ops,
 	},
 };
 
-module_platform_driver(avs_max98373_driver)
+module_platform_driver(avs_max98927_driver)
 
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:avs_max98373");
+MODULE_ALIAS("platform:avs_max98927");
