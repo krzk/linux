@@ -486,6 +486,9 @@ static void ufshcd_print_evt_hist(struct ufs_hba *hba)
 	ufshcd_print_evt(hba, UFS_EVT_RESUME_ERR, "resume_fail");
 	ufshcd_print_evt(hba, UFS_EVT_SUSPEND_ERR,
 			 "suspend_fail");
+	ufshcd_print_evt(hba, UFS_EVT_WL_RES_ERR, "wlun resume_fail");
+	ufshcd_print_evt(hba, UFS_EVT_WL_SUSP_ERR,
+			 "wlun suspend_fail");
 	ufshcd_print_evt(hba, UFS_EVT_DEV_RESET, "dev_reset");
 	ufshcd_print_evt(hba, UFS_EVT_HOST_RESET, "host_reset");
 	ufshcd_print_evt(hba, UFS_EVT_ABORT, "task_abort");
@@ -2013,7 +2016,6 @@ static void ufshcd_exit_clk_gating(struct ufs_hba *hba)
 	destroy_workqueue(hba->clk_gating.clk_gating_workq);
 }
 
-/* Must be called with host lock acquired */
 static void ufshcd_clk_scaling_start_busy(struct ufs_hba *hba)
 {
 	bool queue_resume_work = false;
@@ -3606,7 +3608,7 @@ static inline int ufshcd_read_unit_desc_param(struct ufs_hba *hba,
 	 * Unit descriptors are only available for general purpose LUs (LUN id
 	 * from 0 to 7) and RPMB Well known LU.
 	 */
-	if (!ufs_is_valid_unit_desc_lun(&hba->dev_info, lun, param_offset))
+	if (!ufs_is_valid_unit_desc_lun(&hba->dev_info, lun))
 		return -EOPNOTSUPP;
 
 	return ufshcd_read_desc_param(hba, QUERY_DESC_IDN_UNIT, lun,
@@ -4860,100 +4862,6 @@ static int ufshcd_verify_dev_init(struct ufs_hba *hba)
 }
 
 /**
- * ufshcd_set_queue_depth - set lun queue depth
- * @sdev: pointer to SCSI device
- *
- * Read bLUQueueDepth value and activate scsi tagged command
- * queueing. For WLUN, queue depth is set to 1. For best-effort
- * cases (bLUQueueDepth = 0) the queue depth is set to a maximum
- * value that host can queue.
- */
-static void ufshcd_set_queue_depth(struct scsi_device *sdev)
-{
-	int ret = 0;
-	u8 lun_qdepth;
-	struct ufs_hba *hba;
-
-	hba = shost_priv(sdev->host);
-
-	lun_qdepth = hba->nutrs;
-	ret = ufshcd_read_unit_desc_param(hba,
-					  ufshcd_scsi_to_upiu_lun(sdev->lun),
-					  UNIT_DESC_PARAM_LU_Q_DEPTH,
-					  &lun_qdepth,
-					  sizeof(lun_qdepth));
-
-	/* Some WLUN doesn't support unit descriptor */
-	if (ret == -EOPNOTSUPP)
-		lun_qdepth = 1;
-	else if (!lun_qdepth)
-		/* eventually, we can figure out the real queue depth */
-		lun_qdepth = hba->nutrs;
-	else
-		lun_qdepth = min_t(int, lun_qdepth, hba->nutrs);
-
-	dev_dbg(hba->dev, "%s: activate tcq with queue depth %d\n",
-			__func__, lun_qdepth);
-	scsi_change_queue_depth(sdev, lun_qdepth);
-}
-
-/*
- * ufshcd_get_lu_wp - returns the "b_lu_write_protect" from UNIT DESCRIPTOR
- * @hba: per-adapter instance
- * @lun: UFS device lun id
- * @b_lu_write_protect: pointer to buffer to hold the LU's write protect info
- *
- * Returns 0 in case of success and b_lu_write_protect status would be returned
- * @b_lu_write_protect parameter.
- * Returns -ENOTSUPP if reading b_lu_write_protect is not supported.
- * Returns -EINVAL in case of invalid parameters passed to this function.
- */
-static int ufshcd_get_lu_wp(struct ufs_hba *hba,
-			    u8 lun,
-			    u8 *b_lu_write_protect)
-{
-	int ret;
-
-	if (!b_lu_write_protect)
-		ret = -EINVAL;
-	/*
-	 * According to UFS device spec, RPMB LU can't be write
-	 * protected so skip reading bLUWriteProtect parameter for
-	 * it. For other W-LUs, UNIT DESCRIPTOR is not available.
-	 */
-	else if (lun >= hba->dev_info.max_lu_supported)
-		ret = -ENOTSUPP;
-	else
-		ret = ufshcd_read_unit_desc_param(hba,
-					  lun,
-					  UNIT_DESC_PARAM_LU_WR_PROTECT,
-					  b_lu_write_protect,
-					  sizeof(*b_lu_write_protect));
-	return ret;
-}
-
-/**
- * ufshcd_get_lu_power_on_wp_status - get LU's power on write protect
- * status
- * @hba: per-adapter instance
- * @sdev: pointer to SCSI device
- *
- */
-static inline void ufshcd_get_lu_power_on_wp_status(struct ufs_hba *hba,
-						    const struct scsi_device *sdev)
-{
-	if (hba->dev_info.f_power_on_wp_en &&
-	    !hba->dev_info.is_lu_power_on_wp) {
-		u8 b_lu_write_protect;
-
-		if (!ufshcd_get_lu_wp(hba, ufshcd_scsi_to_upiu_lun(sdev->lun),
-				      &b_lu_write_protect) &&
-		    (b_lu_write_protect == UFS_LU_POWER_ON_WP))
-			hba->dev_info.is_lu_power_on_wp = true;
-	}
-}
-
-/**
  * ufshcd_setup_links - associate link b/w device wlun and other luns
  * @sdev: pointer to SCSI device
  * @hba: pointer to ufs hba
@@ -4991,6 +4899,58 @@ static void ufshcd_setup_links(struct ufs_hba *hba, struct scsi_device *sdev)
 }
 
 /**
+ * ufshcd_lu_init - Initialize the relevant parameters of the LU
+ * @hba: per-adapter instance
+ * @sdev: pointer to SCSI device
+ */
+static void ufshcd_lu_init(struct ufs_hba *hba, struct scsi_device *sdev)
+{
+	int len = hba->desc_size[QUERY_DESC_IDN_UNIT];
+	u8 lun = ufshcd_scsi_to_upiu_lun(sdev->lun);
+	u8 lun_qdepth = hba->nutrs;
+	u8 *desc_buf;
+	int ret;
+
+	desc_buf = kzalloc(len, GFP_KERNEL);
+	if (!desc_buf)
+		goto set_qdepth;
+
+	ret = ufshcd_read_unit_desc_param(hba, lun, 0, desc_buf, len);
+	if (ret < 0) {
+		if (ret == -EOPNOTSUPP)
+			/* If LU doesn't support unit descriptor, its queue depth is set to 1 */
+			lun_qdepth = 1;
+		kfree(desc_buf);
+		goto set_qdepth;
+	}
+
+	if (desc_buf[UNIT_DESC_PARAM_LU_Q_DEPTH]) {
+		/*
+		 * In per-LU queueing architecture, bLUQueueDepth will not be 0, then we will
+		 * use the smaller between UFSHCI CAP.NUTRS and UFS LU bLUQueueDepth
+		 */
+		lun_qdepth = min_t(int, desc_buf[UNIT_DESC_PARAM_LU_Q_DEPTH], hba->nutrs);
+	}
+	/*
+	 * According to UFS device specification, the write protection mode is only supported by
+	 * normal LU, not supported by WLUN.
+	 */
+	if (hba->dev_info.f_power_on_wp_en && lun < hba->dev_info.max_lu_supported &&
+	    !hba->dev_info.is_lu_power_on_wp &&
+	    desc_buf[UNIT_DESC_PARAM_LU_WR_PROTECT] == UFS_LU_POWER_ON_WP)
+		hba->dev_info.is_lu_power_on_wp = true;
+
+	kfree(desc_buf);
+set_qdepth:
+	/*
+	 * For WLUNs that don't support unit descriptor, queue depth is set to 1. For LUs whose
+	 * bLUQueueDepth == 0, the queue depth is set to a maximum value that host can queue.
+	 */
+	dev_dbg(hba->dev, "Set LU %x queue depth %d\n", lun, lun_qdepth);
+	scsi_change_queue_depth(sdev, lun_qdepth);
+}
+
+/**
  * ufshcd_slave_alloc - handle initial SCSI device configurations
  * @sdev: pointer to SCSI device
  *
@@ -5017,9 +4977,7 @@ static int ufshcd_slave_alloc(struct scsi_device *sdev)
 	/* WRITE_SAME command is not supported */
 	sdev->no_write_same = 1;
 
-	ufshcd_set_queue_depth(sdev);
-
-	ufshcd_get_lu_power_on_wp_status(hba, sdev);
+	ufshcd_lu_init(hba, sdev);
 
 	ufshcd_setup_links(hba, sdev);
 
@@ -8293,6 +8251,28 @@ out:
 	}
 }
 
+static enum scsi_timeout_action ufshcd_eh_timed_out(struct scsi_cmnd *scmd)
+{
+	struct ufs_hba *hba = shost_priv(scmd->device->host);
+
+	if (!hba->system_suspending) {
+		/* Activate the error handler in the SCSI core. */
+		return SCSI_EH_NOT_HANDLED;
+	}
+
+	/*
+	 * If we get here we know that no TMFs are outstanding and also that
+	 * the only pending command is a START STOP UNIT command. Handle the
+	 * timeout of that command directly to prevent a deadlock between
+	 * ufshcd_set_dev_pwr_mode() and ufshcd_err_handler().
+	 */
+	ufshcd_link_recovery(hba);
+	dev_info(hba->dev, "%s() finished; outstanding_tasks = %#lx.\n",
+		 __func__, hba->outstanding_tasks);
+
+	return hba->outstanding_reqs ? SCSI_EH_RESET_TIMER : SCSI_EH_DONE;
+}
+
 static const struct attribute_group *ufshcd_driver_groups[] = {
 	&ufs_sysfs_unit_descriptor_group,
 	&ufs_sysfs_lun_attributes_group,
@@ -8327,6 +8307,7 @@ static struct scsi_host_template ufshcd_driver_template = {
 	.eh_abort_handler	= ufshcd_abort,
 	.eh_device_reset_handler = ufshcd_eh_device_reset_handler,
 	.eh_host_reset_handler   = ufshcd_eh_host_reset_handler,
+	.eh_timed_out		= ufshcd_eh_timed_out,
 	.this_id		= -1,
 	.sg_tablesize		= SG_ALL,
 	.cmd_per_lun		= UFSHCD_CMD_PER_LUN,
@@ -8730,6 +8711,40 @@ static void ufshcd_hba_exit(struct ufs_hba *hba)
 	}
 }
 
+static int ufshcd_execute_start_stop(struct scsi_device *sdev,
+				     enum ufs_dev_pwr_mode pwr_mode,
+				     struct scsi_sense_hdr *sshdr)
+{
+	unsigned char cdb[6] = { START_STOP, 0, 0, 0, pwr_mode << 4, 0 };
+	struct request *req;
+	struct scsi_cmnd *scmd;
+	int ret;
+
+	req = scsi_alloc_request(sdev->request_queue, REQ_OP_DRV_IN,
+				 BLK_MQ_REQ_PM);
+	if (IS_ERR(req))
+		return PTR_ERR(req);
+
+	scmd = blk_mq_rq_to_pdu(req);
+	scmd->cmd_len = COMMAND_SIZE(cdb[0]);
+	memcpy(scmd->cmnd, cdb, scmd->cmd_len);
+	scmd->allowed = 0/*retries*/;
+	scmd->flags |= SCMD_FAIL_IF_RECOVERING;
+	req->timeout = 1 * HZ;
+	req->rq_flags |= RQF_PM | RQF_QUIET;
+
+	blk_execute_rq(req, /*at_head=*/true);
+
+	if (sshdr)
+		scsi_normalize_sense(scmd->sense_buffer, scmd->sense_len,
+				     sshdr);
+	ret = scmd->result;
+
+	blk_mq_free_request(req);
+
+	return ret;
+}
+
 /**
  * ufshcd_set_dev_pwr_mode - sends START STOP UNIT command to set device
  *			     power mode
@@ -8742,25 +8757,17 @@ static void ufshcd_hba_exit(struct ufs_hba *hba)
 static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
 				     enum ufs_dev_pwr_mode pwr_mode)
 {
-	unsigned char cmd[6] = { START_STOP };
 	struct scsi_sense_hdr sshdr;
 	struct scsi_device *sdp;
 	unsigned long flags;
 	int ret, retries;
-	unsigned long deadline;
-	int32_t remaining;
 
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	sdp = hba->ufs_device_wlun;
-	if (sdp) {
+	if (sdp && scsi_device_online(sdp))
 		ret = scsi_device_get(sdp);
-		if (!ret && !scsi_device_online(sdp)) {
-			ret = -ENODEV;
-			scsi_device_put(sdp);
-		}
-	} else {
+	else
 		ret = -ENODEV;
-	}
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
 	if (ret)
@@ -8774,24 +8781,18 @@ static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
 	 */
 	hba->host->eh_noresume = 1;
 
-	cmd[4] = pwr_mode << 4;
-
 	/*
 	 * Current function would be generally called from the power management
 	 * callbacks hence set the RQF_PM flag so that it doesn't resume the
 	 * already suspended childs.
 	 */
-	deadline = jiffies + 10 * HZ;
 	for (retries = 3; retries > 0; --retries) {
-		ret = -ETIMEDOUT;
-		remaining = deadline - jiffies;
-		if (remaining <= 0)
-			break;
-		ret = scsi_execute(sdp, cmd, DMA_NONE, NULL, 0, NULL, &sshdr,
-				   remaining / HZ, 0, 0, RQF_PM, NULL);
-		if (!scsi_status_is_check_condition(ret) ||
-				!scsi_sense_valid(&sshdr) ||
-				sshdr.sense_key != UNIT_ATTENTION)
+		ret = ufshcd_execute_start_stop(sdp, pwr_mode, &sshdr);
+		/*
+		 * scsi_execute() only returns a negative value if the request
+		 * queue is dying.
+		 */
+		if (ret <= 0)
 			break;
 	}
 	if (ret) {
@@ -8803,10 +8804,9 @@ static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
 				scsi_print_sense_hdr(sdp, NULL, &sshdr);
 			ret = -EIO;
 		}
-	}
-
-	if (!ret)
+	} else {
 		hba->curr_dev_pwr_mode = pwr_mode;
+	}
 
 	scsi_device_put(sdp);
 	hba->host->eh_noresume = 0;
@@ -9259,6 +9259,7 @@ static int ufshcd_wl_suspend(struct device *dev)
 
 	hba = shost_priv(sdev->host);
 	down(&hba->host_sem);
+	hba->system_suspending = true;
 
 	if (pm_runtime_suspended(dev))
 		goto out;
@@ -9300,6 +9301,7 @@ out:
 		hba->curr_dev_pwr_mode, hba->uic_link_state);
 	if (!ret)
 		hba->is_sys_suspended = false;
+	hba->system_suspending = false;
 	up(&hba->host_sem);
 	return ret;
 }
