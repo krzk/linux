@@ -32,7 +32,12 @@ enum dev_dma_attr {
 	DEV_DMA_COHERENT,
 };
 
-struct fwnode_handle *dev_fwnode(const struct device *dev);
+const struct fwnode_handle *__dev_fwnode_const(const struct device *dev);
+struct fwnode_handle *__dev_fwnode(struct device *dev);
+#define dev_fwnode(dev)							\
+	_Generic((dev),							\
+		 const struct device *: __dev_fwnode_const,	\
+		 struct device *: __dev_fwnode)(dev)
 
 bool device_property_present(struct device *dev, const char *propname);
 int device_property_read_u8_array(struct device *dev, const char *propname,
@@ -109,16 +114,16 @@ struct fwnode_handle *fwnode_get_next_available_child_node(
 	for (child = fwnode_get_next_available_child_node(fwnode, NULL); child;\
 	     child = fwnode_get_next_available_child_node(fwnode, child))
 
-struct fwnode_handle *device_get_next_child_node(
-	struct device *dev, struct fwnode_handle *child);
+struct fwnode_handle *device_get_next_child_node(const struct device *dev,
+						 struct fwnode_handle *child);
 
 #define device_for_each_child_node(dev, child)				\
 	for (child = device_get_next_child_node(dev, NULL); child;	\
 	     child = device_get_next_child_node(dev, child))
 
-struct fwnode_handle *fwnode_get_named_child_node(
-	const struct fwnode_handle *fwnode, const char *childname);
-struct fwnode_handle *device_get_named_child_node(struct device *dev,
+struct fwnode_handle *fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+						  const char *childname);
+struct fwnode_handle *device_get_named_child_node(const struct device *dev,
 						  const char *childname);
 
 struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode);
@@ -127,7 +132,7 @@ void fwnode_handle_put(struct fwnode_handle *fwnode);
 int fwnode_irq_get(const struct fwnode_handle *fwnode, unsigned int index);
 int fwnode_irq_get_byname(const struct fwnode_handle *fwnode, const char *name);
 
-unsigned int device_get_child_node_count(struct device *dev);
+unsigned int device_get_child_node_count(const struct device *dev);
 
 static inline bool device_property_read_bool(struct device *dev,
 					     const char *propname)
@@ -383,9 +388,8 @@ property_entries_dup(const struct property_entry *properties);
 
 void property_entries_free(const struct property_entry *properties);
 
-bool device_dma_supported(struct device *dev);
-
-enum dev_dma_attr device_get_dma_attr(struct device *dev);
+bool device_dma_supported(const struct device *dev);
+enum dev_dma_attr device_get_dma_attr(const struct device *dev);
 
 const void *device_get_match_data(const struct device *dev);
 
@@ -405,7 +409,7 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
 struct fwnode_handle *fwnode_graph_get_remote_endpoint(
 	const struct fwnode_handle *fwnode);
 
-static inline bool fwnode_graph_is_endpoint(struct fwnode_handle *fwnode)
+static inline bool fwnode_graph_is_endpoint(const struct fwnode_handle *fwnode)
 {
 	return fwnode_property_present(fwnode, "remote-endpoint");
 }
@@ -437,21 +441,21 @@ unsigned int fwnode_graph_get_endpoint_count(struct fwnode_handle *fwnode,
 int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
 				struct fwnode_endpoint *endpoint);
 
-typedef void *(*devcon_match_fn_t)(struct fwnode_handle *fwnode, const char *id,
+typedef void *(*devcon_match_fn_t)(const struct fwnode_handle *fwnode, const char *id,
 				   void *data);
 
-void *fwnode_connection_find_match(struct fwnode_handle *fwnode,
+void *fwnode_connection_find_match(const struct fwnode_handle *fwnode,
 				   const char *con_id, void *data,
 				   devcon_match_fn_t match);
 
-static inline void *device_connection_find_match(struct device *dev,
+static inline void *device_connection_find_match(const struct device *dev,
 						 const char *con_id, void *data,
 						 devcon_match_fn_t match)
 {
 	return fwnode_connection_find_match(dev_fwnode(dev), con_id, data, match);
 }
 
-int fwnode_connection_find_matches(struct fwnode_handle *fwnode,
+int fwnode_connection_find_matches(const struct fwnode_handle *fwnode,
 				   const char *con_id, void *data,
 				   devcon_match_fn_t match,
 				   void **matches, unsigned int matches_len);
