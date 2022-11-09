@@ -972,7 +972,7 @@ static void validate_recv_ctrl_frame(struct adapter *padapter,
 			if (psta->sleepq_len == 0) {
 				pstapriv->tim_bitmap &= ~BIT(psta->aid);
 
-				/* upate BCN for TIM IE */
+				/* update BCN for TIM IE */
 				/* update_BCNTIM(padapter); */
 				update_beacon(padapter, _TIM_IE_, NULL, false);
 			}
@@ -986,7 +986,7 @@ static void validate_recv_ctrl_frame(struct adapter *padapter,
 
 				pstapriv->tim_bitmap &= ~BIT(psta->aid);
 
-				/* upate BCN for TIM IE */
+				/* update BCN for TIM IE */
 				/* update_BCNTIM(padapter); */
 				update_beacon(padapter, _TIM_IE_, NULL, false);
 			}
@@ -1415,7 +1415,6 @@ static int amsdu_to_msdu(struct adapter *padapter, struct recv_frame *prframe)
 
 	struct recv_priv *precvpriv = &padapter->recvpriv;
 	struct __queue *pfree_recv_queue = &precvpriv->free_recv_queue;
-	int	ret = _SUCCESS;
 
 	nr_subframes = 0;
 
@@ -1513,7 +1512,7 @@ exit:
 	prframe->len = 0;
 	rtw_free_recvframe(prframe, pfree_recv_queue);/* free this recv_frame */
 
-	return ret;
+	return _SUCCESS;
 }
 
 static bool check_indicate_seq(struct recv_reorder_ctrl *preorder_ctrl, u16 seq_num)
@@ -1984,13 +1983,13 @@ static void rtw_signal_stat_timer_hdl(struct timer_list *t)
 	} else {
 		if (recvpriv->signal_strength_data.update_req == 0) {/*  update_req is clear, means we got rx */
 			avg_signal_strength = recvpriv->signal_strength_data.avg_val;
-			/*  after avg_vals are accquired, we can re-stat the signal values */
+			/*  after avg_vals are acquired, we can re-stat the signal values */
 			recvpriv->signal_strength_data.update_req = 1;
 		}
 
 		if (recvpriv->signal_qual_data.update_req == 0) {/*  update_req is clear, means we got rx */
 			avg_signal_qual = recvpriv->signal_qual_data.avg_val;
-			/*  after avg_vals are accquired, we can re-stat the signal values */
+			/*  after avg_vals are acquired, we can re-stat the signal values */
 			recvpriv->signal_qual_data.update_req = 1;
 		}
 

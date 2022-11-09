@@ -224,7 +224,6 @@ int rtw_init_mlme_priv(struct adapter *padapter)/* struct	mlme_priv *pmlmepriv) 
 	u8	*pbuf;
 	struct wlan_network	*pnetwork;
 	struct mlme_priv		*pmlmepriv = &padapter->mlmepriv;
-	int	res = _SUCCESS;
 
 	/*  We don't need to memset padapter->XXX to zero, because adapter is allocated by vzalloc(). */
 
@@ -245,10 +244,9 @@ int rtw_init_mlme_priv(struct adapter *padapter)/* struct	mlme_priv *pmlmepriv) 
 
 	pbuf = vzalloc(MAX_BSS_CNT * (sizeof(struct wlan_network)));
 
-	if (!pbuf) {
-		res = _FAIL;
-		goto exit;
-	}
+	if (!pbuf)
+		return -ENOMEM;
+
 	pmlmepriv->free_bss_buf = pbuf;
 
 	pnetwork = (struct wlan_network *)pbuf;
@@ -265,9 +263,7 @@ int rtw_init_mlme_priv(struct adapter *padapter)/* struct	mlme_priv *pmlmepriv) 
 
 	rtw_init_mlme_timer(padapter);
 
-exit:
-
-	return res;
+	return 0;
 }
 
 void rtw_free_mlme_priv(struct mlme_priv *pmlmepriv)
@@ -1822,22 +1818,6 @@ void rtw_update_registrypriv_dev_network(struct adapter *adapter)
 	pdev_network->Privacy = (psecuritypriv->dot11PrivacyAlgrthm > 0 ? 1 : 0); /*  adhoc no 802.1x */
 
 	pdev_network->Rssi = 0;
-
-	switch (pregistrypriv->wireless_mode) {
-	case WIRELESS_11B:
-		pdev_network->NetworkTypeInUse = (Ndis802_11DS);
-		break;
-	case WIRELESS_11G:
-	case WIRELESS_11BG:
-	case WIRELESS_11_24N:
-	case WIRELESS_11G_24N:
-	case WIRELESS_11BG_24N:
-		pdev_network->NetworkTypeInUse = (Ndis802_11OFDM24);
-		break;
-	default:
-		/*  TODO */
-		break;
-	}
 
 	pdev_network->Configuration.DSConfig = (pregistrypriv->channel);
 

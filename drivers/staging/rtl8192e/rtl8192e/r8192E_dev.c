@@ -503,7 +503,6 @@ static void _rtl92e_read_eeprom_info(struct net_device *dev)
 			priv->ChannelPlan = 0x0;
 		break;
 	case EEPROM_CID_Nettronix:
-		priv->ScanDelay = 100;
 		priv->CustomerID = RT_CID_Nettronix;
 		break;
 	case EEPROM_CID_Pronet:
@@ -623,9 +622,6 @@ start:
 		mdelay(500);
 	}
 	priv->pFirmware->status = FW_STATUS_0_INIT;
-
-	if (priv->RegRfOff)
-		priv->rtllib->rf_power_state = rf_off;
 
 	ulRegRead = rtl92e_readl(dev, CPU_GEN);
 	if (priv->pFirmware->status == FW_STATUS_0_INIT)
@@ -756,9 +752,7 @@ start:
 
 	rtl92e_writeb(dev, 0x87, 0x0);
 
-	if (priv->RegRfOff) {
-		rtl92e_set_rf_state(dev, rf_off, RF_CHANGE_BY_SW);
-	} else if (priv->rtllib->rf_off_reason > RF_CHANGE_BY_PS) {
+	if (priv->rtllib->rf_off_reason > RF_CHANGE_BY_PS) {
 		rtl92e_set_rf_state(dev, rf_off, priv->rtllib->rf_off_reason);
 	} else if (priv->rtllib->rf_off_reason >= RF_CHANGE_BY_IPS) {
 		rtl92e_set_rf_state(dev, rf_off, priv->rtllib->rf_off_reason);
@@ -1112,9 +1106,8 @@ void  rtl92e_fill_tx_desc(struct net_device *dev, struct tx_desc *pdesc,
 	if (cb_desc->bHwSec) {
 		static u8 tmp;
 
-		if (!tmp) {
+		if (!tmp)
 			tmp = 1;
-		}
 		switch (priv->rtllib->pairwise_key_type) {
 		case KEY_TYPE_WEP40:
 		case KEY_TYPE_WEP104:

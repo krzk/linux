@@ -108,33 +108,34 @@ void update_recvframe_attrib_88e(struct recv_frame *precvframe, struct recv_stat
  */
 void update_recvframe_phyinfo_88e(struct recv_frame *precvframe, struct phy_stat *pphy_status)
 {
+	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)precvframe->rx_data;
 	struct adapter *padapter = precvframe->adapter;
 	struct rx_pkt_attrib *pattrib = &precvframe->attrib;
 	struct hal_data_8188e *pHalData = &padapter->haldata;
 	struct phy_info *pPHYInfo  = &pattrib->phy_info;
 	u8 *wlanhdr = precvframe->rx_data;
-	__le16 fc = *(__le16 *)wlanhdr;
 	struct odm_per_pkt_info	pkt_info;
 	u8 *sa = NULL;
 	struct sta_priv *pstapriv;
 	struct sta_info *psta;
 
-	pkt_info.bPacketMatchBSSID = ((!ieee80211_is_ctl(fc)) &&
+	pkt_info.bPacketMatchBSSID = ((!ieee80211_is_ctl(hdr->frame_control)) &&
 		!pattrib->icv_err && !pattrib->crc_err &&
 		!memcmp(get_hdr_bssid(wlanhdr),
 		 get_bssid(&padapter->mlmepriv), ETH_ALEN));
 
 	pkt_info.bPacketToSelf = pkt_info.bPacketMatchBSSID &&
-				 (!memcmp(get_da(wlanhdr),
-				  myid(&padapter->eeprompriv), ETH_ALEN));
+				 ether_addr_equal(ieee80211_get_DA(hdr),
+						  myid(&padapter->eeprompriv));
 
-	pkt_info.bPacketBeacon = pkt_info.bPacketMatchBSSID && ieee80211_is_beacon(fc);
+	pkt_info.bPacketBeacon = pkt_info.bPacketMatchBSSID &&
+				 ieee80211_is_beacon(hdr->frame_control);
 	if (pkt_info.bPacketBeacon) {
 		if (check_fwstate(&padapter->mlmepriv, WIFI_STATION_STATE))
 			sa = padapter->mlmepriv.cur_network.network.MacAddress;
 		/* to do Ad-hoc */
 	} else {
-		sa = get_sa(wlanhdr);
+		sa = ieee80211_get_SA(hdr);
 	}
 
 	pstapriv = &padapter->stapriv;

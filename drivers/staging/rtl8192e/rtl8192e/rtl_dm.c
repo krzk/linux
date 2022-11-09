@@ -267,10 +267,8 @@ static void _rtl92e_dm_check_ac_dc_power(struct net_device *dev)
 			"PATH=/usr/bin:/bin",
 			 NULL};
 
-	if (priv->ResetProgress == RESET_TYPE_SILENT) {
+	if (priv->ResetProgress == RESET_TYPE_SILENT)
 		return;
-	}
-
 	if (priv->rtllib->state != RTLLIB_LINKED)
 		return;
 	call_usermodehelper(ac_dc_script, argv, envp, UMH_WAIT_PROC);
@@ -330,9 +328,8 @@ static void _rtl92e_dm_check_rate_adaptive(struct net_device *dev)
 	bool bshort_gi_enabled = false;
 	static u8 ping_rssi_state;
 
-	if (!priv->up) {
+	if (!priv->up)
 		return;
-	}
 
 	if (pra->rate_adaptive_disabled)
 		return;
@@ -631,9 +628,9 @@ static void _rtl92e_dm_tx_power_tracking_callback_tssi(struct net_device *dev)
 
 	for (j = 0; j <= 30; j++) {
 
-		tx_cmd.Op		= TXCMD_SET_TX_PWR_TRACKING;
-		tx_cmd.Length	= 4;
-		tx_cmd.Value		= Value;
+		tx_cmd.op	= TXCMD_SET_TX_PWR_TRACKING;
+		tx_cmd.length	= 4;
+		tx_cmd.value	= Value;
 		rtl92e_send_cmd_pkt(dev, DESC_PACKET_TYPE_NORMAL, (u8 *)&tx_cmd,
 				    sizeof(struct dcmd_txcmd));
 		mdelay(1);
@@ -777,9 +774,8 @@ static void _rtl92e_dm_tx_power_tracking_cb_thermal(struct net_device *dev)
 		tmpRegA = rtl92e_get_bb_reg(dev, rOFDM0_XATxIQImbalance,
 					    bMaskDWord);
 		for (i = 0; i < OFDM_Table_Length; i++) {
-			if (tmpRegA == OFDMSwingTable[i]) {
+			if (tmpRegA == OFDMSwingTable[i])
 				priv->OFDM_index[0] = i;
-			}
 		}
 
 		TempCCk = rtl92e_get_bb_reg(dev, rCCK0_TxFilter1, bMaskByte2);
@@ -1066,9 +1062,8 @@ void rtl92e_dm_restore_state(struct net_device *dev)
 	u32	reg_ratr = priv->rate_adaptive.last_ratr;
 	u32 ratr_value;
 
-	if (!priv->up) {
+	if (!priv->up)
 		return;
-	}
 
 	if (priv->rate_adaptive.rate_adaptive_disabled)
 		return;
@@ -1143,8 +1138,8 @@ static void _rtl92e_dm_dig_init(struct net_device *dev)
 
 	dm_digtable.dig_state		= DM_STA_DIG_MAX;
 	dm_digtable.dig_highpwr_state	= DM_STA_DIG_MAX;
-	dm_digtable.CurSTAConnectState = DIG_STA_DISCONNECT;
-	dm_digtable.PreSTAConnectState = DIG_STA_DISCONNECT;
+	dm_digtable.cur_sta_connect_state = DIG_STA_DISCONNECT;
+	dm_digtable.pre_sta_connect_state = DIG_STA_DISCONNECT;
 
 	dm_digtable.rssi_low_thresh	= DM_DIG_THRESH_LOW;
 	dm_digtable.rssi_high_thresh	= DM_DIG_THRESH_HIGH;
@@ -1212,9 +1207,9 @@ static void _rtl92e_dm_ctrl_initgain_byrssi_driver(struct net_device *dev)
 	}
 
 	if (priv->rtllib->state == RTLLIB_LINKED)
-		dm_digtable.CurSTAConnectState = DIG_STA_CONNECT;
+		dm_digtable.cur_sta_connect_state = DIG_STA_CONNECT;
 	else
-		dm_digtable.CurSTAConnectState = DIG_STA_DISCONNECT;
+		dm_digtable.cur_sta_connect_state = DIG_STA_DISCONNECT;
 
 
 	dm_digtable.rssi_val = priv->undecorated_smoothed_pwdb;
@@ -1223,7 +1218,7 @@ static void _rtl92e_dm_ctrl_initgain_byrssi_driver(struct net_device *dev)
 	_rtl92e_dm_cs_ratio(dev);
 	if (dm_digtable.dig_algorithm_switch)
 		dm_digtable.dig_algorithm_switch = 0;
-	dm_digtable.PreSTAConnectState = dm_digtable.CurSTAConnectState;
+	dm_digtable.pre_sta_connect_state = dm_digtable.cur_sta_connect_state;
 
 }
 
@@ -1373,8 +1368,8 @@ static void _rtl92e_dm_initial_gain(struct net_device *dev)
 		return;
 	}
 
-	if (dm_digtable.PreSTAConnectState == dm_digtable.CurSTAConnectState) {
-		if (dm_digtable.CurSTAConnectState == DIG_STA_CONNECT) {
+	if (dm_digtable.pre_sta_connect_state == dm_digtable.cur_sta_connect_state) {
+		if (dm_digtable.cur_sta_connect_state == DIG_STA_CONNECT) {
 			long gain_range = dm_digtable.rssi_val + 10 -
 					  dm_digtable.backoff_val;
 			gain_range = clamp_t(long, gain_range,
@@ -1424,8 +1419,8 @@ static void _rtl92e_dm_pd_th(struct net_device *dev)
 		reset_cnt = 0;
 	}
 
-	if (dm_digtable.PreSTAConnectState == dm_digtable.CurSTAConnectState) {
-		if (dm_digtable.CurSTAConnectState == DIG_STA_CONNECT) {
+	if (dm_digtable.pre_sta_connect_state == dm_digtable.cur_sta_connect_state) {
+		if (dm_digtable.cur_sta_connect_state == DIG_STA_CONNECT) {
 			if (dm_digtable.rssi_val >=
 			    dm_digtable.rssi_high_power_highthresh)
 				dm_digtable.curpd_thstate =
@@ -1492,8 +1487,8 @@ static void _rtl92e_dm_cs_ratio(struct net_device *dev)
 		reset_cnt = 0;
 	}
 
-	if (dm_digtable.PreSTAConnectState == dm_digtable.CurSTAConnectState) {
-		if (dm_digtable.CurSTAConnectState == DIG_STA_CONNECT) {
+	if (dm_digtable.pre_sta_connect_state == dm_digtable.cur_sta_connect_state) {
+		if (dm_digtable.cur_sta_connect_state == DIG_STA_CONNECT) {
 			if (dm_digtable.rssi_val <= dm_digtable.rssi_low_thresh)
 				dm_digtable.curcs_ratio_state = DIG_CS_RATIO_LOWER;
 			else if (dm_digtable.rssi_val >= dm_digtable.rssi_high_thresh)
@@ -2126,8 +2121,8 @@ static void _rtl92e_dm_end_sw_fsync(struct net_device *dev)
 static void _rtl92e_dm_start_sw_fsync(struct net_device *dev)
 {
 	struct r8192_priv *priv = rtllib_priv(dev);
-	u32			rateIndex;
-	u32			rateBitmap;
+	u32 rate_index;
+	u32 rate_bitmap;
 
 	priv->rate_record = 0;
 	priv->ContinueDiffCount = 0;
@@ -2141,12 +2136,12 @@ static void _rtl92e_dm_start_sw_fsync(struct net_device *dev)
 		priv->rtllib->fsync_firstdiff_ratethreshold = 200;
 		priv->rtllib->fsync_seconddiff_ratethreshold = 200;
 	}
-	for (rateIndex = 0; rateIndex <= 27; rateIndex++) {
-		rateBitmap  = 1 << rateIndex;
-		if (priv->rtllib->fsync_rate_bitmap & rateBitmap)
+	for (rate_index = 0; rate_index <= 27; rate_index++) {
+		rate_bitmap  = 1 << rate_index;
+		if (priv->rtllib->fsync_rate_bitmap & rate_bitmap)
 			priv->rate_record +=
 				 priv->stats.received_rate_histogram[1]
-				[rateIndex];
+				[rate_index];
 	}
 	if (timer_pending(&priv->fsync_timer))
 		del_timer_sync(&priv->fsync_timer);

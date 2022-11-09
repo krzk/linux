@@ -191,7 +191,6 @@ int rtllib_encrypt_fragment(struct rtllib_device *ieee, struct sk_buff *frag,
 	return 0;
 }
 
-
 void rtllib_txb_free(struct rtllib_txb *txb)
 {
 	if (unlikely(!txb))
@@ -291,7 +290,7 @@ static void rtllib_tx_query_agg_cap(struct rtllib_device *ieee,
 		return;
 	if (pHTInfo->bCurrentAMPDUEnable) {
 		if (!GetTs(ieee, (struct ts_common_info **)(&pTxTs), hdr->addr1,
-		    skb->priority, TX_DIR, true)) {
+			   skb->priority, TX_DIR, true)) {
 			netdev_info(ieee->dev, "%s: can't get TS\n", __func__);
 			return;
 		}
@@ -307,7 +306,7 @@ static void rtllib_tx_query_agg_cap(struct rtllib_device *ieee,
 			goto FORCED_AGG_SETTING;
 		} else if (!pTxTs->bUsingBa) {
 			if (SN_LESS(pTxTs->TxAdmittedBARecord.ba_start_seq_ctrl.field.seq_num,
-			   (pTxTs->TxCurSeq+1)%4096))
+				    (pTxTs->TxCurSeq + 1) % 4096))
 				pTxTs->bUsingBa = true;
 			else
 				goto FORCED_AGG_SETTING;
@@ -404,7 +403,7 @@ static void rtllib_query_protectionmode(struct rtllib_device *ieee,
 	if (tcb_desc->bBroadcast || tcb_desc->bMulticast)
 		return;
 
-	if (is_broadcast_ether_addr(skb->data+16))
+	if (is_broadcast_ether_addr(skb->data + 16))
 		return;
 
 	if (ieee->mode < IEEE_N_24G) {
@@ -443,7 +442,7 @@ static void rtllib_query_protectionmode(struct rtllib_device *ieee,
 			u8 HTOpMode = pHTInfo->current_op_mode;
 
 			if ((pHTInfo->bCurBW40MHz && (HTOpMode == 2 ||
-			     HTOpMode == 3)) ||
+						      HTOpMode == 3)) ||
 			     (!pHTInfo->bCurBW40MHz && HTOpMode == 3)) {
 				tcb_desc->rts_rate = MGN_24M;
 				tcb_desc->bRTSEnable = true;
@@ -475,7 +474,6 @@ NO_PROTECTION:
 	tcb_desc->bRTSBW	= false;
 }
 
-
 static void rtllib_txrate_selectmode(struct rtllib_device *ieee,
 				     struct cb_desc *tcb_desc)
 {
@@ -503,10 +501,10 @@ static u16 rtllib_query_seqnum(struct rtllib_device *ieee, struct sk_buff *skb,
 		struct tx_ts_record *pTS = NULL;
 
 		if (!GetTs(ieee, (struct ts_common_info **)(&pTS), dst,
-		    skb->priority, TX_DIR, true))
+			   skb->priority, TX_DIR, true))
 			return 0;
 		seqnum = pTS->TxCurSeq;
-		pTS->TxCurSeq = (pTS->TxCurSeq+1)%4096;
+		pTS->TxCurSeq = (pTS->TxCurSeq + 1) % 4096;
 		return seqnum;
 	}
 	return 0;
@@ -582,7 +580,6 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 		goto success;
 	}
 
-
 	if (likely(ieee->raw_tx == 0)) {
 		if (unlikely(skb->len < SNAP_SIZE + sizeof(u16))) {
 			netdev_warn(ieee->dev, "skb too small (%d).\n",
@@ -614,14 +611,14 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 		if (skb->len > 282) {
 			if (ether_type == ETH_P_IP) {
 				const struct iphdr *ip = (struct iphdr *)
-					((u8 *)skb->data+14);
+					((u8 *)skb->data + 14);
 				if (ip->protocol == IPPROTO_UDP) {
 					struct udphdr *udp;
 
 					udp = (struct udphdr *)((u8 *)ip +
 					      (ip->ihl << 2));
 					if (((((u8 *)udp)[1] == 68) &&
-					   (((u8 *)udp)[3] == 67)) ||
+					     (((u8 *)udp)[3] == 67)) ||
 					   ((((u8 *)udp)[1] == 67) &&
 					   (((u8 *)udp)[3] == 68))) {
 						bdhcp = true;
@@ -715,11 +712,11 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 			/* in case we are a client verify acm is not set for this ac */
 			while (unlikely(ieee->wmm_acm & (0x01 << skb->priority))) {
 				netdev_info(ieee->dev, "skb->priority = %x\n",
-						skb->priority);
+					    skb->priority);
 				if (wme_downgrade_ac(skb))
 					break;
 				netdev_info(ieee->dev, "converted skb->priority = %x\n",
-					   skb->priority);
+					    skb->priority);
 			}
 
 			qos_ctl |= skb->priority;
@@ -805,8 +802,8 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 			 * MOREFRAGS bit to the frame control
 			 */
 			if (i != nr_frags - 1) {
-				frag_hdr->frame_ctl = cpu_to_le16(
-					fc | RTLLIB_FCTL_MOREFRAGS);
+				frag_hdr->frame_ctl = cpu_to_le16(fc |
+								  RTLLIB_FCTL_MOREFRAGS);
 				bytes = bytes_per_frag;
 
 			} else {
@@ -816,18 +813,18 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 			if ((qos_activated) && (!bIsMulticast)) {
 				frag_hdr->seq_ctl =
 					 cpu_to_le16(rtllib_query_seqnum(ieee, skb_frag,
-							     header.addr1));
+									 header.addr1));
 				frag_hdr->seq_ctl =
-					 cpu_to_le16(le16_to_cpu(frag_hdr->seq_ctl)<<4 | i);
+					 cpu_to_le16(le16_to_cpu(frag_hdr->seq_ctl) << 4 | i);
 			} else {
 				frag_hdr->seq_ctl =
-					 cpu_to_le16(ieee->seq_ctrl[0]<<4 | i);
+					 cpu_to_le16(ieee->seq_ctrl[0] << 4 | i);
 			}
 			/* Put a SNAP header on the first fragment */
 			if (i == 0) {
-				rtllib_put_snap(
-					skb_put(skb_frag, SNAP_SIZE +
-					sizeof(u16)), ether_type);
+				rtllib_put_snap(skb_put(skb_frag,
+							SNAP_SIZE +
+							sizeof(u16)), ether_type);
 				bytes -= SNAP_SIZE + sizeof(u16);
 			}
 
@@ -895,7 +892,6 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 				tcb_desc->bTxDisableRateFallBack = 1;
 			}
 
-
 			tcb_desc->RATRIndex = 7;
 			tcb_desc->bTxUseDriverAssingedRate = 1;
 		} else {
@@ -919,7 +915,6 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 					tcb_desc->data_rate = MGN_1M;
 					tcb_desc->bTxDisableRateFallBack = 1;
 				}
-
 
 				tcb_desc->RATRIndex = 7;
 				tcb_desc->bTxUseDriverAssingedRate = 1;
@@ -959,7 +954,6 @@ static int rtllib_xmit_inter(struct sk_buff *skb, struct net_device *dev)
 	netif_stop_queue(dev);
 	stats->tx_errors++;
 	return 1;
-
 }
 
 netdev_tx_t rtllib_xmit(struct sk_buff *skb, struct net_device *dev)

@@ -433,7 +433,7 @@ static void rtw_init_default_value(struct adapter *padapter)
 	padapter->bShowGetP2PState = 1;
 }
 
-u8 rtw_reset_drv_sw(struct adapter *padapter)
+void rtw_reset_drv_sw(struct adapter *padapter)
 {
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 
@@ -455,25 +455,23 @@ u8 rtw_reset_drv_sw(struct adapter *padapter)
 	padapter->mlmeextpriv.sitesurvey_res.state = SCAN_DISABLE;
 
 	rtw_set_signal_stat_timer(&padapter->recvpriv);
-
-	return _SUCCESS;
 }
 
 u8 rtw_init_drv_sw(struct adapter *padapter)
 {
-	if ((rtw_init_cmd_priv(&padapter->cmdpriv)) == _FAIL) {
+	if (rtw_init_cmd_priv(&padapter->cmdpriv)) {
 		dev_err(dvobj_to_dev(padapter->dvobj), "rtw_init_cmd_priv failed\n");
 		return _FAIL;
 	}
 
 	padapter->cmdpriv.padapter = padapter;
 
-	if ((rtw_init_evt_priv(&padapter->evtpriv)) == _FAIL) {
+	if (rtw_init_evt_priv(&padapter->evtpriv)) {
 		dev_err(dvobj_to_dev(padapter->dvobj), "rtw_init_evt_priv failed\n");
 		goto free_cmd_priv;
 	}
 
-	if (rtw_init_mlme_priv(padapter) == _FAIL) {
+	if (rtw_init_mlme_priv(padapter)) {
 		dev_err(dvobj_to_dev(padapter->dvobj), "rtw_init_mlme_priv failed\n");
 		goto free_evt_priv;
 	}
@@ -494,7 +492,7 @@ u8 rtw_init_drv_sw(struct adapter *padapter)
 		goto free_xmit_priv;
 	}
 
-	if (_rtw_init_sta_priv(&padapter->stapriv) == _FAIL) {
+	if (_rtw_init_sta_priv(&padapter->stapriv)) {
 		dev_err(dvobj_to_dev(padapter->dvobj), "_rtw_init_sta_priv failed\n");
 		goto free_recv_priv;
 	}
@@ -550,7 +548,7 @@ void rtw_cancel_all_timer(struct adapter *padapter)
 	_cancel_timer_ex(&padapter->recvpriv.signal_stat_timer);
 }
 
-u8 rtw_free_drv_sw(struct adapter *padapter)
+void rtw_free_drv_sw(struct adapter *padapter)
 {
 	/* we can call rtw_p2p_enable here, but: */
 	/*  1. rtw_p2p_enable may have IO operation */
@@ -587,8 +585,6 @@ u8 rtw_free_drv_sw(struct adapter *padapter)
 	/*  clear pbuddystruct adapter to avoid access wrong pointer. */
 	if (padapter->pbuddy_adapter)
 		padapter->pbuddy_adapter->pbuddy_adapter = NULL;
-
-	return _SUCCESS;
 }
 
 void netdev_br_init(struct net_device *netdev)
@@ -624,7 +620,6 @@ static int _netdev_open(struct net_device *pnetdev)
 	if (!padapter->bup) {
 		padapter->bDriverStopped = false;
 		padapter->bSurpriseRemoved = false;
-		padapter->bCardDisableWOHSM = false;
 
 		status = rtw_hal_init(padapter);
 		if (status == _FAIL)
@@ -690,7 +685,6 @@ static int  ips_netdrv_open(struct adapter *padapter)
 
 	padapter->bDriverStopped = false;
 	padapter->bSurpriseRemoved = false;
-	padapter->bCardDisableWOHSM = false;
 
 	status = rtw_hal_init(padapter);
 	if (status == _FAIL)
@@ -722,13 +716,11 @@ int rtw_ips_pwr_up(struct adapter *padapter)
 
 void rtw_ips_pwr_down(struct adapter *padapter)
 {
-	padapter->bCardDisableWOHSM = true;
 	padapter->net_closed = true;
 
 	rtw_led_control(padapter, LED_CTL_POWER_OFF);
 
 	rtw_ips_dev_unload(padapter);
-	padapter->bCardDisableWOHSM = false;
 }
 
 static void rtw_fifo_cleanup(struct adapter *adapter)
