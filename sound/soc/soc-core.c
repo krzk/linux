@@ -1310,7 +1310,9 @@ static void soc_set_name_prefix(struct snd_soc_card *card,
 	 * If there is no configuration table or no match in the table,
 	 * check if a prefix is provided in the node
 	 */
+	str = NULL;
 	ret = of_property_read_string(of_node, "sound-name-prefix", &str);
+	pr_err("AAA %pOF = %s | ret=%d\n", of_node, str, ret);
 	if (ret < 0)
 		return;
 
