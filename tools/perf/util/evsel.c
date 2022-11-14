@@ -467,6 +467,7 @@ struct evsel *evsel__clone(struct evsel *orig)
 	evsel->collect_stat = orig->collect_stat;
 	evsel->weak_group = orig->weak_group;
 	evsel->use_config_name = orig->use_config_name;
+	evsel->pmu = orig->pmu;
 
 	if (evsel__copy_config_terms(evsel, orig) < 0)
 		goto out_err;
@@ -1525,13 +1526,8 @@ void evsel__compute_deltas(struct evsel *evsel, int cpu_map_idx, int thread,
 	if (!evsel->prev_raw_counts)
 		return;
 
-	if (cpu_map_idx == -1) {
-		tmp = evsel->prev_raw_counts->aggr;
-		evsel->prev_raw_counts->aggr = *count;
-	} else {
-		tmp = *perf_counts(evsel->prev_raw_counts, cpu_map_idx, thread);
-		*perf_counts(evsel->prev_raw_counts, cpu_map_idx, thread) = *count;
-	}
+	tmp = *perf_counts(evsel->prev_raw_counts, cpu_map_idx, thread);
+	*perf_counts(evsel->prev_raw_counts, cpu_map_idx, thread) = *count;
 
 	count->val = count->val - tmp.val;
 	count->ena = count->ena - tmp.ena;
@@ -1966,17 +1962,16 @@ bool evsel__detect_missing_features(struct evsel *evsel)
 		perf_missing_features.mmap2 = true;
 		pr_debug2_peo("switching off mmap2\n");
 		return true;
-	} else if ((evsel->core.attr.exclude_guest || evsel->core.attr.exclude_host) &&
-		   (evsel->pmu == NULL || evsel->pmu->missing_features.exclude_guest)) {
-		if (evsel->pmu == NULL) {
+	} else if (evsel->core.attr.exclude_guest || evsel->core.attr.exclude_host) {
+		if (evsel->pmu == NULL)
 			evsel->pmu = evsel__find_pmu(evsel);
-			if (evsel->pmu)
-				evsel->pmu->missing_features.exclude_guest = true;
-			else {
-				/* we cannot find PMU, disable attrs now */
-				evsel->core.attr.exclude_host = false;
-				evsel->core.attr.exclude_guest = false;
-			}
+
+		if (evsel->pmu)
+			evsel->pmu->missing_features.exclude_guest = true;
+		else {
+			/* we cannot find PMU, disable attrs now */
+			evsel->core.attr.exclude_host = false;
+			evsel->core.attr.exclude_guest = false;
 		}
 
 		if (evsel->exclude_GH) {
@@ -3131,6 +3126,9 @@ void evsel__zero_per_pkg(struct evsel *evsel)
 
 bool evsel__is_hybrid(struct evsel *evsel)
 {
+	if (evsel->pmu)
+		return evsel->pmu->is_hybrid;
+
 	return evsel->pmu_name && perf_pmu__is_hybrid(evsel->pmu_name);
 }
 

@@ -52,6 +52,7 @@
 #include "print_binary.h"
 #include "stat.h"
 #include "mem-events.h"
+#include "util/perf_regs.h"
 
 #if PY_MAJOR_VERSION < 3
 #define _PyUnicode_FromString(arg) \
@@ -1652,12 +1653,6 @@ static void python_process_stat(struct perf_stat_config *config,
 	struct perf_thread_map *threads = counter->core.threads;
 	struct perf_cpu_map *cpus = counter->core.cpus;
 	int cpu, thread;
-
-	if (config->aggr_mode == AGGR_GLOBAL) {
-		process_stat(counter, (struct perf_cpu){ .cpu = -1 }, -1, tstamp,
-			     &counter->counts->aggr);
-		return;
-	}
 
 	for (thread = 0; thread < threads->nr; thread++) {
 		for (cpu = 0; cpu < perf_cpu_map__nr(cpus); cpu++) {
