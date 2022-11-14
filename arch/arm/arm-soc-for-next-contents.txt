@@ -1,0 +1,59 @@
+arm/soc
+	ux500/soc
+		git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-nomadik tags/ux500-soc-v6.2
+	renesas/soc
+		git://git.kernel.org/pub/scm/linux/kernel/git/geert/renesas-devel tags/renesas-arm-soc-for-v6.2-tag1
+		contains renesas/drivers
+
+soc/dt
+	renesas/dt
+		git://git.kernel.org/pub/scm/linux/kernel/git/geert/renesas-devel tags/renesas-arm-dt-for-v6.2-tag1
+	renesas/dt-bindings
+		git://git.kernel.org/pub/scm/linux/kernel/git/geert/renesas-devel tags/renesas-dt-bindings-for-v6.2-tag1
+	dt/cleanups
+		https://git.kernel.org/pub/scm/linux/kernel/git/krzk/linux-dt tags/dt-cleanup-6.2
+	at91/dt
+		https://git.kernel.org/pub/scm/linux/kernel/git/at91/linux tags/at91-dt-6.2
+	patch
+		arm: dts: spear600: Fix clcd interrupt
+		arm: dts: spear600: Add ssp controller nodes
+	asahi/dt
+		https://github.com/AsahiLinux/linux tags/asahi-soc-dt-6.2
+	ux500/dt
+		git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-nomadik tags/ux500-dts-for-v6.2
+
+soc/drivers
+	patch
+		soc: fsl: qe: Avoid using gpio_to_desc()
+	drivers/memory
+		https://git.kernel.org/pub/scm/linux/kernel/git/krzk/linux-mem-ctrl tags/memory-controller-drv-6.2
+	renesas/drivers
+		git://git.kernel.org/pub/scm/linux/kernel/git/geert/renesas-devel tags/renesas-drivers-for-v6.2-tag1
+	patch
+		soc: loongson: add GUTS driver for loongson-2 platforms
+		dt-bindings: soc: add loongson-2 chipid
+
+arm/defconfig
+	at91/defconfig
+		https://git.kernel.org/pub/scm/linux/kernel/git/at91/linux tags/at91-defconfig-6.2
+	patch
+		arm: configs: spear6xx: Refresh defconfig
+		arm: configs: spear6xx: Enable PL110 display controller
+
+arm/late
+
+arm/fixes
+	<no branch> (cadaa773bcf161184fa428180516bae33a7bc667)
+		https://git.kernel.org/pub/scm/linux/kernel/git/qcom/linux tags/qcom-arm64-fixes-for-6.1
+	<no branch> (cef8cdc0d0e7c701fe4dcfba4ed3fd25d28a6020)
+		https://git.kernel.org/pub/scm/linux/kernel/git/at91/linux tags/at91-fixes-6.1
+	patch
+		MAINTAINERS: add entries for misc. RISC-V SoC drivers and devicetrees
+		MAINTAINERS: generify the Microchip RISC-V entry name
+		MAINTAINERS: add an entry for StarFive devicetrees
+		MAINTAINERS: repair Microchip corei2c driver entry
+
+arm/drivers
+
+arm/dt
+
