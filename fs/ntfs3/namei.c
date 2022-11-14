@@ -371,7 +371,7 @@ static int ntfs_atomic_open(struct inode *dir, struct dentry *dentry,
 		 * ntfs_create_inode -> ntfs_init_acl -> posix_acl_create ->
 		 * ntfs_get_acl -> ntfs_get_acl_ex -> ni_lock
 		 */
-		struct posix_acl *p = get_acl(dir, ACL_TYPE_DEFAULT);
+		struct posix_acl *p = get_inode_acl(dir, ACL_TYPE_DEFAULT);
 
 		if (IS_ERR(p)) {
 			err = PTR_ERR(p);
