@@ -958,7 +958,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x3280000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM1>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM1>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -970,7 +969,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x3290000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM2>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM2>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -982,7 +980,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x32a0000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM3>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM3>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -994,7 +991,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x32c0000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM5>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM5>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -1006,7 +1002,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x32d0000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM6>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM6>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -1018,7 +1013,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x32e0000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM7>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM7>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -1030,7 +1024,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0x32f0000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM8>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM8>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -1366,6 +1359,16 @@
 			status = "disabled";
 		};
 
+		hte_lic: hardware-timestamp@3aa0000 {
+			compatible = "nvidia,tegra194-gte-lic";
+			reg = <0x3aa0000 0x10000>;
+			interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+			nvidia,int-threshold = <1>;
+			nvidia,slices = <11>;
+			#timestamp-cells = <1>;
+			status = "okay";
+		};
+
 		hsp_top0: hsp@3c00000 {
 			compatible = "nvidia,tegra194-hsp";
 			reg = <0x03c00000 0xa0000>;
@@ -1579,6 +1582,16 @@
 			#mbox-cells = <2>;
 		};
 
+		hte_aon: hardware-timestamp@c1e0000 {
+			compatible = "nvidia,tegra194-gte-aon";
+			reg = <0xc1e0000 0x10000>;
+			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
+			nvidia,int-threshold = <1>;
+			nvidia,slices = <3>;
+			#timestamp-cells = <1>;
+			status = "okay";
+		};
+
 		gen2_i2c: i2c@c240000 {
 			compatible = "nvidia,tegra194-i2c";
 			reg = <0x0c240000 0x10000>;
@@ -1667,7 +1680,6 @@
 				     "nvidia,tegra186-pwm";
 			reg = <0xc340000 0x10000>;
 			clocks = <&bpmp TEGRA194_CLK_PWM4>;
-			clock-names = "pwm";
 			resets = <&bpmp TEGRA194_RESET_PWM4>;
 			reset-names = "pwm";
 			status = "disabled";
@@ -1895,7 +1907,7 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			ranges = <0x15000000 0x15000000 0x01000000>;
+			ranges = <0x14800000 0x14800000 0x02800000>;
 			interconnects = <&mc TEGRA194_MEMORY_CLIENT_HOST1XDMAR &emc>;
 			interconnect-names = "dma-mem";
 			iommus = <&smmu TEGRA194_SID_HOST1X>;
