@@ -33,6 +33,13 @@
 #include "block-group.h"
 #include "discard.h"
 #include "zoned.h"
+#include "fs.h"
+#include "accessors.h"
+#include "uuid-tree.h"
+#include "ioctl.h"
+#include "relocation.h"
+#include "scrub.h"
+#include "super.h"
 
 static struct bio_set btrfs_bioset;
 
@@ -529,14 +536,14 @@ error:
 	return ret;
 }
 
-/**
- *  Search and remove all stale devices (which are not mounted).
- *  When both inputs are NULL, it will search and release all stale devices.
+/*
+ *  Search and remove all stale devices (which are not mounted).  When both
+ *  inputs are NULL, it will search and release all stale devices.
  *
- *  @devt:	Optional. When provided will it release all unmounted devices
- *		matching this devt only.
+ *  @devt:         Optional. When provided will it release all unmounted devices
+ *                 matching this devt only.
  *  @skip_device:  Optional. Will skip this device when searching for the stale
- *		devices.
+ *                 devices.
  *
  *  Return:	0 for success or if @devt is 0.
  *		-EBUSY if @devt is a mounted device.
@@ -640,6 +647,9 @@ static int btrfs_open_one_device(struct btrfs_fs_devices *fs_devices,
 
 	if (!bdev_nonrot(bdev))
 		fs_devices->rotating = true;
+
+	if (bdev_max_discard_sectors(bdev))
+		fs_devices->discardable = true;
 
 	device->bdev = bdev;
 	clear_bit(BTRFS_DEV_STATE_IN_FS_METADATA, &device->dev_state);
@@ -835,26 +845,23 @@ static noinline struct btrfs_device *device_list_add(const char *path,
 	}
 
 	if (!device) {
+		unsigned int nofs_flag;
+
 		if (fs_devices->opened) {
 			mutex_unlock(&fs_devices->device_list_mutex);
 			return ERR_PTR(-EBUSY);
 		}
 
+		nofs_flag = memalloc_nofs_save();
 		device = btrfs_alloc_device(NULL, &devid,
-					    disk_super->dev_item.uuid);
+					    disk_super->dev_item.uuid, path);
+		memalloc_nofs_restore(nofs_flag);
 		if (IS_ERR(device)) {
 			mutex_unlock(&fs_devices->device_list_mutex);
 			/* we can safely leave the fs_devices entry around */
 			return device;
 		}
 
-		name = rcu_string_strdup(path, GFP_NOFS);
-		if (!name) {
-			btrfs_free_device(device);
-			mutex_unlock(&fs_devices->device_list_mutex);
-			return ERR_PTR(-ENOMEM);
-		}
-		rcu_assign_pointer(device->name, name);
 		device->devt = path_devt;
 
 		list_add_rcu(&device->dev_list, &fs_devices->devices);
@@ -987,28 +994,20 @@ static struct btrfs_fs_devices *clone_fs_devices(struct btrfs_fs_devices *orig)
 	fs_devices->total_devices = orig->total_devices;
 
 	list_for_each_entry(orig_dev, &orig->devices, dev_list) {
-		struct rcu_string *name;
+		const char *dev_path = NULL;
+
+		/*
+		 * This is ok to do without RCU read locked because we hold the
+		 * uuid mutex so nothing we touch in here is going to disappear.
+		 */
+		if (orig_dev->name)
+			dev_path = orig_dev->name->str;
 
 		device = btrfs_alloc_device(NULL, &orig_dev->devid,
-					    orig_dev->uuid);
+					    orig_dev->uuid, dev_path);
 		if (IS_ERR(device)) {
 			ret = PTR_ERR(device);
 			goto error;
-		}
-
-		/*
-		 * This is ok to do without rcu read locked because we hold the
-		 * uuid mutex so nothing we touch in here is going to disappear.
-		 */
-		if (orig_dev->name) {
-			name = rcu_string_strdup(orig_dev->name->str,
-					GFP_KERNEL);
-			if (!name) {
-				btrfs_free_device(device);
-				ret = -ENOMEM;
-				goto error;
-			}
-			rcu_assign_pointer(device->name, name);
 		}
 
 		if (orig_dev->zone_info) {
@@ -1473,8 +1472,9 @@ static bool dev_extent_hole_check_zoned(struct btrfs_device *device,
 	return changed;
 }
 
-/**
- * dev_extent_hole_check - check if specified hole is suitable for allocation
+/*
+ * Check if specified hole is suitable for allocation.
+ *
  * @device:	the device which we have the hole
  * @hole_start: starting position of the hole
  * @hole_size:	the size of the hole
@@ -1528,7 +1528,8 @@ static bool dev_extent_hole_check(struct btrfs_device *device, u64 *hole_start,
 }
 
 /*
- * find_free_dev_extent_start - find free space in the specified device
+ * Find free space in the specified device.
+ *
  * @device:	  the device which we search the free space in
  * @num_bytes:	  the size of the free space that we need
  * @search_start: the position from which to begin the search
@@ -1536,9 +1537,8 @@ static bool dev_extent_hole_check(struct btrfs_device *device, u64 *hole_start,
  * @len:	  the size of the free space. that we find, or the size
  *		  of the max free space if we don't find suitable free space
  *
- * this uses a pretty simple search, the expectation is that it is
- * called very infrequently and that a given device has a small number
- * of extents
+ * This does a pretty simple search, the expectation is that it is called very
+ * infrequently and that a given device has a small number of extents.
  *
  * @start is used to store the start of the free space if we find. But if we
  * don't find suitable free space, it will be used to store the start position
@@ -2317,8 +2317,8 @@ void btrfs_destroy_dev_replace_tgtdev(struct btrfs_device *tgtdev)
 	btrfs_free_device(tgtdev);
 }
 
-/**
- * Populate args from device at path
+/*
+ * Populate args from device at path.
  *
  * @fs_info:	the filesystem
  * @args:	the args to populate
@@ -2593,7 +2593,6 @@ int btrfs_init_new_device(struct btrfs_fs_info *fs_info, const char *device_path
 	struct btrfs_device *device;
 	struct block_device *bdev;
 	struct super_block *sb = fs_info->sb;
-	struct rcu_string *name;
 	struct btrfs_fs_devices *fs_devices = fs_info->fs_devices;
 	struct btrfs_fs_devices *seed_devices;
 	u64 orig_super_total_bytes;
@@ -2634,19 +2633,12 @@ int btrfs_init_new_device(struct btrfs_fs_info *fs_info, const char *device_path
 	}
 	rcu_read_unlock();
 
-	device = btrfs_alloc_device(fs_info, NULL, NULL);
+	device = btrfs_alloc_device(fs_info, NULL, NULL, device_path);
 	if (IS_ERR(device)) {
 		/* we can safely leave the fs_devices entry around */
 		ret = PTR_ERR(device);
 		goto error;
 	}
-
-	name = rcu_string_strdup(device_path, GFP_KERNEL);
-	if (!name) {
-		ret = -ENOMEM;
-		goto error_free_device;
-	}
-	rcu_assign_pointer(device->name, name);
 
 	device->fs_info = fs_info;
 	device->bdev = bdev;
@@ -3603,16 +3595,14 @@ static int chunk_usage_range_filter(struct btrfs_fs_info *fs_info, u64 chunk_off
 	if (bargs->usage_min == 0)
 		user_thresh_min = 0;
 	else
-		user_thresh_min = div_factor_fine(cache->length,
-						  bargs->usage_min);
+		user_thresh_min = mult_perc(cache->length, bargs->usage_min);
 
 	if (bargs->usage_max == 0)
 		user_thresh_max = 1;
 	else if (bargs->usage_max > 100)
 		user_thresh_max = cache->length;
 	else
-		user_thresh_max = div_factor_fine(cache->length,
-						  bargs->usage_max);
+		user_thresh_max = mult_perc(cache->length, bargs->usage_max);
 
 	if (user_thresh_min <= chunk_used && chunk_used < user_thresh_max)
 		ret = 0;
@@ -3636,7 +3626,7 @@ static int chunk_usage_filter(struct btrfs_fs_info *fs_info,
 	else if (bargs->usage > 100)
 		user_thresh = cache->length;
 	else
-		user_thresh = div_factor_fine(cache->length, bargs->usage);
+		user_thresh = mult_perc(cache->length, bargs->usage);
 
 	if (chunk_used < user_thresh)
 		ret = 0;
@@ -4026,10 +4016,11 @@ error:
 	return ret;
 }
 
-/**
- * alloc_profile_is_valid - see if a given profile is valid and reduced
- * @flags: profile to validate
- * @extended: if true @flags is treated as an extended profile
+/*
+ * See if a given profile is valid and reduced.
+ *
+ * @flags:     profile to validate
+ * @extended:  if true @flags is treated as an extended profile
  */
 static int alloc_profile_is_valid(u64 flags, int extended)
 {
@@ -5101,7 +5092,7 @@ static void init_alloc_chunk_ctl_policy_regular(
 		ctl->devs_max = min_t(int, ctl->devs_max, BTRFS_MAX_DEVS_SYS_CHUNK);
 
 	/* We don't want a chunk larger than 10% of writable space */
-	ctl->max_chunk_size = min(div_factor(fs_devices->total_rw_bytes, 1),
+	ctl->max_chunk_size = min(mult_perc(fs_devices->total_rw_bytes, 10),
 				  ctl->max_chunk_size);
 	ctl->dev_extent_min = BTRFS_STRIPE_LEN * ctl->dev_stripes;
 }
@@ -5132,7 +5123,7 @@ static void init_alloc_chunk_ctl_policy_zoned(
 	}
 
 	/* We don't want a chunk larger than 10% of writable space */
-	limit = max(round_down(div_factor(fs_devices->total_rw_bytes, 1),
+	limit = max(round_down(mult_perc(fs_devices->total_rw_bytes, 10),
 			       zone_size),
 		    min_chunk_size);
 	ctl->max_chunk_size = min(limit, ctl->max_chunk_size);
@@ -6988,8 +6979,9 @@ static struct btrfs_device *add_missing_dev(struct btrfs_fs_devices *fs_devices,
 	 * always do NOFS because we use it in a lot of other GFP_KERNEL safe
 	 * places.
 	 */
+
 	nofs_flag = memalloc_nofs_save();
-	device = btrfs_alloc_device(NULL, &devid, dev_uuid);
+	device = btrfs_alloc_device(NULL, &devid, dev_uuid, NULL);
 	memalloc_nofs_restore(nofs_flag);
 	if (IS_ERR(device))
 		return device;
@@ -7004,22 +6996,24 @@ static struct btrfs_device *add_missing_dev(struct btrfs_fs_devices *fs_devices,
 	return device;
 }
 
-/**
- * btrfs_alloc_device - allocate struct btrfs_device
+/*
+ * Allocate new device struct, set up devid and UUID.
+ *
  * @fs_info:	used only for generating a new devid, can be NULL if
  *		devid is provided (i.e. @devid != NULL).
  * @devid:	a pointer to devid for this device.  If NULL a new devid
  *		is generated.
  * @uuid:	a pointer to UUID for this device.  If NULL a new UUID
  *		is generated.
+ * @path:	a pointer to device path if available, NULL otherwise.
  *
  * Return: a pointer to a new &struct btrfs_device on success; ERR_PTR()
  * on error.  Returned struct is not linked onto any lists and must be
  * destroyed with btrfs_free_device.
  */
 struct btrfs_device *btrfs_alloc_device(struct btrfs_fs_info *fs_info,
-					const u64 *devid,
-					const u8 *uuid)
+					const u64 *devid, const u8 *uuid,
+					const char *path)
 {
 	struct btrfs_device *dev;
 	u64 tmp;
@@ -7037,8 +7031,7 @@ struct btrfs_device *btrfs_alloc_device(struct btrfs_fs_info *fs_info,
 
 	atomic_set(&dev->dev_stats_ccnt, 0);
 	btrfs_device_data_ordered_init(dev);
-	extent_io_tree_init(fs_info, &dev->alloc_state,
-			    IO_TREE_DEVICE_ALLOC_STATE, NULL);
+	extent_io_tree_init(fs_info, &dev->alloc_state, IO_TREE_DEVICE_ALLOC_STATE);
 
 	if (devid)
 		tmp = *devid;
@@ -7057,6 +7050,17 @@ struct btrfs_device *btrfs_alloc_device(struct btrfs_fs_info *fs_info,
 		memcpy(dev->uuid, uuid, BTRFS_UUID_SIZE);
 	else
 		generate_random_uuid(dev->uuid);
+
+	if (path) {
+		struct rcu_string *name;
+
+		name = rcu_string_strdup(path, GFP_KERNEL);
+		if (!name) {
+			btrfs_free_device(dev);
+			return ERR_PTR(-ENOMEM);
+		}
+		rcu_assign_pointer(dev->name, name);
+	}
 
 	return dev;
 }

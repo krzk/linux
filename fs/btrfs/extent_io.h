@@ -9,6 +9,7 @@
 #include <linux/btrfs_tree.h>
 #include "compression.h"
 #include "ulist.h"
+#include "misc.h"
 
 enum {
 	EXTENT_BUFFER_UPTODATE,
@@ -29,13 +30,15 @@ enum {
 };
 
 /* these are flags for __process_pages_contig */
-#define PAGE_UNLOCK		(1 << 0)
-/* Page starts writeback, clear dirty bit and set writeback bit */
-#define PAGE_START_WRITEBACK	(1 << 1)
-#define PAGE_END_WRITEBACK	(1 << 2)
-#define PAGE_SET_ORDERED	(1 << 3)
-#define PAGE_SET_ERROR		(1 << 4)
-#define PAGE_LOCK		(1 << 5)
+enum {
+	ENUM_BIT(PAGE_UNLOCK),
+	/* Page starts writeback, clear dirty bit and set writeback bit */
+	ENUM_BIT(PAGE_START_WRITEBACK),
+	ENUM_BIT(PAGE_END_WRITEBACK),
+	ENUM_BIT(PAGE_SET_ORDERED),
+	ENUM_BIT(PAGE_SET_ERROR),
+	ENUM_BIT(PAGE_LOCK),
+};
 
 /*
  * page->private values.  Every page that is controlled by the extent
@@ -63,16 +66,10 @@ struct btrfs_inode;
 struct btrfs_fs_info;
 struct io_failure_record;
 struct extent_io_tree;
+struct btrfs_tree_parent_check;
 
 int __init extent_buffer_init_cachep(void);
 void __cold extent_buffer_free_cachep(void);
-
-typedef void (submit_bio_hook_t)(struct inode *inode, struct bio *bio,
-					 int mirror_num,
-					 enum btrfs_compression_type compress_type);
-
-typedef blk_status_t (extent_submit_bio_start_t)(struct inode *inode,
-		struct bio *bio, u64 dio_file_offset);
 
 #define INLINE_EXTENT_BUFFER_PAGES     (BTRFS_MAX_METADATA_BLOCKSIZE / PAGE_SIZE)
 struct extent_buffer {
@@ -174,8 +171,8 @@ void free_extent_buffer_stale(struct extent_buffer *eb);
 #define WAIT_NONE	0
 #define WAIT_COMPLETE	1
 #define WAIT_PAGE_LOCK	2
-int read_extent_buffer_pages(struct extent_buffer *eb, int wait,
-			     int mirror_num);
+int read_extent_buffer_pages(struct extent_buffer *eb, int wait, int mirror_num,
+			     struct btrfs_tree_parent_check *parent_check);
 void wait_on_extent_buffer_writeback(struct extent_buffer *eb);
 void btrfs_readahead_tree_block(struct btrfs_fs_info *fs_info,
 				u64 bytenr, u64 owner_root, u64 gen, int level);
@@ -272,9 +269,9 @@ struct io_failure_record {
 	int num_copies;
 };
 
-int btrfs_repair_one_sector(struct inode *inode, struct btrfs_bio *failed_bbio,
+int btrfs_repair_one_sector(struct btrfs_inode *inode, struct btrfs_bio *failed_bbio,
 			    u32 bio_offset, struct page *page, unsigned int pgoff,
-			    submit_bio_hook_t *submit_bio_hook);
+			    bool submit_buffered);
 void btrfs_free_io_failure_record(struct btrfs_inode *inode, u64 start, u64 end);
 int btrfs_clean_io_failure(struct btrfs_inode *inode, u64 start,
 			   struct page *page, unsigned int pg_offset);

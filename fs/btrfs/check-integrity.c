@@ -82,6 +82,7 @@
 #include <linux/mm.h>
 #include <linux/string.h>
 #include <crypto/hash.h>
+#include "messages.h"
 #include "ctree.h"
 #include "disk-io.h"
 #include "transaction.h"
@@ -92,6 +93,7 @@
 #include "check-integrity.h"
 #include "rcu-string.h"
 #include "compression.h"
+#include "accessors.h"
 
 #define BTRFSIC_BLOCK_HASHTABLE_SIZE 0x10000
 #define BTRFSIC_BLOCK_LINK_HASHTABLE_SIZE 0x10000
