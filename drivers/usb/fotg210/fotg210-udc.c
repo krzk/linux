@@ -17,6 +17,7 @@
 #include <linux/usb/gadget.h>
 
 #include "fotg210.h"
+#include "fotg210-udc.h"
 
 #define	DRIVER_DESC	"FOTG210 USB Device Controller Driver"
 #define	DRIVER_VERSION	"30-April-2013"
@@ -629,10 +630,10 @@ static void fotg210_request_error(struct fotg210_udc *fotg210)
 static void fotg210_set_address(struct fotg210_udc *fotg210,
 				struct usb_ctrlrequest *ctrl)
 {
-	if (ctrl->wValue >= 0x0100) {
+	if (le16_to_cpu(ctrl->wValue) >= 0x0100) {
 		fotg210_request_error(fotg210);
 	} else {
-		fotg210_set_dev_addr(fotg210, ctrl->wValue);
+		fotg210_set_dev_addr(fotg210, le16_to_cpu(ctrl->wValue));
 		fotg210_set_cxdone(fotg210);
 	}
 }
@@ -713,17 +714,17 @@ static void fotg210_get_status(struct fotg210_udc *fotg210,
 
 	switch (ctrl->bRequestType & USB_RECIP_MASK) {
 	case USB_RECIP_DEVICE:
-		fotg210->ep0_data = 1 << USB_DEVICE_SELF_POWERED;
+		fotg210->ep0_data = cpu_to_le16(1 << USB_DEVICE_SELF_POWERED);
 		break;
 	case USB_RECIP_INTERFACE:
-		fotg210->ep0_data = 0;
+		fotg210->ep0_data = cpu_to_le16(0);
 		break;
 	case USB_RECIP_ENDPOINT:
 		epnum = ctrl->wIndex & USB_ENDPOINT_NUMBER_MASK;
 		if (epnum)
 			fotg210->ep0_data =
-				fotg210_is_epnstall(fotg210->ep[epnum])
-				<< USB_ENDPOINT_HALT;
+				cpu_to_le16(fotg210_is_epnstall(fotg210->ep[epnum])
+					    << USB_ENDPOINT_HALT);
 		else
 			fotg210_request_error(fotg210);
 		break;
@@ -1068,7 +1069,7 @@ static const struct usb_gadget_ops fotg210_gadget_ops = {
 	.udc_stop		= fotg210_udc_stop,
 };
 
-static int fotg210_udc_remove(struct platform_device *pdev)
+int fotg210_udc_remove(struct platform_device *pdev)
 {
 	struct fotg210_udc *fotg210 = platform_get_drvdata(pdev);
 	int i;
@@ -1085,7 +1086,7 @@ static int fotg210_udc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static int fotg210_udc_probe(struct platform_device *pdev)
+int fotg210_udc_probe(struct platform_device *pdev)
 {
 	struct resource *res, *ires;
 	struct fotg210_udc *fotg210 = NULL;
@@ -1208,17 +1209,3 @@ err_alloc:
 err:
 	return ret;
 }
-
-static struct platform_driver fotg210_driver = {
-	.driver		= {
-		.name =	udc_name,
-	},
-	.probe		= fotg210_udc_probe,
-	.remove		= fotg210_udc_remove,
-};
-
-module_platform_driver(fotg210_driver);
-
-MODULE_AUTHOR("Yuan-Hsin Chen, Feng-Hsin Chiang <john453@faraday-tech.com>");
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION(DRIVER_DESC);
