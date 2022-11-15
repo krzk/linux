@@ -509,9 +509,7 @@ static void lpuart_dma_tx_complete(void *arg)
 	dma_unmap_sg(chan->device->dev, sgl, sport->dma_tx_nents,
 		     DMA_TO_DEVICE);
 
-	xmit->tail = (xmit->tail + sport->dma_tx_bytes) & (UART_XMIT_SIZE - 1);
-
-	sport->port.icount.tx += sport->dma_tx_bytes;
+	uart_xmit_advance(&sport->port, sport->dma_tx_bytes);
 	sport->dma_tx_in_progress = false;
 	spin_unlock_irqrestore(&sport->port.lock, flags);
 
@@ -716,32 +714,12 @@ static int lpuart32_poll_get_char(struct uart_port *port)
 
 static inline void lpuart_transmit_buffer(struct lpuart_port *sport)
 {
-	struct circ_buf *xmit = &sport->port.state->xmit;
+	struct uart_port *port = &sport->port;
+	u8 ch;
 
-	if (sport->port.x_char) {
-		writeb(sport->port.x_char, sport->port.membase + UARTDR);
-		sport->port.icount.tx++;
-		sport->port.x_char = 0;
-		return;
-	}
-
-	if (lpuart_stopped_or_empty(&sport->port)) {
-		lpuart_stop_tx(&sport->port);
-		return;
-	}
-
-	while (!uart_circ_empty(xmit) &&
-		(readb(sport->port.membase + UARTTCFIFO) < sport->txfifo_size)) {
-		writeb(xmit->buf[xmit->tail], sport->port.membase + UARTDR);
-		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
-		sport->port.icount.tx++;
-	}
-
-	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
-		uart_write_wakeup(&sport->port);
-
-	if (uart_circ_empty(xmit))
-		lpuart_stop_tx(&sport->port);
+	uart_port_tx(port, ch,
+		readb(port->membase + UARTTCFIFO) < sport->txfifo_size,
+		writeb(ch, port->membase + UARTDR));
 }
 
 static inline void lpuart32_transmit_buffer(struct lpuart_port *sport)
@@ -766,8 +744,7 @@ static inline void lpuart32_transmit_buffer(struct lpuart_port *sport)
 	txcnt &= UARTWATER_COUNT_MASK;
 	while (!uart_circ_empty(xmit) && (txcnt < sport->txfifo_size)) {
 		lpuart32_write(&sport->port, xmit->buf[xmit->tail], UARTDATA);
-		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
-		sport->port.icount.tx++;
+		uart_xmit_advance(&sport->port, 1);
 		txcnt = lpuart32_read(&sport->port, UARTWATER);
 		txcnt = txcnt >> UARTWATER_TXCNT_OFF;
 		txcnt &= UARTWATER_COUNT_MASK;
