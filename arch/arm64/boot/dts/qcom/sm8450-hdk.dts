@@ -531,7 +531,7 @@
 		qcom,rx-device = <&wcd_rx>;
 		qcom,tx-device = <&wcd_tx>;
 
-		reset-gpios = <&tlmm 43 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&tlmm 43 GPIO_ACTIVE_LOW>;
 		#sound-dai-cells = <1>;
 
 		vdd-buck-supply = <&vreg_s10b_1p8>;
