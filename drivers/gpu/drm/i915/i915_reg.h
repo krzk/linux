@@ -26,6 +26,7 @@
 #define _I915_REG_H_
 
 #include "i915_reg_defs.h"
+#include "display/intel_display_reg_defs.h"
 
 /**
  * DOC: The i915 register macro definition style guide
@@ -114,75 +115,6 @@
  *  #define BAR                         _MMIO(0xb000)
  *  #define GEN8_BAR                    _MMIO(0xb888)
  */
-
-#define DISPLAY_MMIO_BASE(dev_priv)	(INTEL_INFO(dev_priv)->display.mmio_offset)
-
-/*
- * Given the first two numbers __a and __b of arbitrarily many evenly spaced
- * numbers, pick the 0-based __index'th value.
- *
- * Always prefer this over _PICK() if the numbers are evenly spaced.
- */
-#define _PICK_EVEN(__index, __a, __b) ((__a) + (__index) * ((__b) - (__a)))
-
-/*
- * Given the arbitrary numbers in varargs, pick the 0-based __index'th number.
- *
- * Always prefer _PICK_EVEN() over this if the numbers are evenly spaced.
- */
-#define _PICK(__index, ...) (((const u32 []){ __VA_ARGS__ })[__index])
-
-/*
- * Named helper wrappers around _PICK_EVEN() and _PICK().
- */
-#define _PIPE(pipe, a, b)		_PICK_EVEN(pipe, a, b)
-#define _PLANE(plane, a, b)		_PICK_EVEN(plane, a, b)
-#define _TRANS(tran, a, b)		_PICK_EVEN(tran, a, b)
-#define _PORT(port, a, b)		_PICK_EVEN(port, a, b)
-#define _PLL(pll, a, b)			_PICK_EVEN(pll, a, b)
-#define _PHY(phy, a, b)			_PICK_EVEN(phy, a, b)
-
-#define _MMIO_PIPE(pipe, a, b)		_MMIO(_PIPE(pipe, a, b))
-#define _MMIO_PLANE(plane, a, b)	_MMIO(_PLANE(plane, a, b))
-#define _MMIO_TRANS(tran, a, b)		_MMIO(_TRANS(tran, a, b))
-#define _MMIO_PORT(port, a, b)		_MMIO(_PORT(port, a, b))
-#define _MMIO_PLL(pll, a, b)		_MMIO(_PLL(pll, a, b))
-#define _MMIO_PHY(phy, a, b)		_MMIO(_PHY(phy, a, b))
-
-#define _PHY3(phy, ...)			_PICK(phy, __VA_ARGS__)
-
-#define _MMIO_PIPE3(pipe, a, b, c)	_MMIO(_PICK(pipe, a, b, c))
-#define _MMIO_PORT3(pipe, a, b, c)	_MMIO(_PICK(pipe, a, b, c))
-#define _MMIO_PHY3(phy, a, b, c)	_MMIO(_PHY3(phy, a, b, c))
-#define _MMIO_PLL3(pll, ...)		_MMIO(_PICK(pll, __VA_ARGS__))
-
-
-/*
- * Device info offset array based helpers for groups of registers with unevenly
- * spaced base offsets.
- */
-#define _MMIO_PIPE2(pipe, reg)		_MMIO(INTEL_INFO(dev_priv)->display.pipe_offsets[(pipe)] - \
-					      INTEL_INFO(dev_priv)->display.pipe_offsets[PIPE_A] + \
-					      DISPLAY_MMIO_BASE(dev_priv) + (reg))
-#define _MMIO_TRANS2(tran, reg)		_MMIO(INTEL_INFO(dev_priv)->display.trans_offsets[(tran)] - \
-					      INTEL_INFO(dev_priv)->display.trans_offsets[TRANSCODER_A] + \
-					      DISPLAY_MMIO_BASE(dev_priv) + (reg))
-#define _MMIO_CURSOR2(pipe, reg)	_MMIO(INTEL_INFO(dev_priv)->display.cursor_offsets[(pipe)] - \
-					      INTEL_INFO(dev_priv)->display.cursor_offsets[PIPE_A] + \
-					      DISPLAY_MMIO_BASE(dev_priv) + (reg))
-
-#define __MASKED_FIELD(mask, value) ((mask) << 16 | (value))
-#define _MASKED_FIELD(mask, value) ({					   \
-	if (__builtin_constant_p(mask))					   \
-		BUILD_BUG_ON_MSG(((mask) & 0xffff0000), "Incorrect mask"); \
-	if (__builtin_constant_p(value))				   \
-		BUILD_BUG_ON_MSG((value) & 0xffff0000, "Incorrect value"); \
-	if (__builtin_constant_p(mask) && __builtin_constant_p(value))	   \
-		BUILD_BUG_ON_MSG((value) & ~(mask),			   \
-				 "Incorrect value for mask");		   \
-	__MASKED_FIELD(mask, value); })
-#define _MASKED_BIT_ENABLE(a)	({ typeof(a) _a = (a); _MASKED_FIELD(_a, _a); })
-#define _MASKED_BIT_DISABLE(a)	(_MASKED_FIELD((a), 0))
 
 #define GU_CNTL				_MMIO(0x101010)
 #define   LMEM_INIT			REG_BIT(7)
@@ -3758,9 +3690,10 @@
 
 /* Skylake+ pipe bottom (background) color */
 #define _SKL_BOTTOM_COLOR_A		0x70034
+#define _SKL_BOTTOM_COLOR_B		0x71034
 #define   SKL_BOTTOM_COLOR_GAMMA_ENABLE		REG_BIT(31)
 #define   SKL_BOTTOM_COLOR_CSC_ENABLE		REG_BIT(30)
-#define SKL_BOTTOM_COLOR(pipe)		_MMIO_PIPE2(pipe, _SKL_BOTTOM_COLOR_A)
+#define SKL_BOTTOM_COLOR(pipe)		_MMIO_PIPE(pipe, _SKL_BOTTOM_COLOR_A, _SKL_BOTTOM_COLOR_B)
 
 #define _ICL_PIPE_A_STATUS			0x70058
 #define ICL_PIPESTATUS(pipe)			_MMIO_PIPE2(pipe, _ICL_PIPE_A_STATUS)

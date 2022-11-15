@@ -76,6 +76,7 @@
 #include "g4x_hdmi.h"
 #include "hsw_ips.h"
 #include "i915_drv.h"
+#include "i915_reg.h"
 #include "i915_utils.h"
 #include "icl_dsi.h"
 #include "intel_acpi.h"
@@ -90,6 +91,7 @@
 #include "intel_display_types.h"
 #include "intel_dmc.h"
 #include "intel_dp_link_training.h"
+#include "intel_dpio_phy.h"
 #include "intel_dpt.h"
 #include "intel_dsb.h"
 #include "intel_fbc.h"
@@ -5930,7 +5932,7 @@ int intel_modeset_all_pipes(struct intel_atomic_state *state,
 			return PTR_ERR(crtc_state);
 
 		if (!crtc_state->hw.active ||
-		    drm_atomic_crtc_needs_modeset(&crtc_state->uapi))
+		    intel_crtc_needs_modeset(crtc_state))
 			continue;
 
 		drm_dbg_kms(&dev_priv->drm, "[CRTC:%d:%s] Full modeset due to %s\n",
