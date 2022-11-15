@@ -521,6 +521,9 @@
 	wcd938x: codec {
 		compatible = "qcom,wcd9380-codec";
 
+		pinctrl-names = "default";
+		pinctrl-0 = <&wcd_default>;
+
 		qcom,micbias1-microvolt = <1800000>;
 		qcom,micbias2-microvolt = <1800000>;
 		qcom,micbias3-microvolt = <1800000>;
@@ -548,14 +551,18 @@
 			"SpkrRight IN", "WSA_SPK2 OUT",
 			"IN1_HPHL", "HPHL_OUT",
 			"IN2_HPHR", "HPHR_OUT",
-			"AMIC1", "MIC BIAS1",
 			"AMIC2", "MIC BIAS2",
-			"AMIC3", "MIC BIAS3",
-			"AMIC4", "MIC BIAS3",
-			"AMIC5", "MIC BIAS4";
+			"VA DMIC0", "MIC BIAS1",
+			"VA DMIC1", "MIC BIAS1",
+			"VA DMIC2", "MIC BIAS3",
+			"TX DMIC0", "MIC BIAS1",
+			"TX DMIC1", "MIC BIAS2",
+			"TX DMIC2", "MIC BIAS3",
+			"TX SWR_ADC1", "ADC2_OUTPUT";
 
 	wcd-playback-dai-link {
 		link-name = "WCD Playback";
+
 		cpu {
 			sound-dai = <&q6apmbedai RX_CODEC_DMA_RX_0>;
 		};
@@ -569,14 +576,15 @@
 		};
 	};
 
-	wcd-playback-dai-link {
-		link-name = "WCD Playback";
+	wcd-capture-dai-link {
+		link-name = "WCD Capture";
+
 		cpu {
-			sound-dai = <&q6apmbedai RX_CODEC_DMA_RX_0>;
+			sound-dai = <&q6apmbedai TX_CODEC_DMA_TX_3>;
 		};
 
 		codec {
-			sound-dai = <&wcd938x 0>, <&swr1 0>, <&rxmacro 0>;
+			sound-dai = <&wcd938x 1>, <&swr2 0>, <&txmacro 0>;
 		};
 
 		platform {
@@ -586,6 +594,7 @@
 
 	wsa-dai-link {
 		link-name = "WSA Playback";
+
 		cpu {
 			sound-dai = <&q6apmbedai WSA_CODEC_DMA_RX_0>;
 		};
@@ -601,8 +610,13 @@
 
 	va-dai-link {
 		link-name = "VA Capture";
+
 		cpu {
-			sound-dai = <&q6apmbedai VA_CODEC_DMA_TX_0>;
+			sound-dai = <&q6apmbedai TX_CODEC_DMA_TX_3>;
+		};
+
+		codec {
+			sound-dai = <&vamacro 0>;
 		};
 
 		platform {
@@ -612,26 +626,26 @@
 };
 
 &swr0 {
-	right_spkr: speaker@0,1{
+	left_spkr: speaker@0,1 {
 		compatible = "sdw10217020200";
 		reg = <0 1>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&spkr_1_sd_n_active>;
 		powerdown-gpios = <&tlmm 1 GPIO_ACTIVE_LOW>;
 		#sound-dai-cells = <0>;
-		sound-name-prefix = "SpkrRight";
+		sound-name-prefix = "SpkrLeft";
 		#thermal-sensor-cells = <0>;
 		vdd-supply = <&vreg_s10b_1p8>;
 	};
 
-	left_spkr: speaker@0,2{
+	right_spkr: speaker@0,2 {
 		compatible = "sdw10217020200";
 		reg = <0 2>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&spkr_2_sd_n_active>;
 		powerdown-gpios = <&tlmm 89 GPIO_ACTIVE_LOW>;
 		#sound-dai-cells = <0>;
-		sound-name-prefix = "SpkrLeft";
+		sound-name-prefix = "SpkrRight";
 		#thermal-sensor-cells = <0>;
 		vdd-supply = <&vreg_s10b_1p8>;
 	};
@@ -653,7 +667,6 @@
 	wcd_tx: codec@0,3 {
 		compatible = "sdw20217010d00";
 		reg = <0 3>;
-		/* ports: adc1_2, adc3_4, dmic0_3_mbhc, dmic4_7 */
 		qcom,tx-port-mapping = <1 1 2 3>;
 	};
 };
@@ -805,6 +818,13 @@
 	vdds-supply = <&vreg_l5b_0p88>;
 };
 
+&vamacro {
+	pinctrl-0 = <&dmic01_default>, <&dmic02_default>;
+	pinctrl-names = "default";
+	vdd-micb-supply = <&vreg_s10b_1p8>;
+	qcom,dmic-sample-rate = <600000>;
+};
+
 &tlmm {
 	spkr_1_sd_n_active: spkr-1-sd-n-active-state {
 		pins = "gpio1";
@@ -820,5 +840,11 @@
 		drive-strength = <4>;
 		bias-disable;
 		output-low;
+	};
+
+	wcd_default: wcd-default-state {
+		pins = "gpio43";
+		function = "gpio";
+		bias-disable;
 	};
 };
