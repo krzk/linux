@@ -1250,9 +1250,6 @@ enum rt_rf_power_state {
 };
 
 struct rt_pwr_save_ctrl {
-
-	bool				bInactivePs;
-	bool				bIPSModeBackup;
 	bool				bSwRfProcessing;
 	enum rt_rf_power_state eInactivePowerState;
 	enum ips_callback_function ReturnPoint;
@@ -1264,9 +1261,6 @@ struct rt_pwr_save_ctrl {
 
 	u32				CurPsLevel;
 	u32				RegRfPsLevel;
-
-	bool				bFwCtrlLPS;
-
 };
 
 #define RT_RF_CHANGE_SOURCE u32

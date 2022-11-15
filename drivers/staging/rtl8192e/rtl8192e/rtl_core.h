@@ -311,7 +311,6 @@ struct r8192_priv {
 	bool		bfirst_after_down;
 	bool		initialized_at_probe;
 	bool		being_init_adapter;
-	bool		bDriverIsGoingToUnload;
 
 	int		irq;
 	short	irq_enabled;
@@ -410,8 +409,6 @@ struct r8192_priv {
 	short	chan;
 	short	sens;
 	short	max_sens;
-
-	u8 ScanDelay;
 	bool ps_force;
 
 	u32 irq_mask[2];
@@ -472,10 +469,6 @@ struct r8192_priv {
 
 	u16 RegChannelPlan;
 	u16 ChannelPlan;
-
-	bool RegRfOff;
-	bool isRFOff;
-	bool bInPowerSaveMode;
 	u8 bHwRfOffAction;
 
 	bool rf_change_in_progress;
@@ -544,8 +537,6 @@ struct r8192_priv {
 	u32		reset_count;
 
 	enum reset_type ResetProgress;
-	bool		bForcedSilentReset;
-	bool		bDisableNormalResetCheck;
 	u16		TxCounter;
 	u16		RxCounter;
 	bool		bResetInProgress;
