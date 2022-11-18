@@ -22,9 +22,6 @@ properties:
       - qcom,msm8996-slpi-pil
       - qcom,msm8998-adsp-pas
       - qcom,msm8998-slpi-pas
-      - qcom,qcs404-adsp-pas
-      - qcom,qcs404-cdsp-pas
-      - qcom,qcs404-wcss-pas
       - qcom,sc7180-mpss-pas
       - qcom,sc7280-mpss-pas
       - qcom,sdm660-adsp-pas
@@ -61,8 +58,6 @@ allOf:
               - qcom,msm8996-adsp-pil
               - qcom,msm8996-slpi-pil
               - qcom,msm8998-adsp-pas
-              - qcom,qcs404-adsp-pas
-              - qcom,qcs404-wcss-pas
               - qcom,sc7280-mpss-pas
               - qcom,sdm845-adsp-pas
               - qcom,sdm845-cdsp-pas
@@ -91,35 +86,6 @@ allOf:
           items:
             - const: xo
             - const: aggre2
-
-  - if:
-      properties:
-        compatible:
-          contains:
-            enum:
-              - qcom,qcs404-cdsp-pas
-    then:
-      properties:
-        clocks:
-          items:
-            - description: XO clock
-            - description: SWAY clock
-            - description: TBU clock
-            - description: BIMC clock
-            - description: AHB AON clock
-            - description: Q6SS SLAVE clock
-            - description: Q6SS MASTER clock
-            - description: Q6 AXIM clock
-        clock-names:
-          items:
-            - const: xo
-            - const: sway
-            - const: tbu
-            - const: bimc
-            - const: ahb_aon
-            - const: q6ss_slave
-            - const: q6ss_master
-            - const: q6_axim
 
   - if:
       properties:
@@ -157,9 +123,6 @@ allOf:
               - qcom,msm8996-slpi-pil
               - qcom,msm8998-adsp-pas
               - qcom,msm8998-slpi-pas
-              - qcom,qcs404-adsp-pas
-              - qcom,qcs404-cdsp-pas
-              - qcom,qcs404-wcss-pas
               - qcom,sdm845-adsp-pas
               - qcom,sdm845-cdsp-pas
     then:
@@ -275,9 +238,6 @@ allOf:
               - qcom,msm8996-slpi-pil
               - qcom,msm8998-adsp-pas
               - qcom,msm8998-slpi-pas
-              - qcom,qcs404-adsp-pas
-              - qcom,qcs404-cdsp-pas
-              - qcom,qcs404-wcss-pas
               - qcom,sdm660-adsp-pas
     then:
       properties:
