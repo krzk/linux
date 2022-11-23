@@ -502,10 +502,12 @@
 				      "q6ss_master",
 				      "q6_axim";
 
-			resets = <&gcc GCC_CDSP_RESTART>;
-			reset-names = "restart";
-
-			qcom,halt-regs = <&tcsr 0x19004>;
+			/*
+			 * If the node was using the PIL binding, then include properties:
+			 * resets = <&gcc GCC_CDSP_RESTART>;
+			 * reset-names = "restart";
+			 * qcom,halt-regs = <&tcsr 0x19004>;
+			 */
 
 			memory-region = <&cdsp_fw_mem>;
 
