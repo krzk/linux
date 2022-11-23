@@ -39,22 +39,6 @@ allOf:
       properties:
         compatible:
           enum:
-            - qcom,sc8280xp-adsp-pas
-            - qcom,sc8280xp-nsp0-pas
-            - qcom,sc8280xp-nsp1-pas
-    then:
-      properties:
-        clocks:
-          items:
-            - description: XO clock
-        clock-names:
-          items:
-            - const: xo
-
-  - if:
-      properties:
-        compatible:
-          enum:
             - qcom,sc8280xp-nsp0-pas
             - qcom,sc8280xp-nsp1-pas
     then:
