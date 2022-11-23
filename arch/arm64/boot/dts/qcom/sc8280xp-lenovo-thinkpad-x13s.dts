@@ -204,9 +204,16 @@
 		regulator-boot-on;
 	};
 
+	vreg_vph_pwr: regulator-vph-pwr {
+		compatible = "regulator-fixed";
+		regulator-name = "VPH_VCC3R9";
+		regulator-min-microvolt = <3900000>;
+		regulator-max-microvolt = <3900000>;
+		regulator-always-on;
+	};
+
 	vreg_nvme: regulator-nvme {
 		compatible = "regulator-fixed";
-
 		regulator-name = "VCC3_SSD";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
