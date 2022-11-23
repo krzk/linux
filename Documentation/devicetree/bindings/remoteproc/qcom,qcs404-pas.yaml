@@ -39,48 +39,6 @@ required:
 
 allOf:
   - $ref: /schemas/remoteproc/qcom,pas-common.yaml#
-  - if:
-      properties:
-        compatible:
-          enum:
-            - qcom,qcs404-adsp-pas
-            - qcom,qcs404-wcss-pas
-    then:
-      properties:
-        clocks:
-          items:
-            - description: XO clock
-        clock-names:
-          items:
-            - const: xo
-
-  - if:
-      properties:
-        compatible:
-          enum:
-            - qcom,qcs404-cdsp-pas
-    then:
-      properties:
-        clocks:
-          items:
-            - description: XO clock
-            - description: SWAY clock
-            - description: TBU clock
-            - description: BIMC clock
-            - description: AHB AON clock
-            - description: Q6SS SLAVE clock
-            - description: Q6SS MASTER clock
-            - description: Q6 AXIM clock
-        clock-names:
-          items:
-            - const: xo
-            - const: sway
-            - const: tbu
-            - const: bimc
-            - const: ahb_aon
-            - const: q6ss_slave
-            - const: q6ss_master
-            - const: q6_axim
 
 unevaluatedProperties: false
 
