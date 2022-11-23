@@ -34,14 +34,6 @@ properties:
   reg:
     maxItems: 1
 
-  resets:
-    minItems: 1
-    maxItems: 3
-
-  reset-names:
-    minItems: 1
-    maxItems: 3
-
   cx-supply:
     description: Phandle to the CX regulator
 
@@ -271,39 +263,6 @@ allOf:
           items:
             - const: cx
             - const: mss
-
-  - if:
-      properties:
-        compatible:
-          contains:
-            enum:
-              - qcom,qcs404-cdsp-pas
-    then:
-      properties:
-        resets:
-          items:
-            - description: CDSP restart
-        reset-names:
-          items:
-            - const: restart
-
-  - if:
-      properties:
-        compatible:
-          contains:
-            enum:
-              - qcom,sc7180-mpss-pas
-              - qcom,sc7280-mpss-pas
-    then:
-      properties:
-        resets:
-          items:
-            - description: MSS restart
-            - description: PDC reset
-        reset-names:
-          items:
-            - const: mss_restart
-            - const: pdc_reset
 
   - if:
       properties:
