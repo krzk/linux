@@ -41,22 +41,6 @@ allOf:
           enum:
             - qcom,sm6350-adsp-pas
             - qcom,sm6350-cdsp-pas
-            - qcom,sm6350-mpss-pas
-    then:
-      properties:
-        clocks:
-          items:
-            - description: XO clock
-        clock-names:
-          items:
-            - const: xo
-
-  - if:
-      properties:
-        compatible:
-          enum:
-            - qcom,sm6350-adsp-pas
-            - qcom,sm6350-cdsp-pas
     then:
       properties:
         interrupts:
