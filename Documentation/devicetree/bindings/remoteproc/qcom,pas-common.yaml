@@ -14,12 +14,12 @@ description:
 
 properties:
   clocks:
-    minItems: 1
-    maxItems: 8
+    items:
+      - description: XO clock
 
   clock-names:
-    minItems: 1
-    maxItems: 8
+    items:
+      - const: xo
 
   interconnects:
     maxItems: 1
