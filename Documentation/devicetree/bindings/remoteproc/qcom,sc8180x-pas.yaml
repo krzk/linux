@@ -41,22 +41,6 @@ allOf:
           enum:
             - qcom,sc8180x-adsp-pas
             - qcom,sc8180x-cdsp-pas
-            - qcom,sc8180x-mpss-pas
-    then:
-      properties:
-        clocks:
-          items:
-            - description: XO clock
-        clock-names:
-          items:
-            - const: xo
-
-  - if:
-      properties:
-        compatible:
-          enum:
-            - qcom,sc8180x-adsp-pas
-            - qcom,sc8180x-cdsp-pas
     then:
       properties:
         interrupts:
