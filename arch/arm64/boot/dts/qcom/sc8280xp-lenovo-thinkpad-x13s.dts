@@ -196,12 +196,12 @@
 
 		gpio = <&pmc8280_1_gpios 1 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
+		regulator-always-on;
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&misc_3p3_reg_en>;
 
 		regulator-boot-on;
-		regulator-always-on;
 	};
 
 	vreg_nvme: regulator-nvme {
