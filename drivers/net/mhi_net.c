@@ -14,7 +14,7 @@
 
 #define MHI_NET_MIN_MTU		ETH_MIN_MTU
 #define MHI_NET_MAX_MTU		0xffff
-#define MHI_NET_DEFAULT_MTU	0x4000
+#define MHI_NET_DEFAULT_MTU	0x8000
 
 struct mhi_net_stats {
 	u64_stats_t rx_packets;
