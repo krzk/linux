@@ -2,6 +2,7 @@
 /* Copyright (C) 2019-2020 Linaro Limited */
 
 #include <linux/acpi.h>
+#include <linux/debugfs.h>
 #include <linux/firmware.h>
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -49,6 +50,20 @@
 
 #define RENESAS_RETRY	10000
 #define RENESAS_DELAY	10
+
+#define ROM_VALID_01 0x2013
+#define ROM_VALID_02 0x2026
+
+static int renesas_verify_fw_version(struct pci_dev *pdev, u32 version)
+{
+	switch (version) {
+	case ROM_VALID_01:
+	case ROM_VALID_02:
+		return 0;
+	}
+	dev_err(&pdev->dev, "FW has invalid version :%d\n", version);
+	return -EINVAL;
+}
 
 static int renesas_fw_download_image(struct pci_dev *dev,
 				     const u32 *fw, size_t step, bool rom)
@@ -152,6 +167,8 @@ static int renesas_fw_verify(const void *fw_data,
 	return 0;
 }
 
+static void debugfs_init(struct pci_dev *pdev);
+
 static bool renesas_check_rom(struct pci_dev *pdev)
 {
 	u16 rom_status;
@@ -165,6 +182,7 @@ static bool renesas_check_rom(struct pci_dev *pdev)
 	rom_status &= RENESAS_ROM_STATUS_ROM_EXISTS;
 	if (rom_status) {
 		dev_dbg(&pdev->dev, "External ROM exists\n");
+		debugfs_init(pdev);
 		return true; /* External ROM exists */
 	}
 
@@ -184,7 +202,10 @@ static int renesas_check_rom_state(struct pci_dev *pdev)
 
 	version &= RENESAS_FW_VERSION_FIELD;
 	version = version >> RENESAS_FW_VERSION_OFFSET;
-	dev_dbg(&pdev->dev, "Found ROM version: %x\n", version);
+
+	err = renesas_verify_fw_version(pdev, version);
+	if (err)
+		return err;
 
 	/*
 	 * Test if ROM is present and loaded, if so we can skip everything
@@ -421,6 +442,34 @@ static void renesas_rom_erase(struct pci_dev *pdev)
 	dev_dbg(&pdev->dev, "ROM Erase... Done success\n");
 }
 
+static int debugfs_rom_erase(void *data, u64 value)
+{
+	struct pci_dev *pdev = data;
+
+	if (value == 1) {
+		dev_dbg(&pdev->dev, "Userspace requested ROM erase\n");
+		renesas_rom_erase(pdev);
+		return 0;
+	}
+	return -EINVAL;
+}
+DEFINE_DEBUGFS_ATTRIBUTE(rom_erase_ops, NULL, debugfs_rom_erase, "%llu\n");
+
+static struct dentry *debugfs_root;
+
+static void debugfs_init(struct pci_dev *pdev)
+{
+	debugfs_root = debugfs_create_dir("renesas_usb", NULL);
+
+	debugfs_create_file("rom_erase", 0200, debugfs_root,
+			    pdev, &rom_erase_ops);
+}
+
+static void debugfs_exit(void)
+{
+	debugfs_remove_recursive(debugfs_root);
+}
+
 static bool renesas_setup_rom(struct pci_dev *pdev, const struct firmware *fw)
 {
 	const u32 *fw_data = (const u32 *)fw->data;
@@ -626,5 +675,11 @@ exit:
 	return err;
 }
 EXPORT_SYMBOL_GPL(renesas_xhci_check_request_fw);
+
+void renesas_xhci_pci_exit(struct pci_dev *dev)
+{
+	debugfs_exit();
+}
+EXPORT_SYMBOL_GPL(renesas_xhci_pci_exit);
 
 MODULE_LICENSE("GPL v2");
