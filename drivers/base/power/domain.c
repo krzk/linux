@@ -494,6 +494,29 @@ void dev_pm_genpd_set_next_wakeup(struct device *dev, ktime_t next)
 }
 EXPORT_SYMBOL_GPL(dev_pm_genpd_set_next_wakeup);
 
+/**
+ * dev_pm_genpd_get_next_hrtimer - Return genpd domain next_hrtimer.
+ *
+ * @dev: Device to handle
+ *
+ * Returns the aggregated domain wakeup time for CPU PM domain
+ * when all the subdomains are off.
+ */
+ktime_t dev_pm_genpd_get_next_hrtimer(struct device *dev)
+{
+	struct generic_pm_domain *genpd;
+
+	genpd = dev_to_genpd_safe(dev);
+	if (!genpd)
+		return KTIME_MAX;
+
+	if (atomic_read(&genpd->sd_count) > 0)
+		return KTIME_MAX;
+
+	return genpd->next_hrtimer;
+}
+EXPORT_SYMBOL_GPL(dev_pm_genpd_get_next_hrtimer);
+
 static int _genpd_power_on(struct generic_pm_domain *genpd, bool timed)
 {
 	unsigned int state_idx = genpd->state_idx;
@@ -2061,6 +2084,7 @@ int pm_genpd_init(struct generic_pm_domain *genpd,
 	genpd->device_count = 0;
 	genpd->provider = NULL;
 	genpd->has_provider = false;
+	genpd->next_hrtimer = KTIME_MAX;
 	genpd->accounting_time = ktime_get_mono_fast_ns();
 	genpd->domain.ops.runtime_suspend = genpd_runtime_suspend;
 	genpd->domain.ops.runtime_resume = genpd_runtime_resume;
