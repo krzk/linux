@@ -1,0 +1,122 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+
+%YAML 1.2
+---
+$id: "http://devicetree.org/schemas/thermal/qcom,tmd-device.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Qualcomm thermal mitigation (TMD) cooling devices
+
+maintainers:
+  - Bhupesh Sharma <bhupesh.sharma@linaro.org>
+
+description:
+  Qualcomm thermal mitigation (TMD) cooling devices. Each child node
+  represents one remote subsystem and each child of this subsystem in-turn
+  represents separate cooling devices.
+
+properties:
+  $nodename:
+    pattern: "^(modem|adsp|cdsp|slpi[0-9])?$"
+
+  qcom,instance-id:
+    $ref: /schemas/types.yaml#/definitions/uint32
+    description:
+      Remote subsystem QMI server instance id to be used for communicating with QMI.
+
+patternProperties:
+  "^tmd-device[0-9]?$":
+    type: object
+    description:
+      Subnodes indicating tmd cooling device of a specific category.
+    properties:
+      label:
+        maxItems: 1
+        description: |
+          Remote subsystem device identifier. Acceptable device names -
+          "pa" -> for pa cooling device,
+          "cpuv_restriction_cold" -> for vdd restriction,
+          "cx_vdd_limit" -> for vdd limit,
+          "modem" -> for processor passive cooling device,
+          "modem_current" -> for current limiting device,
+          "modem_bw" ->  for bus bandwidth limiting device,
+          "cpr_cold" -> for cpr restriction.
+
+      "#cooling-cells":
+        const: 2
+
+    required:
+      - label
+      - "#cooling-cells"
+
+    additionalProperties: false
+
+required:
+  - qcom,instance-id
+
+additionalProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/thermal/qcom,tmd.h>
+    modem0 {
+      qcom,instance-id = <MODEM0_INSTANCE_ID>;
+
+      modem0_pa: tmd-device0 {
+        label = "pa";
+        #cooling-cells = <2>;
+      };
+
+      modem0_proc: tmd-device1 {
+        label = "modem";
+        #cooling-cells = <2>;
+      };
+
+      modem0_current: tmd-device2 {
+        label = "modem_current";
+        #cooling-cells = <2>;
+      };
+
+      modem0_skin: tmd-device3 {
+        label = "modem_skin";
+        #cooling-cells = <2>;
+      };
+
+      modem0_vdd: tmd-device4 {
+        label = "cpuv_restriction_cold";
+        #cooling-cells = <2>;
+      };
+    };
+
+  - |
+    #include <dt-bindings/thermal/qcom,tmd.h>
+    adsp {
+      qcom,instance-id = <ADSP_INSTANCE_ID>;
+
+      adsp_vdd: tmd-device1 {
+        label = "cpuv_restriction_cold";
+        #cooling-cells = <2>;
+      };
+    };
+
+  - |
+    #include <dt-bindings/thermal/qcom,tmd.h>
+    cdsp {
+      qcom,instance-id = <CDSP_INSTANCE_ID>;
+
+      cdsp_vdd: tmd-device1 {
+        label = "cpuv_restriction_cold";
+        #cooling-cells = <2>;
+      };
+    };
+
+  - |
+    #include <dt-bindings/thermal/qcom,tmd.h>
+    slpi {
+      qcom,instance-id = <SLPI_INSTANCE_ID>;
+
+      slpi_vdd: tmd-device1 {
+        label = "cpuv_restriction_cold";
+        #cooling-cells = <2>;
+      };
+    };

@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+
+%YAML 1.2
+---
+$id: "http://devicetree.org/schemas/thermal/qcom,qmi-tmd-device.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Qualcomm QMI based thermal mitigation (TMD) cooling devices.
+
+maintainers:
+  - Bhupesh Sharma <bhupesh.sharma@linaro.org>
+
+description:
+  Qualcomm QMI based TMD cooling device(s) are used for various
+  mitigations for remote subsystem(s) including remote processor
+  mitigation, rail voltage restriction etc.
+
+properties:
+  $nodename:
+    const: qmi-tmd-devices
+
+  compatible:
+    items:
+      - const: qcom,qmi-tmd-devices
+
+  modem0:
+    $ref: /schemas/thermal/qcom,tmd-device.yaml#
+
+  adsp:
+    $ref: /schemas/thermal/qcom,tmd-device.yaml#
+
+  cdsp:
+    $ref: /schemas/thermal/qcom,tmd-device.yaml#
+
+  slpi:
+    $ref: /schemas/thermal/qcom,tmd-device.yaml#
+
+required:
+  - compatible
+
+unevaluatedProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/thermal/qcom,tmd.h>
+    qmi-tmd-devices {
+      compatible = "qcom,qmi-tmd-devices";
+
+      modem0 {
+        qcom,instance-id = <MODEM0_INSTANCE_ID>;
+
+        modem0_pa: tmd-device0 {
+          label = "pa";
+          #cooling-cells = <2>;
+        };
+
+        modem0_proc: tmd-device1 {
+          label = "modem";
+          #cooling-cells = <2>;
+        };
+
+        modem0_current: tmd-device2 {
+          label = "modem_current";
+          #cooling-cells = <2>;
+        };
+
+        modem0_skin: tmd-device3 {
+          label = "modem_skin";
+          #cooling-cells = <2>;
+        };
+
+        modem0_vdd: tmd-device4 {
+          label = "cpuv_restriction_cold";
+          #cooling-cells = <2>;
+        };
+      };
+    };
+...

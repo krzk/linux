@@ -13,6 +13,7 @@
 #include <dt-bindings/clock/qcom,gpucc-sm8150.h>
 #include <dt-bindings/interconnect/qcom,osm-l3.h>
 #include <dt-bindings/interconnect/qcom,sm8150.h>
+#include <dt-bindings/thermal/qcom,tmd.h>
 #include <dt-bindings/thermal/thermal.h>
 
 / {
@@ -3440,6 +3441,67 @@
 					};
 
 					/* note: secure cb9 in downstream */
+				};
+			};
+		};
+
+		qmi_tmd_devices: qmi-tmd-devices {
+			compatible = "qcom,qmi-tmd-devices";
+			status = "disabled";
+
+			modem0 {
+				qcom,instance-id = <MODEM0_INSTANCE_ID>;
+
+				modem0_pa: tmd-device0 {
+					label = "pa";
+					#cooling-cells = <2>;
+				};
+
+				modem0_proc: tmd-device1 {
+					label = "modem";
+					#cooling-cells = <2>;
+				};
+
+				modem0_current: tmd-device2 {
+					label = "modem_current";
+					#cooling-cells = <2>;
+				};
+
+				modem0_skin: tmd-device3 {
+					label = "modem_skin";
+					#cooling-cells = <2>;
+				};
+
+				modem0_vdd: tmd-device4 {
+					label = "cpuv_restriction_cold";
+					#cooling-cells = <2>;
+				};
+			};
+
+			adsp {
+				qcom,instance-id = <ADSP_INSTANCE_ID>;
+
+				adsp_vdd: tmd-device0 {
+					label = "cpuv_restriction_cold";
+					#cooling-cells = <2>;
+				};
+			};
+
+			cdsp {
+				qcom,instance-id = <CDSP_INSTANCE_ID>;
+
+				cdsp_vdd: tmd-device0 {
+					label = "cpuv_restriction_cold";
+					#cooling-cells = <2>;
+				};
+			};
+
+			slpi {
+				qcom,instance-id = <SLPI_INSTANCE_ID>;
+
+				slpi_vdd: tmd-device0 {
+					label = "cpuv_restriction_cold";
+					#cooling-cells = <2>;
 				};
 			};
 		};
