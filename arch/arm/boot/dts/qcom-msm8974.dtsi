@@ -1545,7 +1545,8 @@
 			};
 
 			dsi0: dsi@fd922800 {
-				compatible = "qcom,mdss-dsi-ctrl";
+				compatible = "qcom,msm8974-dsi-ctrl",
+					     "qcom,mdss-dsi-ctrl";
 				reg = <0xfd922800 0x1f8>;
 				reg-names = "dsi_ctrl";
 
@@ -1571,7 +1572,6 @@
 					      "core_mmss";
 
 				phys = <&dsi0_phy>;
-				phy-names = "dsi-phy";
 
 				status = "disabled";
 

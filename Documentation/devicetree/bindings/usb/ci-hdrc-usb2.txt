@@ -90,6 +90,9 @@ Optional properties:
   case, the "idle" state needs to pull down the data and strobe pin
   and the "active" state needs to pull up the strobe pin.
 - pinctrl-n: alternate pin modes
+- pin-switch-delay-us: the optional delay time in (us) to allow for the
+  application of a pinctrl-n state switch.
+
 
 i.mx specific properties
 - fsl,usbmisc: phandler of non-core register device, with one

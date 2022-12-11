@@ -95,6 +95,7 @@ struct ci_hdrc_platform_data {
 			   u16 wIndex, char *buf, u16 wLength,
 			   bool *done, unsigned long *flags);
 	void (*enter_lpm)(struct ci_hdrc *ci, bool enable);
+	u32 pin_switch_delay_us;
 };
 
 /* Default offset of capability registers */

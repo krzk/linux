@@ -185,6 +185,22 @@ u8 hw_port_test_get(struct ci_hdrc *ci)
 	return hw_read(ci, OP_PORTSC, PORTSC_PTC) >> __ffs(PORTSC_PTC);
 }
 
+/**
+ * ci_platform_set_pin_state: set target pinctrl state with optional delay
+ *
+ * @ci: the controller
+ * @pins: the target pin-state
+ *
+ * This function returns nothing
+ */
+void ci_platform_set_pin_state(struct ci_hdrc *ci, struct pinctrl_state *pins)
+{
+	pinctrl_select_state(ci->platdata->pctl, pins);
+	if (ci->platdata->pin_switch_delay_us)
+		usleep_range(ci->platdata->pin_switch_delay_us,
+			     ci->platdata->pin_switch_delay_us + 50);
+}
+
 static void hw_wait_phy_stable(void)
 {
 	/*
@@ -808,6 +824,9 @@ static int ci_get_platdata(struct device *dev,
 
 	if (!platdata->enter_lpm)
 		platdata->enter_lpm = ci_hdrc_enter_lpm_common;
+
+	of_property_read_u32(dev->of_node, "pin-switch-delay-us",
+			     &platdata->pin_switch_delay_us);
 
 	return 0;
 }

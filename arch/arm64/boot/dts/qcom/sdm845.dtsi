@@ -4522,7 +4522,8 @@
 			};
 
 			dsi0: dsi@ae94000 {
-				compatible = "qcom,mdss-dsi-ctrl";
+				compatible = "qcom,sdm845-dsi-ctrl",
+					     "qcom,mdss-dsi-ctrl";
 				reg = <0 0x0ae94000 0 0x400>;
 				reg-names = "dsi_ctrl";
 
@@ -4548,7 +4549,6 @@
 				power-domains = <&rpmhpd SDM845_CX>;
 
 				phys = <&dsi0_phy>;
-				phy-names = "dsi";
 
 				status = "disabled";
 
@@ -4594,7 +4594,8 @@
 			};
 
 			dsi1: dsi@ae96000 {
-				compatible = "qcom,mdss-dsi-ctrl";
+				compatible = "qcom,sdm845-dsi-ctrl",
+					     "qcom,mdss-dsi-ctrl";
 				reg = <0 0x0ae96000 0 0x400>;
 				reg-names = "dsi_ctrl";
 
@@ -4620,7 +4621,6 @@
 				power-domains = <&rpmhpd SDM845_CX>;
 
 				phys = <&dsi1_phy>;
-				phy-names = "dsi";
 
 				status = "disabled";
 

@@ -1287,7 +1287,8 @@
 		};
 
 		dsi0: dsi@4700000 {
-			compatible = "qcom,mdss-dsi-ctrl";
+			compatible = "qcom,apq8064-dsi-ctrl",
+				     "qcom,mdss-dsi-ctrl";
 			label = "MDSS DSI CTRL->0";
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -1316,7 +1317,6 @@
 						<&dsi0_phy 1>;
 			syscon-sfpb = <&mmss_sfpb>;
 			phys = <&dsi0_phy>;
-			phy-names = "dsi";
 			status = "disabled";
 
 			ports {

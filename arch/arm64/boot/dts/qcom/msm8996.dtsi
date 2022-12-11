@@ -968,7 +968,8 @@
 			};
 
 			dsi0: dsi@994000 {
-				compatible = "qcom,mdss-dsi-ctrl";
+				compatible = "qcom,msm8996-dsi-ctrl",
+					     "qcom,mdss-dsi-ctrl";
 				reg = <0x00994000 0x400>;
 				reg-names = "dsi_ctrl";
 
@@ -993,7 +994,6 @@
 				assigned-clock-parents = <&dsi0_phy 0>, <&dsi0_phy 1>;
 
 				phys = <&dsi0_phy>;
-				phy-names = "dsi";
 				status = "disabled";
 
 				#address-cells = <1>;
@@ -1036,7 +1036,8 @@
 			};
 
 			dsi1: dsi@996000 {
-				compatible = "qcom,mdss-dsi-ctrl";
+				compatible = "qcom,msm8996-dsi-ctrl",
+					     "qcom,mdss-dsi-ctrl";
 				reg = <0x00996000 0x400>;
 				reg-names = "dsi_ctrl";
 
@@ -1061,7 +1062,6 @@
 				assigned-clock-parents = <&dsi1_phy 0>, <&dsi1_phy 1>;
 
 				phys = <&dsi1_phy>;
-				phy-names = "dsi";
 				status = "disabled";
 
 				#address-cells = <1>;

@@ -3904,7 +3904,8 @@
 			};
 
 			mdss_dsi: dsi@ae94000 {
-				compatible = "qcom,mdss-dsi-ctrl";
+				compatible = "qcom,sc7280-dsi-ctrl",
+					     "qcom,mdss-dsi-ctrl";
 				reg = <0 0x0ae94000 0 0x400>;
 				reg-names = "dsi_ctrl";
 
@@ -3928,7 +3929,6 @@
 				power-domains = <&rpmhpd SC7280_CX>;
 
 				phys = <&mdss_dsi_phy>;
-				phy-names = "dsi";
 
 				#address-cells = <1>;
 				#size-cells = <0>;

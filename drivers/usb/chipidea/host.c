@@ -170,8 +170,7 @@ static int host_start(struct ci_hdrc *ci)
 	}
 
 	if (ci->platdata->pins_host)
-		pinctrl_select_state(ci->platdata->pctl,
-				     ci->platdata->pins_host);
+		ci_platform_set_pin_state(ci, ci->platdata->pins_host);
 
 	ci->hcd = hcd;
 
@@ -225,8 +224,8 @@ static void host_stop(struct ci_hdrc *ci)
 	ci->otg.host = NULL;
 
 	if (ci->platdata->pins_host && ci->platdata->pins_default)
-		pinctrl_select_state(ci->platdata->pctl,
-				     ci->platdata->pins_default);
+		ci_platform_set_pin_state(ci, ci->platdata->pins_default);
+
 }
 
 
