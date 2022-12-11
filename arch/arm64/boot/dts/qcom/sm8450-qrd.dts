@@ -7,6 +7,13 @@
 
 #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
 #include "sm8450.dtsi"
+#include "pm8350.dtsi"
+#include "pm8350b.dtsi"
+#include "pm8350c.dtsi"
+#include "pm8450.dtsi"
+#include "pmk8350.dtsi"
+#include "pmr735a.dtsi"
+#include "pmr735b.dtsi"
 
 / {
 	model = "Qualcomm Technologies, Inc. SM8450 QRD";
@@ -14,6 +21,7 @@
 
 	aliases {
 		serial0 = &uart7;
+		serial1 = &uart20;
 	};
 
 	chosen {
@@ -28,6 +36,24 @@
 
 		regulator-always-on;
 		regulator-boot-on;
+	};
+
+	wcn6856: wcn6856 {
+		compatible = "qcom,wcn6855";
+		#power-domain-cells = <0>;
+
+		vddaon-supply = <&vreg_s11b_0p95>;
+		vddcx-supply = <&vreg_s11b_0p95>;
+		vddmx-supply = <&vreg_s2e_0p85>;
+		vddrfa1-supply = <&vreg_s1c_1p86>;
+		vddrfa2-supply = <&vreg_s12b_1p25>;
+		vddio-supply = <&vreg_s10b_1p8>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&wlan_en_state &xo_clk_state>;
+
+		xo-clk-gpios = <&tlmm 204 GPIO_ACTIVE_HIGH>;
+		wlan-en-gpios = <&tlmm 80 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -63,13 +89,13 @@
 
 		vreg_s11b_0p95: smps11 {
 			regulator-name = "vreg_s11b_0p95";
-			regulator-min-microvolt = <848000>;
+			regulator-min-microvolt = <966000>;
 			regulator-max-microvolt = <1104000>;
 		};
 
 		vreg_s12b_1p25: smps12 {
 			regulator-name = "vreg_s12b_1p25";
-			regulator-min-microvolt = <1224000>;
+			regulator-min-microvolt = <1350000>;
 			regulator-max-microvolt = <1400000>;
 		};
 
@@ -147,7 +173,7 @@
 
 		vreg_s1c_1p86: smps1 {
 			regulator-name = "vreg_s1c_1p86";
-			regulator-min-microvolt = <1800000>;
+			regulator-min-microvolt = <1900000>;
 			regulator-max-microvolt = <2024000>;
 		};
 
@@ -300,8 +326,8 @@
 
 		vreg_s2e_0p85: smps2 {
 			regulator-name = "vreg_s2e_0p85";
-			regulator-min-microvolt = <500000>;
-			regulator-max-microvolt = <1040000>;
+			regulator-min-microvolt = <1012000>;
+			regulator-max-microvolt = <1012000>;
 		};
 
 		vreg_l1e_0p8: ldo1 {
@@ -339,17 +365,26 @@
 			regulator-min-microvolt = <1200000>;
 			regulator-max-microvolt = <1200000>;
 		};
+
+		vreg_l7e_2p8: ldo7 {
+			regulator-name = "vreg_l7e_2p8";
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+		};
 	};
 };
 
 &pcie0 {
 	status = "okay";
+	max-link-speed = <2>;
 };
 
 &pcie0_phy {
 	status = "okay";
 	vdda-phy-supply = <&vreg_l5b_0p88>;
 	vdda-pll-supply = <&vreg_l6b_1p2>;
+
+	power-domains = <&wcn6856>;
 };
 
 &gpi_dma0 {
@@ -361,6 +396,10 @@
 };
 
 &qupv3_id_0 {
+	status = "okay";
+};
+
+&qupv3_id_2 {
 	status = "okay";
 };
 
@@ -388,6 +427,18 @@
 	firmware-name = "qcom/sm8450/slpi.mbn";
 };
 
+&sdhc_2 {
+	cd-gpios = <&tlmm 92 GPIO_ACTIVE_HIGH>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&sdc2_default_state &sdc2_card_det_n>;
+	pinctrl-1 = <&sdc2_sleep_state &sdc2_card_det_n>;
+	vmmc-supply = <&vreg_l9c_2p96>;
+	vqmmc-supply = <&vreg_l6c_1p8>;
+	no-sdio;
+	no-mmc;
+	status = "okay";
+};
+
 &spi4 {
 	status = "okay";
 };
@@ -402,10 +453,62 @@
 
 &tlmm {
 	gpio-reserved-ranges = <28 4>, <36 4>;
+
+	bt_en_state: bt-default-state {
+		bt-en {
+			pins = "gpio81";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-up;
+		};
+	};
+
+	xo_clk_state: xo_clk_state {
+		pinconf {
+			pins = "gpio204";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-down;
+		};
+	};
+
+	wlan_en_state: wlan_en_state {
+		pinconf {
+			pins = "gpio80";
+			function = "gpio";
+
+			drive-strength = <16>;
+			output-low;
+			bias-pull-down;
+		};
+	};
+
+	sdc2_card_det_n: sd-card-det-n-state {
+		pins = "gpio92";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-up;
+	};
 };
 
 &uart7 {
 	status = "okay";
+};
+
+&uart20 {
+	status = "okay";
+	bluetooth {
+		/* a little lie */
+		compatible = "qcom,wcn6855-bt";
+		pinctrl-names = "default";
+		pinctrl-0 = <&bt_en_state>;
+		power-domains = <&wcn6856>;
+		enable-gpios = <&tlmm 81 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &ufs_mem_hc {
