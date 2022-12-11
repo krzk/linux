@@ -105,6 +105,9 @@ struct hdmi_platform_config {
 	/* clks that need to be on for screen pwr (ie pixel clk): */
 	const char **pwr_clk_names;
 	int pwr_clk_cnt;
+
+	/* caps, etc. */
+	bool keep_ctrl_on;
 };
 
 struct hdmi_bridge {
