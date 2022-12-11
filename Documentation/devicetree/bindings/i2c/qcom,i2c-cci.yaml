@@ -56,6 +56,9 @@ patternProperties:
       clock-frequency:
         default: 100000
 
+      vbus-supply:
+        description: Phandle to regulator that provides power to SCL/SDA line
+
 required:
   - compatible
   - clock-names
