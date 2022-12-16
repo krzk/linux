@@ -60,6 +60,14 @@
  * GENPD_FLAG_MIN_RESIDENCY:	Enable the genpd governor to consider its
  *				components' next wakeup when determining the
  *				optimal idle state.
+ *
+ * GENPD_FLAG_RT_SAFE:		When used with GENPD_FLAG_IRQ_SAFE, this informs
+ *				genpd that its backend callbacks, ->power_on|off(),
+ *				do not use other spinlocks. They might use
+ *				raw_spinlocks or other pre-emption-disable
+ *				methods, all of which are PREEMPT_RT safe. Note
+ *				that, a genpd having this flag set, requires its
+ *				masterdomains to also have it set.
  */
 #define GENPD_FLAG_PM_CLK	 (1U << 0)
 #define GENPD_FLAG_IRQ_SAFE	 (1U << 1)
@@ -68,6 +76,7 @@
 #define GENPD_FLAG_CPU_DOMAIN	 (1U << 4)
 #define GENPD_FLAG_RPM_ALWAYS_ON (1U << 5)
 #define GENPD_FLAG_MIN_RESIDENCY (1U << 6)
+#define GENPD_FLAG_RT_SAFE	 (1U << 7)
 
 enum gpd_status {
 	GENPD_STATE_ON = 0,	/* PM domain is on */
@@ -161,6 +170,10 @@ struct generic_pm_domain {
 		struct {
 			spinlock_t slock;
 			unsigned long lock_flags;
+		};
+		struct {
+			raw_spinlock_t rslock;
+			unsigned long rlock_flags;
 		};
 	};
 
