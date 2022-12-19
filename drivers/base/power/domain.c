@@ -1684,10 +1684,14 @@ static int genpd_add_device(struct generic_pm_domain *genpd, struct device *dev,
 	if (ret)
 		goto out;
 
+
+	/* PREEMPT_RT: Must be outside of genpd_lock */
+	device_pm_check_callbacks(dev);
+
 	genpd_lock(genpd);
 
 	genpd_set_cpumask(genpd, gpd_data->cpu);
-	dev_pm_domain_set(dev, &genpd->domain);
+	dev_pm_domain_set_no_cb(dev, &genpd->domain);
 
 	genpd->device_count++;
 	if (gd)
