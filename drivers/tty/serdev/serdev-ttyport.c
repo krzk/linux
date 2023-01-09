@@ -91,6 +91,9 @@ static void ttyport_write_flush(struct serdev_controller *ctrl)
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
 
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return;
+
 	tty_driver_flush_buffer(tty);
 }
 
@@ -98,6 +101,9 @@ static int ttyport_write_room(struct serdev_controller *ctrl)
 {
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
+
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return 0;
 
 	return tty_write_room(tty);
 }
@@ -172,6 +178,9 @@ static unsigned int ttyport_set_baudrate(struct serdev_controller *ctrl, unsigne
 	struct tty_struct *tty = serport->tty;
 	struct ktermios ktermios = tty->termios;
 
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return -ENXIO;
+
 	ktermios.c_cflag &= ~CBAUD;
 	tty_termios_encode_baud_rate(&ktermios, speed, speed);
 
@@ -185,6 +194,9 @@ static void ttyport_set_flow_control(struct serdev_controller *ctrl, bool enable
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
 	struct ktermios ktermios = tty->termios;
+
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return;
 
 	if (enable)
 		ktermios.c_cflag |= CRTSCTS;
@@ -200,6 +212,9 @@ static int ttyport_set_parity(struct serdev_controller *ctrl,
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
 	struct ktermios ktermios = tty->termios;
+
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return -ENXIO;
 
 	ktermios.c_cflag &= ~(PARENB | PARODD | CMSPAR);
 	if (parity != SERDEV_PARITY_NONE) {
@@ -222,6 +237,9 @@ static void ttyport_wait_until_sent(struct serdev_controller *ctrl, long timeout
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
 
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return;
+
 	tty_wait_until_sent(tty, timeout);
 }
 
@@ -229,6 +247,9 @@ static int ttyport_get_tiocm(struct serdev_controller *ctrl)
 {
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
+
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return -ENXIO;
 
 	if (!tty->ops->tiocmget)
 		return -ENOTSUPP;
@@ -240,6 +261,9 @@ static int ttyport_set_tiocm(struct serdev_controller *ctrl, unsigned int set, u
 {
 	struct serport *serport = serdev_controller_get_drvdata(ctrl);
 	struct tty_struct *tty = serport->tty;
+
+	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+		return -ENXIO;
 
 	if (!tty->ops->tiocmset)
 		return -ENOTSUPP;
