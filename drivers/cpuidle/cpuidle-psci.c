@@ -72,7 +72,7 @@ static int __psci_enter_domain_idle_state(struct cpuidle_device *dev,
 	ct_irq_enter_irqson();
 	if (s2idle)
 		dev_pm_genpd_suspend(pd_dev);
-	else
+	else if (!IS_ENABLED(CONFIG_PREEMPT_RT))
 		pm_runtime_put_sync_suspend(pd_dev);
 	ct_irq_exit_irqson();
 
@@ -85,7 +85,7 @@ static int __psci_enter_domain_idle_state(struct cpuidle_device *dev,
 	ct_irq_enter_irqson();
 	if (s2idle)
 		dev_pm_genpd_resume(pd_dev);
-	else
+	else if (!IS_ENABLED(CONFIG_PREEMPT_RT))
 		pm_runtime_get_sync(pd_dev);
 	ct_irq_exit_irqson();
 

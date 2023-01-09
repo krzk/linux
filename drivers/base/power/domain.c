@@ -119,6 +119,48 @@ static const struct genpd_lock_ops genpd_spin_ops = {
 	.unlock = genpd_unlock_spin,
 };
 
+static void genpd_lock_rawspin(struct generic_pm_domain *genpd)
+	__acquires(&genpd->rslock)
+{
+	unsigned long flags;
+
+	raw_spin_lock_irqsave(&genpd->rslock, flags);
+	genpd->rlock_flags = flags;
+}
+
+static void genpd_lock_nested_rawspin(struct generic_pm_domain *genpd,
+					int depth)
+	__acquires(&genpd->rslock)
+{
+	unsigned long flags;
+
+	raw_spin_lock_irqsave_nested(&genpd->rslock, flags, depth);
+	genpd->rlock_flags = flags;
+}
+
+static int genpd_lock_interruptible_rawspin(struct generic_pm_domain *genpd)
+	__acquires(&genpd->rslock)
+{
+	unsigned long flags;
+
+	raw_spin_lock_irqsave(&genpd->rslock, flags);
+	genpd->rlock_flags = flags;
+	return 0;
+}
+
+static void genpd_unlock_rawspin(struct generic_pm_domain *genpd)
+	__releases(&genpd->rslock)
+{
+	raw_spin_unlock_irqrestore(&genpd->rslock, genpd->rlock_flags);
+}
+
+static const struct genpd_lock_ops genpd_rawspin_ops = {
+	.lock = genpd_lock_rawspin,
+	.lock_nested = genpd_lock_nested_rawspin,
+	.lock_interruptible = genpd_lock_interruptible_rawspin,
+	.unlock = genpd_unlock_rawspin,
+};
+
 #define genpd_lock(p)			p->lock_ops->lock(p)
 #define genpd_lock_nested(p, d)		p->lock_ops->lock_nested(p, d)
 #define genpd_lock_interruptible(p)	p->lock_ops->lock_interruptible(p)
@@ -126,6 +168,8 @@ static const struct genpd_lock_ops genpd_spin_ops = {
 
 #define genpd_status_on(genpd)		(genpd->status == GENPD_STATE_ON)
 #define genpd_is_irq_safe(genpd)	(genpd->flags & GENPD_FLAG_IRQ_SAFE)
+#define genpd_is_rt_safe(genpd)		(genpd_is_irq_safe(genpd) && \
+					 (genpd->flags & GENPD_FLAG_RT_SAFE))
 #define genpd_is_always_on(genpd)	(genpd->flags & GENPD_FLAG_ALWAYS_ON)
 #define genpd_is_active_wakeup(genpd)	(genpd->flags & GENPD_FLAG_ACTIVE_WAKEUP)
 #define genpd_is_cpu_domain(genpd)	(genpd->flags & GENPD_FLAG_CPU_DOMAIN)
@@ -1663,10 +1707,14 @@ static int genpd_add_device(struct generic_pm_domain *genpd, struct device *dev,
 	if (ret)
 		goto out;
 
+
+	/* PREEMPT_RT: Must be outside of genpd_lock */
+	device_pm_check_callbacks(dev);
+
 	genpd_lock(genpd);
 
 	genpd_set_cpumask(genpd, gpd_data->cpu);
-	dev_pm_domain_set(dev, &genpd->domain);
+	dev_pm_domain_set_no_cb(dev, &genpd->domain);
 
 	genpd->device_count++;
 	if (gd)
@@ -1879,6 +1927,12 @@ static int genpd_add_subdomain(struct generic_pm_domain *genpd,
 		return -EINVAL;
 	}
 
+	if (!genpd_is_rt_safe(genpd) && genpd_is_rt_safe(subdomain)) {
+		WARN(1, "Parent %s of subdomain %s must be RT safe\n",
+		     genpd->name, subdomain->name);
+		return -EINVAL;
+	}
+
 	link = kzalloc(sizeof(*link), GFP_KERNEL);
 	if (!link)
 		return -ENOMEM;
@@ -2048,8 +2102,13 @@ static void genpd_free_data(struct generic_pm_domain *genpd)
 static void genpd_lock_init(struct generic_pm_domain *genpd)
 {
 	if (genpd->flags & GENPD_FLAG_IRQ_SAFE) {
-		spin_lock_init(&genpd->slock);
-		genpd->lock_ops = &genpd_spin_ops;
+		if (genpd->flags & GENPD_FLAG_RT_SAFE) {
+			raw_spin_lock_init(&genpd->rslock);
+			genpd->lock_ops = &genpd_rawspin_ops;
+		} else {
+			spin_lock_init(&genpd->slock);
+			genpd->lock_ops = &genpd_spin_ops;
+		}
 	} else {
 		mutex_init(&genpd->mlock);
 		genpd->lock_ops = &genpd_mtx_ops;
