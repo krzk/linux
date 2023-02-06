@@ -270,7 +270,7 @@
 .Lskip_sme_fa64_\@:
 
 	// ZT0 available?
-	__check_override id_aa64smfr0 ID_AA64SMFR0_EL1_SMEver_SHIFT 4 .Linit_sme_zt0_\@ .Lskip_sme_zt0_\@
+	__check_override id_aa64smfr0, ID_AA64SMFR0_EL1_SMEver_SHIFT, 4, .Linit_sme_zt0_\@, .Lskip_sme_zt0_\@, x1, x2
 .Linit_sme_zt0_\@:
 	orr	x0, x0, SMCR_ELx_EZT0_MASK
 .Lskip_sme_zt0_\@:
