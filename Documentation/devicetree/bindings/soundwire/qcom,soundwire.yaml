@@ -82,6 +82,17 @@ properties:
     minItems: 3
     maxItems: 8
 
+  qcom,ports-sinterval:
+    $ref: /schemas/types.yaml#/definitions/uint16-array
+    description:
+      Sample interval (low and high) of each data port.
+      Out ports followed by In ports. Used for Sample Interval calculation.
+      Value of 0xff indicates that this option is not implemented
+      or applicable for the respective data port.
+      More info in MIPI Alliance SoundWire 1.0 Specifications.
+    minItems: 3
+    maxItems: 8
+
   qcom,ports-sinterval-low:
     $ref: /schemas/types.yaml#/definitions/uint8-array
     description:
@@ -218,9 +229,23 @@ required:
   - '#size-cells'
   - qcom,dout-ports
   - qcom,din-ports
-  - qcom,ports-sinterval-low
   - qcom,ports-offset1
   - qcom,ports-offset2
+
+oneOf:
+  - required:
+      - qcom,ports-sinterval
+  - required:
+      - qcom,ports-sinterval-low
+
+allOf:
+  - if:
+      properties:
+        compatible:
+          const: qcom,soundwire-v1.3.0
+    then:
+      properties:
+        qcom,ports-sinterval: false
 
 additionalProperties: false
 
