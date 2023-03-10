@@ -232,7 +232,7 @@ static struct platform_driver pbias_regulator_driver = {
 	.driver		= {
 		.name		= "pbias-regulator",
 		.probe_type	= PROBE_PREFER_ASYNCHRONOUS,
-		.of_match_table = of_match_ptr(pbias_of_match),
+		.of_match_table = pbias_of_match,
 	},
 };
 
