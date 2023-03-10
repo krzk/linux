@@ -766,7 +766,7 @@ static struct platform_driver twlreg_driver = {
 	.driver  = {
 		.name  = "twl6030_reg",
 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
-		.of_match_table = of_match_ptr(twl_of_match),
+		.of_match_table = twl_of_match,
 	},
 };
 
