@@ -1106,7 +1106,7 @@ static struct platform_driver img_hash_driver = {
 	.driver		= {
 		.name	= "img-hash-accelerator",
 		.pm	= &img_hash_pm_ops,
-		.of_match_table	= of_match_ptr(img_hash_match),
+		.of_match_table	= img_hash_match,
 	}
 };
 module_platform_driver(img_hash_driver);
