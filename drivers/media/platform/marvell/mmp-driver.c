@@ -372,7 +372,7 @@ static struct platform_driver mmpcam_driver = {
 	.remove		= mmpcam_platform_remove,
 	.driver = {
 		.name	= "mmp-camera",
-		.of_match_table = of_match_ptr(mmpcam_of_match),
+		.of_match_table = mmpcam_of_match,
 		.pm = &mmpcam_pm_ops,
 	}
 };
