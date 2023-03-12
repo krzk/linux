@@ -734,7 +734,7 @@ static const struct of_device_id olpc_xo175_ec_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, olpc_xo175_ec_of_match);
 
-static const struct spi_device_id olpc_xo175_ec_id_table[] = {
+static const struct spi_device_id olpc_xo175_ec_id_table[] __maybe_unused = {
 	{ "xo1.75-ec", 0 },
 	{}
 };
