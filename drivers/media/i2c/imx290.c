@@ -1363,7 +1363,7 @@ static struct i2c_driver imx290_i2c_driver = {
 	.driver = {
 		.name  = "imx290",
 		.pm = &imx290_pm_ops,
-		.of_match_table = of_match_ptr(imx290_of_match),
+		.of_match_table = imx290_of_match,
 	},
 };
 
