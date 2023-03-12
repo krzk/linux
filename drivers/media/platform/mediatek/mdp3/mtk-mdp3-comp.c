@@ -604,7 +604,7 @@ static const struct mdp_comp_match mdp_comp_matches[MDP_MAX_COMP_COUNT] = {
 	[MDP_COMP_WDMA] =	{ MDP_COMP_TYPE_WDMA, 0 },
 };
 
-static const struct of_device_id mdp_comp_dt_ids[] = {
+static const struct of_device_id mdp_comp_dt_ids[] __maybe_unused = {
 	{
 		.compatible = "mediatek,mt8183-mdp3-rdma",
 		.data = (void *)MDP_COMP_TYPE_RDMA,
@@ -624,7 +624,7 @@ static const struct of_device_id mdp_comp_dt_ids[] = {
 	{}
 };
 
-static const struct of_device_id mdp_sub_comp_dt_ids[] = {
+static const struct of_device_id mdp_sub_comp_dt_ids[] __maybe_unused = {
 	{
 		.compatible = "mediatek,mt8183-mdp3-wdma",
 		.data = (void *)MDP_COMP_TYPE_PATH,
