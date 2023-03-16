@@ -75,8 +75,10 @@ struct audio_buffer {
 struct audioreach_graph_data {
 	struct audio_buffer *buf;
 	uint32_t num_periods;
+	uint32_t period_sz;
 	uint32_t dsp_buf;
 	uint32_t mem_map_handle;
+	uint32_t pointer;
 };
 
 struct audioreach_graph {
@@ -116,6 +118,7 @@ int q6apm_graph_prepare(struct q6apm_graph *graph);
 int q6apm_graph_start(struct q6apm_graph *graph);
 int q6apm_graph_stop(struct q6apm_graph *graph);
 int q6apm_graph_flush(struct q6apm_graph *graph);
+int q6apm_graph_get_pointer(struct q6apm_graph *graph, unsigned int dir);
 
 /* Media Format */
 int q6apm_graph_media_format_pcm(struct q6apm_graph *graph,

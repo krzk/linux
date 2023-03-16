@@ -225,6 +225,8 @@ int q6apm_map_memory_regions(struct q6apm_graph *graph, unsigned int dir, phys_a
 
 	mutex_lock(&graph->lock);
 
+	data->period_sz = period_sz;
+
 	if (data->buf) {
 		mutex_unlock(&graph->lock);
 		return 0;
@@ -455,6 +457,26 @@ int q6apm_write_async(struct q6apm_graph *graph, uint32_t len, uint32_t msw_ts,
 }
 EXPORT_SYMBOL_GPL(q6apm_write_async);
 
+int q6apm_graph_get_pointer(struct q6apm_graph *graph, unsigned int dir)
+{
+	struct audioreach_graph_data *data;
+	int ptr = 0;
+
+	if (dir == SNDRV_PCM_STREAM_PLAYBACK)
+		data = &graph->rx_data;
+	else
+		data = &graph->tx_data;
+
+	mutex_lock(&graph->lock);
+	if (data->pointer)
+		ptr = data->pointer - 1;
+	mutex_unlock(&graph->lock);
+
+	return ptr;
+}
+
+EXPORT_SYMBOL_GPL(q6apm_graph_get_pointer);
+
 int q6apm_read(struct q6apm_graph *graph)
 {
 	struct data_cmd_rd_sh_mem_ep_data_buffer_v2 *read_buffer;
@@ -516,7 +538,7 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 		client_event = APM_CLIENT_EVENT_DATA_WRITE_DONE;
 		mutex_lock(&graph->lock);
 		token = hdr->token & APM_WRITE_TOKEN_MASK;
-
+		graph->rx_data.pointer = (token + 1) * graph->rx_data.period_sz;
 		done = data->payload;
 		phys = graph->rx_data.buf[token].phys;
 		mutex_unlock(&graph->lock);
@@ -552,6 +574,7 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 		mutex_lock(&graph->lock);
 		rd_done = data->payload;
 		phys = graph->tx_data.buf[hdr->token].phys;
+		graph->tx_data.pointer = (hdr->token + 1) * graph->tx_data.period_sz;
 		mutex_unlock(&graph->lock);
 
 		if (upper_32_bits(phys) == rd_done->buf_addr_msw &&
