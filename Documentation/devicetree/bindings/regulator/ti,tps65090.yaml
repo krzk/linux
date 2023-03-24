@@ -93,7 +93,6 @@ additionalProperties: false
 required:
   - compatible
   - reg
-  - interrupts
   - regulators
 
 examples:
