@@ -83,6 +83,8 @@ properties:
 
   ranges: true
 
+  dma-ranges: true
+
   power-domains:
     description: specifies a phandle to PM domain provider node
     maxItems: 1
