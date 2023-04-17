@@ -3178,23 +3178,6 @@
 				bias-pull-down;
 			};
 
-			i2s0_active: i2s0-active-state {
-				i2s0_sck: sck-pins {
-					pins = "gpio126";
-					function = "mi2s0_sck";
-				};
-
-				i2s0_data: data0-pins {
-					pins = "gpio127";
-					function = "mi2s0_data0";
-				};
-
-				i2s0_ws: ws-pins {
-					pins = "gpio129";
-					function = "mi2s0_ws";
-				};
-			};
-
 			pcie0_default_state: pcie0-default-state {
 				perst-pins {
 					pins = "gpio94";
