@@ -3179,11 +3179,6 @@
 			};
 
 			i2s0_active: i2s0-active-state {
-				i2s0_mclk: mclk-pins {
-					pins = "gpio125";
-					function = "pri_mi2s";
-				};
-
 				i2s0_sck: sck-pins {
 					pins = "gpio126";
 					function = "mi2s0_sck";
