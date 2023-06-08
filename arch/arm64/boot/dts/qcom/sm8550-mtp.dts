@@ -96,10 +96,12 @@
 	};
 
 	sound {
-		compatible = "qcom,sm8450-sndcard";
-		model = "SM8550-QRD";
+		compatible = "qcom,sm8550-sndcard", "qcom,sm8450-sndcard";
+		model = "SM8550-MTP";
 		audio-routing = "SpkrLeft IN", "WSA_SPK1 OUT",
 				"SpkrRight IN", "WSA_SPK2 OUT",
+				"IN1_HPHL", "HPHL_OUT",
+				"IN2_HPHR", "HPHR_OUT",
 				"AMIC2", "MIC BIAS2",
 				"VA DMIC0", "MIC BIAS1",
 				"VA DMIC1", "MIC BIAS1",
@@ -108,8 +110,6 @@
 				"TX DMIC1", "MIC BIAS2",
 				"TX DMIC2", "MIC BIAS3",
 				"TX SWR_ADC1", "ADC2_OUTPUT";
-		//pinctrl-0 = <&i2s0_active>; // TODO
-		//pinctrl-names = "default";
 
 		wcd-playback-dai-link {
 			link-name = "WCD Playback";
