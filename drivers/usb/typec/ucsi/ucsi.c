@@ -751,6 +751,11 @@ static int ucsi_register_partner(struct ucsi_connector *con)
 
 	memset(&desc, 0, sizeof(desc));
 
+	pr_err("%s:%d AAA register partner: 0x%x=%lu\n",
+	       __func__, __LINE__,
+	       con->status.flags,
+	       UCSI_CONSTAT_PARTNER_TYPE(con->status.flags));
+
 	switch (UCSI_CONSTAT_PARTNER_TYPE(con->status.flags)) {
 	case UCSI_CONSTAT_PARTNER_TYPE_DEBUG:
 		desc.accessory = TYPEC_ACCESSORY_DEBUG;
@@ -792,6 +797,11 @@ static void ucsi_partner_change(struct ucsi_connector *con)
 {
 	enum usb_role u_role = USB_ROLE_NONE;
 	int ret;
+
+	pr_err("%s:%d AAA partner: 0x%x=%lu\n",
+	       __func__, __LINE__,
+	       con->status.flags,
+	       UCSI_CONSTAT_PARTNER_TYPE(con->status.flags));
 
 	switch (UCSI_CONSTAT_PARTNER_TYPE(con->status.flags)) {
 	case UCSI_CONSTAT_PARTNER_TYPE_UFP:
@@ -866,6 +876,11 @@ static void ucsi_handle_connector_change(struct work_struct *work)
 			__func__, ret);
 		goto out_unlock;
 	}
+	pr_err("%s:%d AAA status st 0x%x, flags 0x%x, pwr 0x%x\n", __func__, __LINE__,
+	       con->status.change,
+	       con->status.flags,
+	       con->status.pwr_status
+	       );
 
 	trace_ucsi_connector_change(con->num, &con->status);
 
@@ -930,6 +945,7 @@ void ucsi_connector_change(struct ucsi *ucsi, u8 num)
 {
 	struct ucsi_connector *con = &ucsi->connector[num - 1];
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (!(ucsi->ntfy & UCSI_ENABLE_NTFY_CONNECTOR_CHANGE)) {
 		dev_dbg(ucsi->dev, "Bogus connector change event\n");
 		return;

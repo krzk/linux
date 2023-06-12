@@ -240,7 +240,18 @@ static void pmic_glink_ucsi_notify(struct work_struct *work)
 			}
 		}
 
+	pr_err("%s:%d GLINK UCSI[%d] notify: st 0x%x, flags 0x%x, pwr 0x%x\n",
+	       __func__, __LINE__,
+	       con_num,
+	       ucsi->ucsi->connector[con_num].status.change,
+	       ucsi->ucsi->connector[con_num].status.flags,
+	       ucsi->ucsi->connector[con_num].status.pwr_status
+	       );
+
 		ucsi_connector_change(ucsi->ucsi, con_num);
+	} else {
+		pr_err("%s:%d GLINK UCSI no connector num\n",
+	       __func__, __LINE__);
 	}
 
 	if (ucsi->sync_pending && cci & UCSI_CCI_BUSY) {
