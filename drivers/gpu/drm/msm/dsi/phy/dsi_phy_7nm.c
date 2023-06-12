@@ -451,10 +451,15 @@ static void dsi_pll_phy_dig_reset(struct dsi_pll_7nm *pll)
 	wmb(); /* Ensure that the reset is deasserted */
 }
 
+static unsigned long dsi_pll_7nm_vco_recalc_rate(struct clk_hw *hw,
+						  unsigned long parent_rate);
 static int dsi_pll_7nm_vco_prepare(struct clk_hw *hw)
 {
 	struct dsi_pll_7nm *pll_7nm = to_pll_7nm(hw);
 	int rc;
+
+	if (dsi_pll_7nm_vco_recalc_rate(hw, VCO_REF_CLK_RATE) == 0)
+		dsi_pll_7nm_vco_set_rate(hw, pll_7nm->phy->cfg->min_pll_rate, VCO_REF_CLK_RATE);
 
 	dsi_pll_enable_pll_bias(pll_7nm);
 	if (pll_7nm->slave)
