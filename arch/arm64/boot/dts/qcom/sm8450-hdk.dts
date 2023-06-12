@@ -97,6 +97,7 @@
 			reg = <0>;
 			power-role = "dual";
 			data-role = "dual";
+			orientation-gpios = <&tlmm 91 GPIO_ACTIVE_HIGH>;
 
 			ports {
 				#address-cells = <1>;
