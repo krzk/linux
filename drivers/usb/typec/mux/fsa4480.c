@@ -25,6 +25,7 @@
 #define FSA4480_DELAY_L_MIC	0x0e
 #define FSA4480_DELAY_L_SENSE	0x0f
 #define FSA4480_DELAY_L_AGND	0x10
+#define FSA4480_FUNCTION_ENABLE	0x12
 #define FSA4480_RESET		0x1e
 #define FSA4480_MAX_REGISTER	0x1f
 
@@ -33,7 +34,7 @@
 #define FSA4480_ENABLE_USB	GENMASK(4, 3)
 
 #define FSA4480_SEL_SBU_REVERSE	GENMASK(6, 5)
-#define FSA4480_SEL_USB		GENMASK(4, 3)
+#define FSA4480_SEL_USB		0
 
 struct fsa4480 {
 	struct i2c_client *client;
@@ -58,11 +59,96 @@ static const struct regmap_config fsa4480_regmap_config = {
 	.disable_locking = true,
 };
 
+/*
+ * Audio on:
+ * enable 0x4: 0x9f, which is all except SBU1_H and SBU2_H
+ * 1: Sense to GSBUx switches
+ * 1: MIC to SBUx switches
+ * 1: AGND to SBUx switches
+ *
+ * control 0x5: 0x0, which is
+ * 0: DN_L to L switch ON
+ * 0: DP_R to R switch ON
+ * 0: Sense to GSBU1 switch ON
+ * 0: MIC to SBU2 switch ON
+ * 0: AGND to SBU1 switch ON
+ *
+ * Audio off:
+ * enable 0x4: 0x98, which disables:
+ * 0: Sense to GSBUx switches
+ * 0: MIC to SBUx switches
+ * 0: AGND to SBUx switches
+ *
+ * control 0x5: 0x18 which is:
+ * 1: DN_L to DN switch ON
+ * 1: DP_R to DP switch ON
+ * 0: Sense to GSBU1 switch ON
+ * 0: MIC to SBU2 switch ON
+ * 0: AGND to SBU1 switch ON
+ */
+static void dump_regs(struct fsa4480 *fsa)
+{
+	int val = 0xffffff;
+	int addr;
+
+	addr = 0x6;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+	addr = 0x7;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+
+	regmap_read(fsa->regmap, 0x11, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n",
+	       0x11, val);
+	regmap_read(fsa->regmap, 0x12, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n",
+	       0x12, val);
+	regmap_read(fsa->regmap, 0x13, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n",
+	       0x13, val);
+
+	addr = 0x14;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+	addr = 0x15;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+	addr = 0x16;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+
+	regmap_read(fsa->regmap, 0x17, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n",
+	       0x17, val);
+
+
+	addr = 0x18;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+	addr = 0x19;
+	regmap_read(fsa->regmap, addr, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n", addr, val);
+
+	regmap_read(fsa->regmap, 0x1a, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n",
+	       0x1a, val);
+	regmap_read(fsa->regmap, 0x1b, &val);
+	pr_err("AAAA fsa [0x%x]=0x%x\n",
+	       0x1b, val);
+}
+
 static int fsa4480_switch_set(struct typec_switch_dev *sw,
 			      enum typec_orientation orientation)
 {
 	struct fsa4480 *fsa = typec_switch_get_drvdata(sw);
 	u8 new_sel;
+
+	pr_err("AAAA fsa %s:%d orient %u\n", __func__, __LINE__,
+	       orientation);
+
+	dump_regs(fsa);
+	//WARN_ON(1);
 
 	mutex_lock(&fsa->lock);
 	new_sel = FSA4480_SEL_USB;
@@ -104,6 +190,18 @@ static int fsa4480_mux_set(struct typec_mux_dev *mux, struct typec_mux_state *st
 
 	mutex_lock(&fsa->lock);
 
+	if (state->alt)
+		pr_err("AAAA fsa %s:%d mode %lu, alt->svid: %d, alt->mode: %d\n",
+		       __func__, __LINE__,
+		       state->mode, state->alt->svid, state->alt->mode);
+	else
+		pr_err("AAAA fsa %s:%d mode %lu\n", __func__, __LINE__,
+		       state->mode);
+
+	dump_regs(fsa);
+
+	WARN_ON(1);
+
 	new_enable = FSA4480_ENABLE_DEVICE | FSA4480_ENABLE_USB;
 	if (state->mode >= TYPEC_DP_STATE_A)
 		new_enable |= FSA4480_ENABLE_SBU;
@@ -144,7 +242,7 @@ static int fsa4480_probe(struct i2c_client *client)
 		return dev_err_probe(dev, PTR_ERR(fsa->regmap), "failed to initialize regmap\n");
 
 	fsa->cur_enable = FSA4480_ENABLE_DEVICE | FSA4480_ENABLE_USB;
-	fsa->cur_select = FSA4480_SEL_USB;
+	fsa->cur_select = 0;
 
 	/* set default settings */
 	regmap_write(fsa->regmap, FSA4480_SLOW_L, 0x00);
@@ -156,6 +254,7 @@ static int fsa4480_probe(struct i2c_client *client)
 	regmap_write(fsa->regmap, FSA4480_DELAY_L_MIC, 0x00);
 	regmap_write(fsa->regmap, FSA4480_DELAY_L_SENSE, 0x00);
 	regmap_write(fsa->regmap, FSA4480_DELAY_L_AGND, 0x09);
+	regmap_write(fsa->regmap, FSA4480_FUNCTION_ENABLE, 0x0f);
 	regmap_write(fsa->regmap, FSA4480_SWITCH_SELECT, fsa->cur_select);
 	regmap_write(fsa->regmap, FSA4480_SWITCH_ENABLE, fsa->cur_enable);
 
