@@ -10,6 +10,7 @@
 #ifndef QC_MSM_CAMSS_H
 #define QC_MSM_CAMSS_H
 
+#include <linux/debugfs.h>
 #include <linux/device.h>
 #include <linux/types.h>
 #include <media/v4l2-async.h>
@@ -126,6 +127,7 @@ struct camss {
 	struct device_link *genpd_link;
 	struct icc_path *icc_path[ICC_SM8250_COUNT];
 	const struct camss_resources *res;
+	struct dentry *debugfs_rootdir;
 };
 
 struct camss_camera_interface {
@@ -167,5 +169,12 @@ void camss_delete(struct camss *camss);
 void camss_buf_done(struct camss *camss, int hw_id, int port_id);
 void camss_reg_update(struct camss *camss, int hw_id,
 		      int port_id, bool is_clear);
+
+#define CAMSS_DEBUGFS_ADD(rootdir, name, mode, fop, priv_data)	\
+do {								\
+	debugfs_create_file(__stringify(name),		\
+			    mode, rootdir,		\
+			    priv_data, fop);		\
+} while (0)
 
 #endif /* QC_MSM_CAMSS_H */
