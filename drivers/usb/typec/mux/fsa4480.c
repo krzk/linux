@@ -76,7 +76,7 @@ static int fsa4480_set(struct fsa4480 *fsa)
 	u8 enable = FSA4480_ENABLE_DEVICE;
 	u8 sel = 0;
 
-	pr_info("%s: reverse %d mode %d svid %x\n", __func__, reverse, fsa->mode, fsa->svid);
+	pr_info("%s: reverse %d mode %lu svid %x\n", __func__, reverse, fsa->mode, fsa->svid);
 
 	/* USB Mode */
 	if (fsa->mode < TYPEC_STATE_MODAL ||
@@ -169,7 +169,7 @@ static int fsa4480_mux_set(struct typec_mux_dev *mux, struct typec_mux_state *st
 	struct fsa4480 *fsa = typec_mux_get_drvdata(mux);
 	int ret = 0;
 
-	pr_info("%s: mux mode %d alt %d\n", __func__, state->mode, !!state->alt);
+	pr_info("%s: mux mode %lu alt %d\n", __func__, state->mode, !!state->alt);
 
 	mutex_lock(&fsa->lock);
 
