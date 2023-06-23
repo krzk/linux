@@ -805,7 +805,7 @@ static ssize_t read_file_csiphy_dump_regs(struct file *file,
 	mutex_lock(&csiphy->mutex);
 
 	if (csiphy->active)
-		len = csiphy->res->ops->dump_regs(csiphy, buf, buf_len);
+		len = csiphy->res->hw_ops->dump_regs(csiphy, buf, buf_len);
 	else
 		len = scnprintf(buf + len, buf_len - len, "%s %s\n",
 				csiphy->irq_name,

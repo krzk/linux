@@ -120,6 +120,8 @@ struct vfe_hw_ops {
 	void (*vfe_buf_done)(struct vfe_device *vfe, int port_id);
 	void (*vfe_wm_update)(struct vfe_device *vfe, u8 wm, u32 addr,
 			      struct vfe_line *line);
+	size_t (*dump_regs)(struct vfe_device *vfe, char *buf,
+			    size_t buf_len);
 };
 
 struct vfe_isr_ops {
