@@ -1288,6 +1288,14 @@ static unsigned int xdr_set_tail_base(struct xdr_stream *xdr,
 	return xdr_set_iov(xdr, buf->tail, base, len);
 }
 
+void xdr_stream_unmap_current_page(struct xdr_stream *xdr)
+{
+	if (xdr->page_kaddr) {
+		kunmap_local(xdr->page_kaddr);
+		xdr->page_kaddr = NULL;
+	}
+}
+
 static unsigned int xdr_set_page_base(struct xdr_stream *xdr,
 				      unsigned int base, unsigned int len)
 {
@@ -1295,7 +1303,6 @@ static unsigned int xdr_set_page_base(struct xdr_stream *xdr,
 	unsigned int maxlen;
 	unsigned int pgoff;
 	unsigned int pgend;
-	void *kaddr;
 
 	maxlen = xdr->buf->page_len;
 	if (base >= maxlen)
@@ -1310,15 +1317,15 @@ static unsigned int xdr_set_page_base(struct xdr_stream *xdr,
 
 	pgnr = base >> PAGE_SHIFT;
 	xdr->page_ptr = &xdr->buf->pages[pgnr];
-	kaddr = page_address(*xdr->page_ptr);
+	xdr->page_kaddr = kmap_local_page(*xdr->page_ptr);
 
 	pgoff = base & ~PAGE_MASK;
-	xdr->p = (__be32*)(kaddr + pgoff);
+	xdr->p = (__be32*)(xdr->page_kaddr + pgoff);
 
 	pgend = pgoff + len;
 	if (pgend > PAGE_SIZE)
 		pgend = PAGE_SIZE;
-	xdr->end = (__be32*)(kaddr + pgend);
+	xdr->end = (__be32*)(xdr->page_kaddr + pgend);
 	xdr->iov = NULL;
 	return len;
 }
@@ -1346,9 +1353,10 @@ static void xdr_set_next_page(struct xdr_stream *xdr)
 
 static bool xdr_set_next_buffer(struct xdr_stream *xdr)
 {
-	if (xdr->page_ptr != NULL)
+	if (xdr->page_ptr != NULL) {
+		xdr_stream_unmap_current_page(xdr);
 		xdr_set_next_page(xdr);
-	else if (xdr->iov == xdr->buf->head)
+	} else if (xdr->iov == xdr->buf->head)
 		xdr_set_page(xdr, 0, xdr_stream_remaining(xdr));
 	return xdr->p != xdr->end;
 }
