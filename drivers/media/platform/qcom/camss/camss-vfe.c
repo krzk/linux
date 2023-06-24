@@ -1080,6 +1080,8 @@ int vfe_get(struct vfe_device *vfe)
 		if (ret < 0)
 			goto error_pm_runtime_get;
 
+		vfe->hw_version = vfe->res->hw_ops->hw_version(vfe);
+
 		ret = vfe_reset(vfe);
 		if (ret < 0)
 			goto error_reset;
