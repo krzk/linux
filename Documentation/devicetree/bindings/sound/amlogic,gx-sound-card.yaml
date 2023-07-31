@@ -21,6 +21,7 @@ properties:
   audio-routing:
     $ref: /schemas/types.yaml#/definitions/non-unique-string-array
     minItems: 2
+    maxItems: 32
     description: |-
       A list of the connections between audio components. Each entry is a
       pair of strings, the first being the connection's sink, the second
@@ -29,6 +30,7 @@ properties:
   audio-widgets:
     $ref: /schemas/types.yaml#/definitions/non-unique-string-array
     minItems: 2
+    maxItems: 8
     description: |-
       A list off component DAPM widget. Each entry is a pair of strings,
       the first being the widget type, the second being the widget name
