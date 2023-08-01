@@ -65,6 +65,15 @@ config CLK_X1E80100_TCSRCC
 	  Support for the TCSR clock controller on X1E80100 devices.
 	  Say Y if you want to use peripheral devices such as SD/UFS.
 
+config CLK_X1E80100_VIDEOCC
+	tristate "X1E80100 Video Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	select CLK_X1E80100_GCC
+	help
+	  Support for the video clock controller on X1E80100 devices.
+	  Say Y if you want to support video devices and functionality such as
+	  video encode and decode.
+
 config QCOM_A53PLL
 	tristate "MSM8916 A53 PLL"
 	help
