@@ -133,10 +133,11 @@
 				"TX DMIC1", "MIC BIAS3",
 				"TX DMIC2", "MIC BIAS1",
 				"TX DMIC3", "MIC BIAS1",
-				"TX SWR_INPUT0", "ADC1_OUTPUT",
-				"TX SWR_INPUT1", "ADC2_OUTPUT",
-				"TX SWR_INPUT2", "ADC3_OUTPUT",
-				"TX SWR_INPUT3", "ADC4_OUTPUT";
+				"TX SWR_INPUT4", "ADC1_OUTPUT",
+				"TX SWR_INPUT4", "ADC2_OUTPUT",
+				"TX SWR_INPUT5", "ADC2_OUTPUT",
+				"TX SWR_INPUT4", "ADC3_OUTPUT",
+				"TX SWR_INPUT4", "ADC4_OUTPUT";
 
 		wcd-playback-dai-link {
 			link-name = "WCD Playback";
