@@ -12,6 +12,7 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
+#include <linux/pm_runtime.h>
 
 #include <dt-bindings/clock/qcom,x1e80100-videocc.h>
 
@@ -28,13 +29,10 @@
 
 enum {
 	DT_BI_TCXO,
-	DT_BI_TCXO_AO,
-	DT_SLEEP_CLK,
 };
 
 enum {
 	P_BI_TCXO,
-	P_SLEEP_CLK,
 	P_VIDEO_CC_PLL0_OUT_MAIN,
 	P_VIDEO_CC_PLL1_OUT_MAIN,
 };
@@ -44,7 +42,7 @@ static const struct pll_vco lucid_ole_vco[] = {
 };
 
 static const struct alpha_pll_config video_cc_pll0_config = {
-	.l = 0x1E,
+	.l = 0x44440025,
 	.alpha = 0x0,
 	.config_ctl_val = 0x20485699,
 	.config_ctl_hi_val = 0x00182261,
@@ -75,7 +73,7 @@ static struct clk_alpha_pll video_cc_pll0 = {
 };
 
 static const struct alpha_pll_config video_cc_pll1_config = {
-	.l = 0x2B,
+	.l = 0x44440036,
 	.alpha = 0xC000,
 	.config_ctl_val = 0x20485699,
 	.config_ctl_hi_val = 0x00182261,
@@ -109,10 +107,6 @@ static const struct parent_map video_cc_parent_map_0[] = {
 	{ P_BI_TCXO, 0 },
 };
 
-static const struct clk_parent_data video_cc_parent_data_0_ao[] = {
-	{ .index = DT_BI_TCXO_AO },
-};
-
 static const struct parent_map video_cc_parent_map_1[] = {
 	{ P_BI_TCXO, 0 },
 	{ P_VIDEO_CC_PLL0_OUT_MAIN, 1 },
@@ -131,34 +125,6 @@ static const struct parent_map video_cc_parent_map_2[] = {
 static const struct clk_parent_data video_cc_parent_data_2[] = {
 	{ .index = DT_BI_TCXO },
 	{ .hw = &video_cc_pll1.clkr.hw },
-};
-
-static const struct parent_map video_cc_parent_map_3[] = {
-	{ P_SLEEP_CLK, 0 },
-};
-
-static const struct clk_parent_data video_cc_parent_data_3_ao[] = {
-	{ .index = DT_SLEEP_CLK },
-};
-
-static const struct freq_tbl ftbl_video_cc_ahb_clk_src[] = {
-	F(19200000, P_BI_TCXO, 1, 0, 0),
-	{ }
-};
-
-static struct clk_rcg2 video_cc_ahb_clk_src = {
-	.cmd_rcgr = 0x8030,
-	.mnd_width = 0,
-	.hid_width = 5,
-	.parent_map = video_cc_parent_map_0,
-	.freq_tbl = ftbl_video_cc_ahb_clk_src,
-	.clkr.hw.init = &(const struct clk_init_data) {
-		.name = "video_cc_ahb_clk_src",
-		.parent_data = video_cc_parent_data_0_ao,
-		.num_parents = ARRAY_SIZE(video_cc_parent_data_0_ao),
-		.flags = CLK_SET_RATE_PARENT,
-		.ops = &clk_rcg2_ops,
-	},
 };
 
 static const struct freq_tbl ftbl_video_cc_mvs0_clk_src[] = {
@@ -207,41 +173,6 @@ static struct clk_rcg2 video_cc_mvs1_clk_src = {
 		.num_parents = ARRAY_SIZE(video_cc_parent_data_2),
 		.flags = CLK_SET_RATE_PARENT,
 		.ops = &clk_rcg2_shared_ops,
-	},
-};
-
-static const struct freq_tbl ftbl_video_cc_sleep_clk_src[] = {
-	F(32000, P_SLEEP_CLK, 1, 0, 0),
-	{ }
-};
-
-static struct clk_rcg2 video_cc_sleep_clk_src = {
-	.cmd_rcgr = 0x8128,
-	.mnd_width = 0,
-	.hid_width = 5,
-	.parent_map = video_cc_parent_map_3,
-	.freq_tbl = ftbl_video_cc_sleep_clk_src,
-	.clkr.hw.init = &(const struct clk_init_data) {
-		.name = "video_cc_sleep_clk_src",
-		.parent_data = video_cc_parent_data_3_ao,
-		.num_parents = ARRAY_SIZE(video_cc_parent_data_3_ao),
-		.flags = CLK_SET_RATE_PARENT,
-		.ops = &clk_rcg2_ops,
-	},
-};
-
-static struct clk_rcg2 video_cc_xo_clk_src = {
-	.cmd_rcgr = 0x810c,
-	.mnd_width = 0,
-	.hid_width = 5,
-	.parent_map = video_cc_parent_map_0,
-	.freq_tbl = ftbl_video_cc_ahb_clk_src,
-	.clkr.hw.init = &(const struct clk_init_data) {
-		.name = "video_cc_xo_clk_src",
-		.parent_data = video_cc_parent_data_0_ao,
-		.num_parents = ARRAY_SIZE(video_cc_parent_data_0_ao),
-		.flags = CLK_SET_RATE_PARENT,
-		.ops = &clk_rcg2_ops,
 	},
 };
 
@@ -381,18 +312,6 @@ static struct clk_branch video_cc_mvs1c_clk = {
 	},
 };
 
-static struct gdsc video_cc_mvs0_gdsc = {
-	.gdscr = 0x80a4,
-	.en_rest_wait_val = 0x2,
-	.en_few_wait_val = 0x2,
-	.clk_dis_wait_val = 0x6,
-	.pd = {
-		.name = "video_cc_mvs0_gdsc",
-	},
-	.pwrsts = PWRSTS_OFF_ON,
-	.flags = POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
-};
-
 static struct gdsc video_cc_mvs0c_gdsc = {
 	.gdscr = 0x804c,
 	.en_rest_wait_val = 0x2,
@@ -405,16 +324,17 @@ static struct gdsc video_cc_mvs0c_gdsc = {
 	.flags = POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
 };
 
-static struct gdsc video_cc_mvs1_gdsc = {
-	.gdscr = 0x80cc,
+static struct gdsc video_cc_mvs0_gdsc = {
+	.gdscr = 0x80a4,
 	.en_rest_wait_val = 0x2,
 	.en_few_wait_val = 0x2,
 	.clk_dis_wait_val = 0x6,
 	.pd = {
-		.name = "video_cc_mvs1_gdsc",
+		.name = "video_cc_mvs0_gdsc",
 	},
 	.pwrsts = PWRSTS_OFF_ON,
-	.flags = POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
+	.parent = &video_cc_mvs0c_gdsc.pd,
+	.flags = POLL_CFG_GDSCR | RETAIN_FF_ENABLE | HW_CTRL,
 };
 
 static struct gdsc video_cc_mvs1c_gdsc = {
@@ -429,8 +349,20 @@ static struct gdsc video_cc_mvs1c_gdsc = {
 	.flags = POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
 };
 
+static struct gdsc video_cc_mvs1_gdsc = {
+	.gdscr = 0x80cc,
+	.en_rest_wait_val = 0x2,
+	.en_few_wait_val = 0x2,
+	.clk_dis_wait_val = 0x6,
+	.pd = {
+		.name = "video_cc_mvs1_gdsc",
+	},
+	.pwrsts = PWRSTS_OFF_ON,
+	.parent = &video_cc_mvs1c_gdsc.pd,
+	.flags = POLL_CFG_GDSCR | RETAIN_FF_ENABLE | HW_CTRL,
+};
+
 static struct clk_regmap *video_cc_x1e80100_clocks[] = {
-	[VIDEO_CC_AHB_CLK_SRC] = &video_cc_ahb_clk_src.clkr,
 	[VIDEO_CC_MVS0_CLK] = &video_cc_mvs0_clk.clkr,
 	[VIDEO_CC_MVS0_CLK_SRC] = &video_cc_mvs0_clk_src.clkr,
 	[VIDEO_CC_MVS0_DIV_CLK_SRC] = &video_cc_mvs0_div_clk_src.clkr,
@@ -443,8 +375,6 @@ static struct clk_regmap *video_cc_x1e80100_clocks[] = {
 	[VIDEO_CC_MVS1C_DIV2_DIV_CLK_SRC] = &video_cc_mvs1c_div2_div_clk_src.clkr,
 	[VIDEO_CC_PLL0] = &video_cc_pll0.clkr,
 	[VIDEO_CC_PLL1] = &video_cc_pll1.clkr,
-	[VIDEO_CC_SLEEP_CLK_SRC] = &video_cc_sleep_clk_src.clkr,
-	[VIDEO_CC_XO_CLK_SRC] = &video_cc_xo_clk_src.clkr,
 };
 
 static struct gdsc *video_cc_x1e80100_gdscs[] = {
@@ -489,10 +419,21 @@ MODULE_DEVICE_TABLE(of, video_cc_x1e80100_match_table);
 static int video_cc_x1e80100_probe(struct platform_device *pdev)
 {
 	struct regmap *regmap;
+	int ret;
+
+	ret = devm_pm_runtime_enable(&pdev->dev);
+	if (ret)
+		return ret;
+
+	ret = pm_runtime_resume_and_get(&pdev->dev);
+	if (ret)
+		return ret;
 
 	regmap = qcom_cc_map(pdev, &video_cc_x1e80100_desc);
-	if (IS_ERR(regmap))
+	if (IS_ERR(regmap)) {
+		pm_runtime_put(&pdev->dev);
 		return PTR_ERR(regmap);
+	}
 
 	clk_lucid_evo_pll_configure(&video_cc_pll0, regmap, &video_cc_pll0_config);
 	clk_lucid_evo_pll_configure(&video_cc_pll1, regmap, &video_cc_pll1_config);
@@ -507,7 +448,11 @@ static int video_cc_x1e80100_probe(struct platform_device *pdev)
 	regmap_update_bits(regmap, 0x8140, BIT(0), BIT(0));
 	regmap_update_bits(regmap, 0x8124, BIT(0), BIT(0));
 
-	return qcom_cc_really_probe(pdev, &video_cc_x1e80100_desc, regmap);
+	ret = qcom_cc_really_probe(pdev, &video_cc_x1e80100_desc, regmap);
+
+	pm_runtime_put(&pdev->dev);
+
+	return ret;
 }
 
 static struct platform_driver video_cc_x1e80100_driver = {
