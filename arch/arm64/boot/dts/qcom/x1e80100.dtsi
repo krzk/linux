@@ -3016,7 +3016,7 @@
 			/* FW load region */
 			memory-region = <&video_mem>;
 
-			resets = <&gcc GCC_VIDEO_BCR>;
+			resets = <&gcc GCC_VIDEO_AXI0_CLK_ARES>;
 			reset-names = "video_axi_reset";
 
 			non_securei_cb {
