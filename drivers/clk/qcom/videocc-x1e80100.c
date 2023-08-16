@@ -238,7 +238,7 @@ static struct clk_regmap_div video_cc_mvs1c_div2_div_clk_src = {
 
 static struct clk_branch video_cc_mvs0_clk = {
 	.halt_reg = 0x80b8,
-	.halt_check = BRANCH_HALT_VOTED,
+	.halt_check = BRANCH_HALT_SKIP,
 	.hwcg_reg = 0x80b8,
 	.hwcg_bit = 1,
 	.clkr = {
@@ -276,7 +276,7 @@ static struct clk_branch video_cc_mvs0c_clk = {
 
 static struct clk_branch video_cc_mvs1_clk = {
 	.halt_reg = 0x80e0,
-	.halt_check = BRANCH_HALT_VOTED,
+	.halt_check = BRANCH_HALT_SKIP,
 	.hwcg_reg = 0x80e0,
 	.hwcg_bit = 1,
 	.clkr = {
