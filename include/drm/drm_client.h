@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0 or MIT */
+/* SPDX-License-Identifier: GPL-2.0 OR MIT */
 
 #ifndef _DRM_CLIENT_H_
 #define _DRM_CLIENT_H_
