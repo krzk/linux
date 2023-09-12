@@ -1386,9 +1386,16 @@ static int qcom_swrm_get_port_config(struct qcom_swrm_ctrl *ctrl)
 	ctrl->num_dout_ports = FIELD_GET(SWRM_COMP_PARAMS_DOUT_PORTS_MASK, val);
 	ctrl->num_din_ports = FIELD_GET(SWRM_COMP_PARAMS_DIN_PORTS_MASK, val);
 
+	dev_err(ctrl->dev, "AAA ports out:%d in:%d\n", ctrl->num_dout_ports,
+		ctrl->num_din_ports);
+
 	ret = of_property_read_u32(np, "qcom,din-ports", &val);
 	if (ret)
 		return ret;
+
+	if (ctrl->num_din_ports != val)
+		dev_err(ctrl->dev, "AAA mismatched ports in %d != %d\n",
+			ctrl->num_din_ports, val);
 
 	if (val > ctrl->num_din_ports)
 		return -EINVAL;
@@ -1398,6 +1405,10 @@ static int qcom_swrm_get_port_config(struct qcom_swrm_ctrl *ctrl)
 	ret = of_property_read_u32(np, "qcom,dout-ports", &val);
 	if (ret)
 		return ret;
+
+	if (ctrl->num_dout_ports != val)
+		dev_err(ctrl->dev, "AAA mismatched ports out %d != %d\n",
+			ctrl->num_dout_ports, val);
 
 	if (val > ctrl->num_dout_ports)
 		return -EINVAL;
