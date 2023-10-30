@@ -74,6 +74,7 @@ struct q6apm_dai_rtd {
 	struct q6apm_graph *graph;
 	spinlock_t lock;
 	bool notify_on_drain;
+	bool params_changed;
 };
 
 struct q6apm_dai_data {
@@ -234,10 +235,15 @@ static int q6apm_dai_prepare(struct snd_soc_component *component,
 	audioreach_set_default_channel_mapping(cfg.channel_map, runtime->channels);
 
 	if (prtd->state) {
+		if (!prtd->params_changed) {
+			prtd->state = Q6APM_STREAM_RUNNING;
+			return 0;
+		}
 		/* clear the previous setup if any  */
 		q6apm_graph_stop(prtd->graph);
 		q6apm_unmap_memory_regions(prtd->graph, substream->stream);
 	}
+	prtd->params_changed = false;
 
 	prtd->pcm_count = snd_pcm_lib_period_bytes(substream);
 	/* rate and channels are sent to audio driver */
@@ -447,6 +453,7 @@ static int q6apm_dai_hw_params(struct snd_soc_component *component,
 		return -EINVAL;
 	}
 
+	prtd->params_changed = true;
 	return 0;
 }
 
