@@ -21,6 +21,7 @@
 struct q6apm_lpass_dai_data {
 	struct q6apm_graph *graph[APM_PORT_MAX];
 	bool is_port_started[APM_PORT_MAX];
+	bool params_changed[APM_PORT_MAX];
 	struct audioreach_module_config module_config[APM_PORT_MAX];
 };
 
@@ -137,6 +138,7 @@ static int q6dma_hw_params(struct snd_pcm_substream *substream,
 	cfg->sample_rate = params_rate(params);
 	cfg->num_channels = channels;
 	audioreach_set_default_channel_mapping(cfg->channel_map, channels);
+	dai_data->params_changed[dai->id] = true;
 
 	return 0;
 }
@@ -168,6 +170,10 @@ static int q6apm_lpass_dai_prepare(struct snd_pcm_substream *substream, struct s
 	int rc;
 
 	if (dai_data->is_port_started[dai->id]) {
+		/* Check we really need to do costly stop and start of graph */
+		if (!dai_data->params_changed[dai->id])
+			return 0;
+
 		q6apm_graph_stop(dai_data->graph[dai->id]);
 		dai_data->is_port_started[dai->id] = false;
 
@@ -176,6 +182,8 @@ static int q6apm_lpass_dai_prepare(struct snd_pcm_substream *substream, struct s
 			dai_data->graph[dai->id] = NULL;
 		}
 	}
+
+	dai_data->params_changed[dai->id] = false;
 
 	/**
 	 * It is recommend to load DSP with source graph first and then sink
