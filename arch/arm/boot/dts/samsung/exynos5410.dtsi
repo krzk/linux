@@ -88,7 +88,8 @@
 		};
 
 		tmu_cpu0: tmu@10060000 {
-			compatible = "samsung,exynos5420-tmu";
+			compatible = "samsung,exynos5410-tmu",
+				     "samsung,exynos5420-tmu";
 			reg = <0x10060000 0x100>;
 			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clock CLK_TMU>;
@@ -97,7 +98,8 @@
 		};
 
 		tmu_cpu1: tmu@10064000 {
-			compatible = "samsung,exynos5420-tmu";
+			compatible = "samsung,exynos5410-tmu",
+				     "samsung,exynos5420-tmu";
 			reg = <0x10064000 0x100>;
 			interrupts = <GIC_SPI 183 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clock CLK_TMU>;
@@ -106,7 +108,8 @@
 		};
 
 		tmu_cpu2: tmu@10068000 {
-			compatible = "samsung,exynos5420-tmu";
+			compatible = "samsung,exynos5410-tmu",
+				     "samsung,exynos5420-tmu";
 			reg = <0x10068000 0x100>;
 			interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clock CLK_TMU>;
@@ -115,7 +118,8 @@
 		};
 
 		tmu_cpu3: tmu@1006c000 {
-			compatible = "samsung,exynos5420-tmu";
+			compatible = "samsung,exynos5410-tmu",
+				     "samsung,exynos5420-tmu";
 			reg = <0x1006c000 0x100>;
 			interrupts = <GIC_SPI 185 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clock CLK_TMU>;
