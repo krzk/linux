@@ -1241,6 +1241,7 @@
 };
 
 &g2d {
+	compatible = "samsung,exynos5420-g2d", "samsung,exynos5250-g2d";
 	iommus = <&sysmmu_g2dr>, <&sysmmu_g2dw>;
 	clocks = <&clock CLK_G2D>;
 	clock-names = "fimg2d";
