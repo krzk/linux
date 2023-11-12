@@ -28,6 +28,10 @@ properties:
           - samsung,exynosautov9-hsi2c
       - items:
           - enum:
+              - samsung,exynos5420-hsi2c
+          - const: samsung,exynos5250-hsi2c
+      - items:
+          - enum:
               - samsung,exynos5433-hsi2c
               - tesla,fsd-hsi2c
           - const: samsung,exynos7-hsi2c
