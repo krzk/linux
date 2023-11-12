@@ -29,6 +29,10 @@ properties:
       - items:
           - const: fsl,imx8mn-mipi-dsim
           - const: fsl,imx8mm-mipi-dsim
+      - items:
+          - enum:
+              - samsung,exynos5420-mipi-dsi
+          - const: samsung,exynos5410-mipi-dsi
 
   reg:
     maxItems: 1
