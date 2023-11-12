@@ -15,18 +15,23 @@ description: |
 
 properties:
   compatible:
-    enum:
-      - samsung,exynos3250-tmu
-      - samsung,exynos4412-tmu
-      - samsung,exynos4210-tmu
-      - samsung,exynos5250-tmu
-      - samsung,exynos5260-tmu
-        # For TMU channel 0, 1 on Exynos5420:
-      - samsung,exynos5420-tmu
-        # For TMU channels 2, 3 and 4 of Exynos5420:
-      - samsung,exynos5420-tmu-ext-triminfo
-      - samsung,exynos5433-tmu
-      - samsung,exynos7-tmu
+    oneOf:
+      - enum:
+          - samsung,exynos3250-tmu
+          - samsung,exynos4412-tmu
+          - samsung,exynos4210-tmu
+          - samsung,exynos5250-tmu
+          - samsung,exynos5260-tmu
+            # For TMU channel 0, 1 on Exynos5420:
+          - samsung,exynos5420-tmu
+            # For TMU channels 2, 3 and 4 of Exynos5420:
+          - samsung,exynos5420-tmu-ext-triminfo
+          - samsung,exynos5433-tmu
+          - samsung,exynos7-tmu
+      - items:
+          - enum:
+              - samsung,exynos5410-tmu
+          - const: samsung,exynos5420-tmu
 
   clocks:
     minItems: 1
