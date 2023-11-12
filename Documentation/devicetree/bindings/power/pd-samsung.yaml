@@ -25,6 +25,7 @@ properties:
       - items:
           - enum:
               - samsung,exynos5420-pd
+              - samsung,exynos5422-pd
           - const: samsung,exynos4210-pd
 
   reg:
