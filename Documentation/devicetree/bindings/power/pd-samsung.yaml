@@ -18,9 +18,14 @@ allOf:
 
 properties:
   compatible:
-    enum:
-      - samsung,exynos4210-pd
-      - samsung,exynos5433-pd
+    oneOf:
+      - enum:
+          - samsung,exynos4210-pd
+          - samsung,exynos5433-pd
+      - items:
+          - enum:
+              - samsung,exynos5420-pd
+          - const: samsung,exynos4210-pd
 
   reg:
     maxItems: 1
