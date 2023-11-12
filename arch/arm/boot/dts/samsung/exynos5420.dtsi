@@ -453,49 +453,56 @@
 		};
 
 		gsc_pd: power-domain@10044000 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x10044000 0x20>;
 			#power-domain-cells = <0>;
 			label = "GSC";
 		};
 
 		isp_pd: power-domain@10044020 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x10044020 0x20>;
 			#power-domain-cells = <0>;
 			label = "ISP";
 		};
 
 		mfc_pd: power-domain@10044060 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x10044060 0x20>;
 			#power-domain-cells = <0>;
 			label = "MFC";
 		};
 
 		g3d_pd: power-domain@10044080 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x10044080 0x20>;
 			#power-domain-cells = <0>;
 			label = "G3D";
 		};
 
 		disp_pd: power-domain@100440c0 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x100440c0 0x20>;
 			#power-domain-cells = <0>;
 			label = "DISP";
 		};
 
 		mau_pd: power-domain@100440e0 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x100440e0 0x20>;
 			#power-domain-cells = <0>;
 			label = "MAU";
 		};
 
 		msc_pd: power-domain@10044120 {
-			compatible = "samsung,exynos4210-pd";
+			compatible = "samsung,exynos5420-pd",
+				     "samsung,exynos4210-pd";
 			reg = <0x10044120 0x20>;
 			#power-domain-cells = <0>;
 			label = "MSC";
@@ -507,7 +514,8 @@
 			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
 
 			wakeup-interrupt-controller {
-				compatible = "samsung,exynos4210-wakeup-eint";
+				compatible = "samsung,exynos5420-wakeup-eint",
+					     "samsung,exynos4210-wakeup-eint";
 				interrupt-parent = <&gic>;
 				interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
 			};
@@ -646,7 +654,8 @@
 		};
 
 		spi_0: spi@12d20000 {
-			compatible = "samsung,exynos4210-spi";
+			compatible = "samsung,exynos5420-spi",
+				     "samsung,exynos4210-spi";
 			reg = <0x12d20000 0x100>;
 			interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
 			dmas = <&pdma0 5
@@ -663,7 +672,8 @@
 		};
 
 		spi_1: spi@12d30000 {
-			compatible = "samsung,exynos4210-spi";
+			compatible = "samsung,exynos5420-spi",
+				     "samsung,exynos4210-spi";
 			reg = <0x12d30000 0x100>;
 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
 			dmas = <&pdma1 5
@@ -680,7 +690,8 @@
 		};
 
 		spi_2: spi@12d40000 {
-			compatible = "samsung,exynos4210-spi";
+			compatible = "samsung,exynos5420-spi",
+				     "samsung,exynos4210-spi";
 			reg = <0x12d40000 0x100>;
 			interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
 			dmas = <&pdma0 7
@@ -697,7 +708,8 @@
 		};
 
 		dsi: dsi@14500000 {
-			compatible = "samsung,exynos5410-mipi-dsi";
+			compatible = "samsung,exynos5420-mipi-dsi",
+				     "samsung,exynos5410-mipi-dsi";
 			reg = <0x14500000 0x10000>;
 			interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
 			phys = <&mipi_phy 1>;
@@ -710,7 +722,8 @@
 		};
 
 		hsi2c_8: i2c@12e00000 {
-			compatible = "samsung,exynos5250-hsi2c";
+			compatible = "samsung,exynos5420-hsi2c",
+				     "samsung,exynos5250-hsi2c";
 			reg = <0x12e00000 0x1000>;
 			interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
 			#address-cells = <1>;
@@ -723,7 +736,8 @@
 		};
 
 		hsi2c_9: i2c@12e10000 {
-			compatible = "samsung,exynos5250-hsi2c";
+			compatible = "samsung,exynos5420-hsi2c",
+				     "samsung,exynos5250-hsi2c";
 			reg = <0x12e10000 0x1000>;
 			interrupts = <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
 			#address-cells = <1>;
@@ -736,7 +750,8 @@
 		};
 
 		hsi2c_10: i2c@12e20000 {
-			compatible = "samsung,exynos5250-hsi2c";
+			compatible = "samsung,exynos5420-hsi2c",
+				     "samsung,exynos5250-hsi2c";
 			reg = <0x12e20000 0x1000>;
 			interrupts = <GIC_SPI 203 IRQ_TYPE_LEVEL_HIGH>;
 			#address-cells = <1>;
@@ -794,7 +809,8 @@
 		};
 
 		rotator: rotator@11c00000 {
-			compatible = "samsung,exynos5250-rotator";
+			compatible = "samsung,exynos5420-rotator",
+				     "samsung,exynos5250-rotator";
 			reg = <0x11c00000 0x64>;
 			interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clock CLK_ROTATOR>;
