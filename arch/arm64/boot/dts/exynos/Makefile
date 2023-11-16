@@ -1,4 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
+
+KBUILD_EXTRA_WARN=1
+DTC_FLAGS += -Wno-graph_child_address
+
 subdir-y += axis
 subdir-y += google
 
