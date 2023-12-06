@@ -50,6 +50,7 @@ properties:
 
   out-ports:
     $ref: /schemas/graph.yaml#/properties/ports
+    additionalProperties: false
 
     properties:
       port:
