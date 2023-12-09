@@ -68,6 +68,9 @@ properties:
     description: Name for the OOB IRQ, this must be set to "host-wake".
     const: host-wake
 
+  local-mac-address: true
+  mac-address: true
+
   brcm,drive-strength:
     $ref: /schemas/types.yaml#/definitions/uint32
     description: Drive strength used for the SDIO pins on the device in mA.
@@ -149,6 +152,8 @@ examples:
         interrupt-parent = <&gpio>;
         interrupts = <24 IRQ_TYPE_EDGE_FALLING>;
         interrupt-names = "host-wake";
+        /* To be filled by the bootloader */
+        local-mac-address = [00 00 00 00 00 00];
         reset-gpios = <&gpio 23 GPIO_ACTIVE_LOW>;
         brcm,ccode-map = "JP-JP-78", "US-Q2-86";
       };
