@@ -2792,11 +2792,6 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/shawnguo/linux.git
 F:	arch/arm/boot/dts/nxp/vf/
 F:	arch/arm/mach-imx/*vf610*
 
-ARM/GUMSTIX MACHINE SUPPORT
-M:	Steve Sakoman <sakoman@gmail.com>
-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-S:	Maintained
-
 ARM/HISILICON SOC SUPPORT
 M:	Wei Xu <xuwei5@hisilicon.com>
 L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
@@ -2873,11 +2868,6 @@ S:	Maintained
 F:	Documentation/devicetree/bindings/arm/intel,keembay.yaml
 F:	arch/arm64/boot/dts/intel/keembay-evm.dts
 F:	arch/arm64/boot/dts/intel/keembay-soc.dtsi
-
-ARM/INTEL XSC3 (MANZANO) ARM CORE
-M:	Lennert Buytenhek <kernel@wantstofly.org>
-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-S:	Maintained
 
 ARM/LG1K ARCHITECTURE
 M:	Chanho Min <chanho.min@lge.com>
@@ -21125,14 +21115,6 @@ L:	linux-gpio@vger.kernel.org
 S:	Maintained
 F:	drivers/gpio/gpio-pxa.c
 
-PXA MMCI DRIVER
-S:	Orphan
-
-PXA RTC DRIVER
-M:	Robert Jarzmik <robert.jarzmik@free.fr>
-L:	linux-rtc@vger.kernel.org
-S:	Maintained
-
 PXA2xx/PXA3xx SUPPORT
 M:	Daniel Mack <daniel@zonque.org>
 M:	Haojian Zhuang <haojian.zhuang@gmail.com>
@@ -21879,10 +21861,6 @@ F:	Documentation/devicetree/bindings/media/i2c/imi,rdacm2x-gmsl.yaml
 F:	drivers/media/i2c/max9271.c
 F:	drivers/media/i2c/max9271.h
 F:	drivers/media/i2c/rdacm21.c
-
-RDC R-321X SoC
-M:	Florian Fainelli <florian@openwrt.org>
-S:	Maintained
 
 RDC R6040 FAST ETHERNET DRIVER
 M:	Florian Fainelli <f.fainelli@gmail.com>
