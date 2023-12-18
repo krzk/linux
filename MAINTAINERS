@@ -26050,11 +26050,6 @@ L:	linux-omap@vger.kernel.org
 S:	Maintained
 F:	drivers/thermal/ti-soc-thermal/
 
-TI BQ27XXX POWER SUPPLY DRIVER
-F:	drivers/power/supply/bq27xxx_battery.c
-F:	drivers/power/supply/bq27xxx_battery_i2c.c
-F:	include/linux/power/bq27xxx_battery.h
-
 TI CDCE706 CLOCK DRIVER
 M:	Max Filippov <jcmvbkbc@gmail.com>
 S:	Maintained
