@@ -27963,6 +27963,7 @@ K:	regulator_get_optional
 
 VOLTAGE AND CURRENT REGULATOR IRQ HELPERS
 R:	Matti Vaittinen <mazziesaccount@gmail.com>
+S:	Maintained
 F:	drivers/regulator/irq_helpers.c
 
 VRF
