@@ -49,7 +49,7 @@ properties:
       to take when the temperature crosses those thresholds.
 
 patternProperties:
-  "^[a-zA-Z][a-zA-Z0-9\\-]{1,12}-thermal$":
+  "^[a-zA-Z][a-zA-Z0-9\\-]{1,11}-thermal$":
     type: object
     description:
       Each thermal zone node contains information about how frequently it
