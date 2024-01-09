@@ -13,6 +13,7 @@ allOf:
   - $ref: component-common.yaml#
 
 properties:
-  '#sound-dai-cells': true
+  '#sound-dai-cells':
+    enum: [0, 1, 2]
 
 additionalProperties: true
