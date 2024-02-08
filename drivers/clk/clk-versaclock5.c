@@ -731,7 +731,7 @@ static const struct clk_ops vc5_clk_out_ops = {
 	.get_parent	= vc5_clk_out_get_parent,
 };
 
-static struct clk_hw *vc5_of_clk_get(struct of_phandle_args *clkspec,
+static struct clk_hw *vc5_of_clk_get(const struct of_phandle_args *clkspec,
 				     void *data)
 {
 	struct vc5_driver_data *vc5 = data;

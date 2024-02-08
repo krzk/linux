@@ -1141,7 +1141,7 @@ static inline struct clk *clk_get_optional(struct device *dev, const char *id)
 #if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
 struct clk *of_clk_get(struct device_node *np, int index);
 struct clk *of_clk_get_by_name(struct device_node *np, const char *name);
-struct clk *of_clk_get_from_provider(struct of_phandle_args *clkspec);
+struct clk *of_clk_get_from_provider(const struct of_phandle_args *clkspec);
 #else
 static inline struct clk *of_clk_get(struct device_node *np, int index)
 {
@@ -1152,7 +1152,7 @@ static inline struct clk *of_clk_get_by_name(struct device_node *np,
 {
 	return ERR_PTR(-ENOENT);
 }
-static inline struct clk *of_clk_get_from_provider(struct of_phandle_args *clkspec)
+static inline struct clk *of_clk_get_from_provider(const struct of_phandle_args *clkspec)
 {
 	return ERR_PTR(-ENOENT);
 }

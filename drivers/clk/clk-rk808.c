@@ -72,7 +72,7 @@ static const struct clk_ops rk808_clkout2_ops = {
 };
 
 static struct clk_hw *
-of_clk_rk808_get(struct of_phandle_args *clkspec, void *data)
+of_clk_rk808_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct rk808_clkout *rk808_clkout = data;
 	unsigned int idx = clkspec->args[0];

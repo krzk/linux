@@ -108,7 +108,7 @@ static struct hi3660_stub_clk hi3660_stub_clks[HI3660_CLK_STUB_NUM] = {
 	DEFINE_CLK_STUB(HI3660_CLK_STUB_DDR, 0x00040309, "clk-ddrc")
 };
 
-static struct clk_hw *hi3660_stub_clk_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *hi3660_stub_clk_hw_get(const struct of_phandle_args *clkspec,
 					     void *data)
 {
 	unsigned int idx = clkspec->args[0];

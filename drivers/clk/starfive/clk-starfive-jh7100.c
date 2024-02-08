@@ -267,7 +267,8 @@ static const struct jh71x0_clk_data jh7100_clk_data[] __initconst = {
 	JH71X0_GATE(JH7100_CLK_SYSERR_APB, "syserr_apb", 0, JH7100_CLK_APB2_BUS),
 };
 
-static struct clk_hw *jh7100_clk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7100_clk_get(const struct of_phandle_args *clkspec,
+				     void *data)
 {
 	struct jh71x0_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

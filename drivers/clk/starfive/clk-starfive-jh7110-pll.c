@@ -442,7 +442,8 @@ static const struct clk_ops jh7110_pll_ops = {
 	.debug_init = jh7110_pll_debug_init,
 };
 
-static struct clk_hw *jh7110_pll_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7110_pll_get(const struct of_phandle_args *clkspec,
+				     void *data)
 {
 	struct jh7110_pll_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

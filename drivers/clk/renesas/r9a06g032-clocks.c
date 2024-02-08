@@ -733,7 +733,7 @@ struct r9a06g032_clk_gate {
 
 #define to_r9a06g032_gate(_hw) container_of(_hw, struct r9a06g032_clk_gate, hw)
 
-static int create_add_module_clock(struct of_phandle_args *clkspec,
+static int create_add_module_clock(const struct of_phandle_args *clkspec,
 				   struct device *dev)
 {
 	struct clk *clk;

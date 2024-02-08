@@ -159,7 +159,7 @@ static const struct imx8qxp_ss_lpcg imx8qxp_ss_lsio = {
 
 #define IMX_LPCG_MAX_CLKS	8
 
-static struct clk_hw *imx_lpcg_of_clk_src_get(struct of_phandle_args *clkspec,
+static struct clk_hw *imx_lpcg_of_clk_src_get(const struct of_phandle_args *clkspec,
 					      void *data)
 {
 	struct clk_hw_onecell_data *hw_data = data;

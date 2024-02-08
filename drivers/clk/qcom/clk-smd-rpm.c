@@ -1232,7 +1232,7 @@ static const struct of_device_id rpm_smd_clk_match_table[] = {
 };
 MODULE_DEVICE_TABLE(of, rpm_smd_clk_match_table);
 
-static struct clk_hw *qcom_smdrpm_clk_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *qcom_smdrpm_clk_hw_get(const struct of_phandle_args *clkspec,
 					     void *data)
 {
 	const struct rpm_smd_clk_desc *desc = data;

@@ -54,7 +54,8 @@ static const struct jh71x0_clk_data jh7110_aonclk_data[] = {
 	JH71X0_GATE(JH7110_AONCLK_RTC_CAL, "rtc_cal", 0, JH7110_AONCLK_OSC),
 };
 
-static struct clk_hw *jh7110_aonclk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7110_aonclk_get(const struct of_phandle_args *clkspec,
+					void *data)
 {
 	struct jh71x0_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

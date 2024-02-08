@@ -126,7 +126,8 @@ struct pmc_data *pmc_data_allocate(unsigned int ncore, unsigned int nsystem,
 int of_at91_get_clk_range(struct device_node *np, const char *propname,
 			  struct clk_range *range);
 
-struct clk_hw *of_clk_hw_pmc_get(struct of_phandle_args *clkspec, void *data);
+struct clk_hw *of_clk_hw_pmc_get(const struct of_phandle_args *clkspec,
+				 void *data);
 
 struct clk_hw * __init
 at91_clk_register_audio_pll_frac(struct regmap *regmap, const char *name,

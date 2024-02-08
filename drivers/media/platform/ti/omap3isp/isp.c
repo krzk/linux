@@ -281,7 +281,8 @@ static const struct clk_ops isp_xclk_ops = {
 
 static const char *isp_xclk_parent_name = "cam_mclk";
 
-static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
+static struct clk *isp_xclk_src_get(const struct of_phandle_args *clkspec,
+				    void *data)
 {
 	unsigned int idx = clkspec->args[0];
 	struct isp_device *isp = data;

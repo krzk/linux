@@ -875,7 +875,7 @@ static inline void __init k210_register_clk_child(struct device_node *np,
 	k210_register_clk(np, ksc, id, &parent_data, 1, 0);
 }
 
-static struct clk_hw *k210_clk_hw_onecell_get(struct of_phandle_args *clkspec,
+static struct clk_hw *k210_clk_hw_onecell_get(const struct of_phandle_args *clkspec,
 					      void *data)
 {
 	struct k210_sysclk *ksc = data;

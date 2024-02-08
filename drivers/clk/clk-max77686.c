@@ -145,7 +145,7 @@ static const struct clk_ops max77686_clk_ops = {
 };
 
 static struct clk_hw *
-of_clk_max77686_get(struct of_phandle_args *clkspec, void *data)
+of_clk_max77686_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct max77686_clk_driver_data *drv_data = data;
 	unsigned int idx = clkspec->args[0];

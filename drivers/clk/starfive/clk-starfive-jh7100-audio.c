@@ -84,7 +84,8 @@ static const struct jh71x0_clk_data jh7100_audclk_data[] = {
 		    JH7100_AUDCLK_AUDIO_12288),
 };
 
-static struct clk_hw *jh7100_audclk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7100_audclk_get(const struct of_phandle_args *clkspec,
+					void *data)
 {
 	struct jh71x0_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

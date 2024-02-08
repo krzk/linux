@@ -221,7 +221,7 @@ static const struct clk_ops omap4_clkctrl_clk_ops = {
 	.init		= omap2_init_clk_clkdm,
 };
 
-static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
+static struct clk_hw *_ti_omap4_clkctrl_xlate(const struct of_phandle_args *clkspec,
 					      void *data)
 {
 	struct omap_clkctrl_provider *provider = data;

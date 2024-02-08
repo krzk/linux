@@ -957,7 +957,7 @@ static int si5341_is_programmed_already(struct clk_si5341 *data)
 }
 
 static struct clk_hw *
-of_clk_si5341_get(struct of_phandle_args *clkspec, void *_data)
+of_clk_si5341_get(const struct of_phandle_args *clkspec, void *_data)
 {
 	struct clk_si5341 *data = _data;
 	unsigned int idx = clkspec->args[1];

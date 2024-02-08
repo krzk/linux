@@ -618,7 +618,7 @@ static int cdce706_register_clkouts(struct cdce706_dev_data *cdce)
 }
 
 static struct clk_hw *
-of_clk_cdce_get(struct of_phandle_args *clkspec, void *data)
+of_clk_cdce_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct cdce706_dev_data *cdce = data;
 	unsigned int idx = clkspec->args[0];

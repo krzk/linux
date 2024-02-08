@@ -75,7 +75,8 @@ static const struct jh71x0_clk_data jh7110_stgclk_data[] = {
 	JH71X0_GATE(JH7110_STGCLK_DMA1P_AHB, "dma1p_ahb", 0, JH7110_STGCLK_STG_AXIAHB),
 };
 
-static struct clk_hw *jh7110_stgclk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7110_stgclk_get(const struct of_phandle_args *clkspec,
+					void *data)
 {
 	struct jh71x0_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

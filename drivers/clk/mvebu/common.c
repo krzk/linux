@@ -199,7 +199,7 @@ struct clk_gating_ctrl {
 static struct clk_gating_ctrl *ctrl;
 
 static struct clk *clk_gating_get_src(
-	struct of_phandle_args *clkspec, void *data)
+	const struct of_phandle_args *clkspec, void *data)
 {
 	int n;
 

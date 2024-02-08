@@ -793,7 +793,7 @@ static const struct clk_rpmh_desc clk_rpmh_x1e80100 = {
 	.num_clks = ARRAY_SIZE(x1e80100_rpmh_clocks),
 };
 
-static struct clk_hw *of_clk_rpmh_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *of_clk_rpmh_hw_get(const struct of_phandle_args *clkspec,
 					 void *data)
 {
 	struct clk_rpmh_desc *rpmh = data;

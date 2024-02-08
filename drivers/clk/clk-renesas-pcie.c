@@ -270,7 +270,7 @@ static void rs9_update_config(struct rs9_driver_data *rs9)
 }
 
 static struct clk_hw *
-rs9_of_clk_get(struct of_phandle_args *clkspec, void *data)
+rs9_of_clk_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct rs9_driver_data *rs9 = data;
 	unsigned int idx = clkspec->args[0];

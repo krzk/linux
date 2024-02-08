@@ -3136,7 +3136,8 @@ static const struct clk_ops qmp_dp_link_clk_ops = {
 	.recalc_rate	= qmp_dp_link_clk_recalc_rate,
 };
 
-static struct clk_hw *qmp_dp_clks_hw_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *qmp_dp_clks_hw_get(const struct of_phandle_args *clkspec,
+					 void *data)
 {
 	struct qmp_combo *qmp = data;
 	unsigned int idx = clkspec->args[0];
@@ -3177,7 +3178,8 @@ static int phy_dp_clks_register(struct qmp_combo *qmp, struct device_node *np)
 	return 0;
 }
 
-static struct clk_hw *qmp_combo_clk_hw_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *qmp_combo_clk_hw_get(const struct of_phandle_args *clkspec,
+					   void *data)
 {
 	struct qmp_combo *qmp = data;
 

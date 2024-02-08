@@ -517,7 +517,7 @@ struct clk_hw *__imx_clk_scu(struct device *dev, const char *name,
 	return hw;
 }
 
-struct clk_hw *imx_scu_of_clk_src_get(struct of_phandle_args *clkspec,
+struct clk_hw *imx_scu_of_clk_src_get(const struct of_phandle_args *clkspec,
 				      void *data)
 {
 	unsigned int rsrc = clkspec->args[0];

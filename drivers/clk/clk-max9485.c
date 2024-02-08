@@ -246,7 +246,7 @@ static const struct max9485_clk max9485_clks[MAX9485_NUM_CLKS] = {
 };
 
 static struct clk_hw *
-max9485_of_clk_get(struct of_phandle_args *clkspec, void *data)
+max9485_of_clk_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct max9485_driver_data *drvdata = data;
 	unsigned int idx = clkspec->args[0];

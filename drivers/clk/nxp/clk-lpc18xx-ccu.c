@@ -109,7 +109,7 @@ static struct lpc18xx_clk_branch clk_branches[] = {
 	{"base_sdio_clk",  "sdio",		CLK_SDIO,		0},
 };
 
-static struct clk *lpc18xx_ccu_branch_clk_get(struct of_phandle_args *clkspec,
+static struct clk *lpc18xx_ccu_branch_clk_get(const struct of_phandle_args *clkspec,
 					      void *data)
 {
 	struct lpc18xx_branch_clk_data *clk_data = data;

@@ -1273,7 +1273,7 @@ static struct tegra_audio_clk_info tegra30_audio_plls[] = {
 
 static bool tegra30_car_initialized;
 
-static struct clk *tegra30_clk_src_onecell_get(struct of_phandle_args *clkspec,
+static struct clk *tegra30_clk_src_onecell_get(const struct of_phandle_args *clkspec,
 					       void *data)
 {
 	struct clk_hw *hw;

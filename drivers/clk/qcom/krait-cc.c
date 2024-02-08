@@ -324,7 +324,7 @@ err:
 	return pri_mux;
 }
 
-static struct clk *krait_of_get(struct of_phandle_args *clkspec, void *data)
+static struct clk *krait_of_get(const struct of_phandle_args *clkspec, void *data)
 {
 	unsigned int idx = clkspec->args[0];
 	struct clk **clks = data;

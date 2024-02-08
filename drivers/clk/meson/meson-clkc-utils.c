@@ -8,7 +8,8 @@
 #include <linux/module.h>
 #include "meson-clkc-utils.h"
 
-struct clk_hw *meson_clk_hw_get(struct of_phandle_args *clkspec, void *clk_hw_data)
+struct clk_hw *meson_clk_hw_get(const struct of_phandle_args *clkspec,
+				void *clk_hw_data)
 {
 	const struct meson_clk_hw_data *data = clk_hw_data;
 	unsigned int idx = clkspec->args[0];

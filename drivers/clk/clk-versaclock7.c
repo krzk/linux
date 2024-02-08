@@ -174,7 +174,7 @@ struct vc7_bank_src_map {
 	} src;
 };
 
-static struct clk_hw *vc7_of_clk_get(struct of_phandle_args *clkspec,
+static struct clk_hw *vc7_of_clk_get(const struct of_phandle_args *clkspec,
 				     void *data)
 {
 	struct vc7_driver_data *vc7 = data;

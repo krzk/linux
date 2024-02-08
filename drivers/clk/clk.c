@@ -342,7 +342,7 @@ static struct clk_core *clk_core_lookup(const char *name)
 static int of_parse_clkspec(const struct device_node *np, int index,
 			    const char *name, struct of_phandle_args *out_args);
 static struct clk_hw *
-of_clk_get_hw_from_clkspec(struct of_phandle_args *clkspec);
+of_clk_get_hw_from_clkspec(const struct of_phandle_args *clkspec);
 #else
 static inline int of_parse_clkspec(const struct device_node *np, int index,
 				   const char *name,
@@ -351,7 +351,7 @@ static inline int of_parse_clkspec(const struct device_node *np, int index,
 	return -ENOENT;
 }
 static inline struct clk_hw *
-of_clk_get_hw_from_clkspec(struct of_phandle_args *clkspec)
+of_clk_get_hw_from_clkspec(const struct of_phandle_args *clkspec)
 {
 	return ERR_PTR(-ENOENT);
 }
@@ -4818,8 +4818,8 @@ struct of_clk_provider {
 	struct list_head link;
 
 	struct device_node *node;
-	struct clk *(*get)(struct of_phandle_args *clkspec, void *data);
-	struct clk_hw *(*get_hw)(struct of_phandle_args *clkspec, void *data);
+	struct clk *(*get)(const struct of_phandle_args *clkspec, void *data);
+	struct clk_hw *(*get_hw)(const struct of_phandle_args *clkspec, void *data);
 	void *data;
 };
 
@@ -4830,20 +4830,22 @@ static const struct of_device_id __clk_of_table_sentinel
 static LIST_HEAD(of_clk_providers);
 static DEFINE_MUTEX(of_clk_mutex);
 
-struct clk *of_clk_src_simple_get(struct of_phandle_args *clkspec,
+struct clk *of_clk_src_simple_get(const struct of_phandle_args *clkspec,
 				     void *data)
 {
 	return data;
 }
 EXPORT_SYMBOL_GPL(of_clk_src_simple_get);
 
-struct clk_hw *of_clk_hw_simple_get(struct of_phandle_args *clkspec, void *data)
+struct clk_hw *of_clk_hw_simple_get(const struct of_phandle_args *clkspec,
+				    void *data)
 {
 	return data;
 }
 EXPORT_SYMBOL_GPL(of_clk_hw_simple_get);
 
-struct clk *of_clk_src_onecell_get(struct of_phandle_args *clkspec, void *data)
+struct clk *of_clk_src_onecell_get(const struct of_phandle_args *clkspec,
+				   void *data)
 {
 	struct clk_onecell_data *clk_data = data;
 	unsigned int idx = clkspec->args[0];
@@ -4858,7 +4860,7 @@ struct clk *of_clk_src_onecell_get(struct of_phandle_args *clkspec, void *data)
 EXPORT_SYMBOL_GPL(of_clk_src_onecell_get);
 
 struct clk_hw *
-of_clk_hw_onecell_get(struct of_phandle_args *clkspec, void *data)
+of_clk_hw_onecell_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct clk_hw_onecell_data *hw_data = data;
 	unsigned int idx = clkspec->args[0];
@@ -4881,7 +4883,7 @@ EXPORT_SYMBOL_GPL(of_clk_hw_onecell_get);
  * This function is *deprecated*. Use of_clk_add_hw_provider() instead.
  */
 int of_clk_add_provider(struct device_node *np,
-			struct clk *(*clk_src_get)(struct of_phandle_args *clkspec,
+			struct clk *(*clk_src_get)(const struct of_phandle_args *clkspec,
 						   void *data),
 			void *data)
 {
@@ -4923,7 +4925,7 @@ EXPORT_SYMBOL_GPL(of_clk_add_provider);
  * @data: context pointer for @get callback.
  */
 int of_clk_add_hw_provider(struct device_node *np,
-			   struct clk_hw *(*get)(struct of_phandle_args *clkspec,
+			   struct clk_hw *(*get)(const struct of_phandle_args *clkspec,
 						 void *data),
 			   void *data)
 {
@@ -4997,7 +4999,7 @@ static struct device_node *get_clk_provider_node(struct device *dev)
  * Return: 0 on success or an errno on failure.
  */
 int devm_of_clk_add_hw_provider(struct device *dev,
-			struct clk_hw *(*get)(struct of_phandle_args *clkspec,
+			struct clk_hw *(*get)(const struct of_phandle_args *clkspec,
 					      void *data),
 			void *data)
 {
@@ -5123,7 +5125,7 @@ static int of_parse_clkspec(const struct device_node *np, int index,
 
 static struct clk_hw *
 __of_clk_get_hw_from_provider(struct of_clk_provider *provider,
-			      struct of_phandle_args *clkspec)
+			      const struct of_phandle_args *clkspec)
 {
 	struct clk *clk;
 
@@ -5137,7 +5139,7 @@ __of_clk_get_hw_from_provider(struct of_clk_provider *provider,
 }
 
 static struct clk_hw *
-of_clk_get_hw_from_clkspec(struct of_phandle_args *clkspec)
+of_clk_get_hw_from_clkspec(const struct of_phandle_args *clkspec)
 {
 	struct of_clk_provider *provider;
 	struct clk_hw *hw = ERR_PTR(-EPROBE_DEFER);
@@ -5166,7 +5168,7 @@ of_clk_get_hw_from_clkspec(struct of_phandle_args *clkspec)
  * providers, an input is a clock specifier data structure as returned
  * from the of_parse_phandle_with_args() function call.
  */
-struct clk *of_clk_get_from_provider(struct of_phandle_args *clkspec)
+struct clk *of_clk_get_from_provider(const struct of_phandle_args *clkspec)
 {
 	struct clk_hw *hw = of_clk_get_hw_from_clkspec(clkspec);
 

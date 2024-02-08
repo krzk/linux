@@ -1384,7 +1384,8 @@ static void __init core_pll_init(struct device_node *np)
 	}
 }
 
-static struct clk *clockgen_clk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk *clockgen_clk_get(const struct of_phandle_args *clkspec,
+				    void *data)
 {
 	struct clockgen *cg = data;
 	struct clk *clk;

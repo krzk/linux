@@ -576,7 +576,7 @@ static int cdce925_regmap_i2c_read(void *context,
 }
 
 static struct clk_hw *
-of_clk_cdce925_get(struct of_phandle_args *clkspec, void *_data)
+of_clk_cdce925_get(const struct of_phandle_args *clkspec, void *_data)
 {
 	struct clk_cdce925_chip *data = _data;
 	unsigned int idx = clkspec->args[0];

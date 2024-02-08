@@ -229,7 +229,8 @@ static const struct clk_ops s5_pll_ops = {
 	.recalc_rate	= s5_pll_recalc_rate,
 };
 
-static struct clk_hw *s5_clk_hw_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *s5_clk_hw_get(const struct of_phandle_args *clkspec,
+				    void *data)
 {
 	struct s5_clk_data *s5_clk = data;
 	unsigned int idx = clkspec->args[0];

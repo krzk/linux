@@ -75,7 +75,8 @@ static inline int jh7110_isp_top_rst_init(struct jh71x0_clk_priv *priv)
 	return reset_control_deassert(top_rsts);
 }
 
-static struct clk_hw *jh7110_ispclk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7110_ispclk_get(const struct of_phandle_args *clkspec,
+					void *data)
 {
 	struct jh71x0_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

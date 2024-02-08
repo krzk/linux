@@ -512,7 +512,7 @@ static struct axxia_clk *axmclk_clocks[] = {
 };
 
 static struct clk_hw *
-of_clk_axmclk_get(struct of_phandle_args *clkspec, void *unused)
+of_clk_axmclk_get(const struct of_phandle_args *clkspec, void *unused)
 {
 	unsigned int idx = clkspec->args[0];
 

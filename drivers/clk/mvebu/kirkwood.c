@@ -269,7 +269,7 @@ static const struct clk_muxing_soc_desc kirkwood_mux_desc[] __initconst = {
 };
 
 static struct clk *clk_muxing_get_src(
-	struct of_phandle_args *clkspec, void *data)
+	const struct of_phandle_args *clkspec, void *data)
 {
 	struct clk_muxing_ctrl *ctrl = (struct clk_muxing_ctrl *)data;
 	int n;

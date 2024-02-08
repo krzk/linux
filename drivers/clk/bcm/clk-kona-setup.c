@@ -773,7 +773,7 @@ static bool ccu_data_valid(struct ccu_data *ccu)
 }
 
 static struct clk_hw *
-of_clk_kona_onecell_get(struct of_phandle_args *clkspec, void *data)
+of_clk_kona_onecell_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct ccu_data *ccu = data;
 	unsigned int idx = clkspec->args[0];

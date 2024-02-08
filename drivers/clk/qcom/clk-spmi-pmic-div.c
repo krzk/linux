@@ -181,7 +181,7 @@ struct spmi_pmic_div_clk_cc {
 };
 
 static struct clk_hw *
-spmi_pmic_div_clk_hw_get(struct of_phandle_args *clkspec, void *data)
+spmi_pmic_div_clk_hw_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct spmi_pmic_div_clk_cc *cc = data;
 	int idx = clkspec->args[0] - 1; /* Start at 1 instead of 0 */

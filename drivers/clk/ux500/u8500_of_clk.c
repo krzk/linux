@@ -26,7 +26,7 @@ static struct clk_hw *clkout_clk[2];
 #define PRCC_KCLK_STORE(clk, base, bit)        \
 	prcc_kclk[(base * PRCC_PERIPHS_PER_CLUSTER) + bit] = clk
 
-static struct clk *ux500_twocell_get(struct of_phandle_args *clkspec,
+static struct clk *ux500_twocell_get(const struct of_phandle_args *clkspec,
 				     void *data)
 {
 	struct clk **clk_data = data;
@@ -71,7 +71,7 @@ static const char * const u8500_clkout_parents[] = {
 	"clk009",
 };
 
-static struct clk_hw *ux500_clkout_get(struct of_phandle_args *clkspec,
+static struct clk_hw *ux500_clkout_get(const struct of_phandle_args *clkspec,
 				       void *data)
 {
 	u32 id, source, divider;

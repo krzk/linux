@@ -44,7 +44,8 @@ int of_at91_get_clk_range(struct device_node *np, const char *propname,
 }
 EXPORT_SYMBOL_GPL(of_at91_get_clk_range);
 
-struct clk_hw *of_clk_hw_pmc_get(struct of_phandle_args *clkspec, void *data)
+struct clk_hw *of_clk_hw_pmc_get(const struct of_phandle_args *clkspec,
+				 void *data)
 {
 	unsigned int type = clkspec->args[0];
 	unsigned int idx = clkspec->args[1];

@@ -1052,7 +1052,7 @@ rzg2l_cpg_pll_clk_register(const struct cpg_core_clk *core,
 }
 
 static struct clk
-*rzg2l_cpg_clk_src_twocell_get(struct of_phandle_args *clkspec,
+*rzg2l_cpg_clk_src_twocell_get(const struct of_phandle_args *clkspec,
 			       void *data)
 {
 	unsigned int clkidx = clkspec->args[1];

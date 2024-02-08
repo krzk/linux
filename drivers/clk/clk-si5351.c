@@ -1390,7 +1390,7 @@ put_child:
 }
 
 static struct clk_hw *
-si53351_of_clk_get(struct of_phandle_args *clkspec, void *data)
+si53351_of_clk_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct si5351_driver_data *drvdata = data;
 	unsigned int idx = clkspec->args[0];
@@ -1409,7 +1409,7 @@ static int si5351_dt_parse(struct i2c_client *client, enum si5351_variant varian
 }
 
 static struct clk_hw *
-si53351_of_clk_get(struct of_phandle_args *clkspec, void *data)
+si53351_of_clk_get(const struct of_phandle_args *clkspec, void *data)
 {
 	return NULL;
 }

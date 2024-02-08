@@ -964,7 +964,7 @@ static struct vc3_hw_data clk_mux[] = {
 	}
 };
 
-static struct clk_hw *vc3_of_clk_get(struct of_phandle_args *clkspec,
+static struct clk_hw *vc3_of_clk_get(const struct of_phandle_args *clkspec,
 				     void *data)
 {
 	unsigned int idx = clkspec->args[0];

@@ -273,7 +273,7 @@ static const struct clk_ops cpg_mstp_clock_ops = {
 };
 
 static
-struct clk *cpg_mssr_clk_src_twocell_get(struct of_phandle_args *clkspec,
+struct clk *cpg_mssr_clk_src_twocell_get(const struct of_phandle_args *clkspec,
 					 void *data)
 {
 	unsigned int clkidx = clkspec->args[1];

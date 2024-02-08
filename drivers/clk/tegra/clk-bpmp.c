@@ -654,7 +654,7 @@ static void tegra_bpmp_unregister_clocks(struct tegra_bpmp *bpmp)
 		clk_hw_unregister(&bpmp->clocks[i]->hw);
 }
 
-static struct clk_hw *tegra_bpmp_clk_of_xlate(struct of_phandle_args *clkspec,
+static struct clk_hw *tegra_bpmp_clk_of_xlate(const struct of_phandle_args *clkspec,
 					      void *data)
 {
 	unsigned int id = clkspec->args[0], i;

@@ -1502,7 +1502,7 @@ static void __init tegra124_132_clock_init_pre(struct device_node *np)
 	writel(plld_base, clk_base + PLLD_BASE);
 }
 
-static struct clk *tegra124_clk_src_onecell_get(struct of_phandle_args *clkspec,
+static struct clk *tegra124_clk_src_onecell_get(const struct of_phandle_args *clkspec,
 						void *data)
 {
 	struct clk_hw *hw;

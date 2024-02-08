@@ -1532,25 +1532,25 @@ struct clk_hw_onecell_data {
 
 #ifdef CONFIG_OF
 int of_clk_add_provider(struct device_node *np,
-			struct clk *(*clk_src_get)(struct of_phandle_args *args,
+			struct clk *(*clk_src_get)(const struct of_phandle_args *args,
 						   void *data),
 			void *data);
 int of_clk_add_hw_provider(struct device_node *np,
-			   struct clk_hw *(*get)(struct of_phandle_args *clkspec,
+			   struct clk_hw *(*get)(const struct of_phandle_args *clkspec,
 						 void *data),
 			   void *data);
 int devm_of_clk_add_hw_provider(struct device *dev,
-			   struct clk_hw *(*get)(struct of_phandle_args *clkspec,
+			   struct clk_hw *(*get)(const struct of_phandle_args *clkspec,
 						 void *data),
 			   void *data);
 void of_clk_del_provider(struct device_node *np);
 
-struct clk *of_clk_src_simple_get(struct of_phandle_args *clkspec,
+struct clk *of_clk_src_simple_get(const struct of_phandle_args *clkspec,
 				  void *data);
-struct clk_hw *of_clk_hw_simple_get(struct of_phandle_args *clkspec,
+struct clk_hw *of_clk_hw_simple_get(const struct of_phandle_args *clkspec,
 				    void *data);
-struct clk *of_clk_src_onecell_get(struct of_phandle_args *clkspec, void *data);
-struct clk_hw *of_clk_hw_onecell_get(struct of_phandle_args *clkspec,
+struct clk *of_clk_src_onecell_get(const struct of_phandle_args *clkspec, void *data);
+struct clk_hw *of_clk_hw_onecell_get(const struct of_phandle_args *clkspec,
 				     void *data);
 int of_clk_parent_fill(struct device_node *np, const char **parents,
 		       unsigned int size);
@@ -1560,21 +1560,21 @@ int of_clk_detect_critical(struct device_node *np, int index,
 #else /* !CONFIG_OF */
 
 static inline int of_clk_add_provider(struct device_node *np,
-			struct clk *(*clk_src_get)(struct of_phandle_args *args,
+			struct clk *(*clk_src_get)(const struct of_phandle_args *args,
 						   void *data),
 			void *data)
 {
 	return 0;
 }
 static inline int of_clk_add_hw_provider(struct device_node *np,
-			struct clk_hw *(*get)(struct of_phandle_args *clkspec,
+			struct clk_hw *(*get)(const struct of_phandle_args *clkspec,
 					      void *data),
 			void *data)
 {
 	return 0;
 }
 static inline int devm_of_clk_add_hw_provider(struct device *dev,
-			   struct clk_hw *(*get)(struct of_phandle_args *clkspec,
+			   struct clk_hw *(*get)(const struct of_phandle_args *clkspec,
 						 void *data),
 			   void *data)
 {
@@ -1583,22 +1583,22 @@ static inline int devm_of_clk_add_hw_provider(struct device *dev,
 static inline void of_clk_del_provider(struct device_node *np) {}
 
 static inline struct clk *of_clk_src_simple_get(
-	struct of_phandle_args *clkspec, void *data)
+	const struct of_phandle_args *clkspec, void *data)
 {
 	return ERR_PTR(-ENOENT);
 }
 static inline struct clk_hw *
-of_clk_hw_simple_get(struct of_phandle_args *clkspec, void *data)
+of_clk_hw_simple_get(const struct of_phandle_args *clkspec, void *data)
 {
 	return ERR_PTR(-ENOENT);
 }
 static inline struct clk *of_clk_src_onecell_get(
-	struct of_phandle_args *clkspec, void *data)
+	const struct of_phandle_args *clkspec, void *data)
 {
 	return ERR_PTR(-ENOENT);
 }
 static inline struct clk_hw *
-of_clk_hw_onecell_get(struct of_phandle_args *clkspec, void *data)
+of_clk_hw_onecell_get(const struct of_phandle_args *clkspec, void *data)
 {
 	return ERR_PTR(-ENOENT);
 }

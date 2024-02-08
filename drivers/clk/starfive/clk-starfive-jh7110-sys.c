@@ -323,7 +323,8 @@ static const struct jh71x0_clk_data jh7110_sysclk_data[] __initconst = {
 		    JH7110_SYSCLK_OSC),
 };
 
-static struct clk_hw *jh7110_sysclk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *jh7110_sysclk_get(const struct of_phandle_args *clkspec,
+					void *data)
 {
 	struct jh71x0_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

@@ -27,7 +27,7 @@ extern const struct imx_clk_scu_rsrc_table imx_clk_scu_rsrc_imx8qm;
 
 int imx_clk_scu_init(struct device_node *np,
 		     const struct imx_clk_scu_rsrc_table *data);
-struct clk_hw *imx_scu_of_clk_src_get(struct of_phandle_args *clkspec,
+struct clk_hw *imx_scu_of_clk_src_get(const struct of_phandle_args *clkspec,
 				      void *data);
 struct clk_hw *imx_clk_scu_alloc_dev(const char *name,
 				     const char * const *parents,

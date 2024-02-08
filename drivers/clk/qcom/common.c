@@ -220,7 +220,7 @@ static void qcom_cc_drop_protected(struct device *dev, struct qcom_cc *cc)
 	}
 }
 
-static struct clk_hw *qcom_cc_clk_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *qcom_cc_clk_hw_get(const struct of_phandle_args *clkspec,
 					 void *data)
 {
 	struct qcom_cc *cc = data;

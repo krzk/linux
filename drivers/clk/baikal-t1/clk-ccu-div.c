@@ -322,7 +322,7 @@ static int ccu_div_find_sys_regs(struct ccu_div_data *data)
 	return 0;
 }
 
-static struct clk_hw *ccu_div_of_clk_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *ccu_div_of_clk_hw_get(const struct of_phandle_args *clkspec,
 					    void *priv)
 {
 	struct ccu_div_data *data = priv;

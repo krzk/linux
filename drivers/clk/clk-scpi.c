@@ -172,7 +172,7 @@ struct scpi_clk_data {
 };
 
 static struct clk_hw *
-scpi_of_clk_src_get(struct of_phandle_args *clkspec, void *data)
+scpi_of_clk_src_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct scpi_clk *sclk;
 	struct scpi_clk_data *clk_data = data;

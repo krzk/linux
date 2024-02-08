@@ -106,7 +106,7 @@ static const struct clk_ops clk_vote_q6dsp_ops = {
 };
 
 
-static struct clk_hw *q6dsp_of_clk_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *q6dsp_of_clk_hw_get(const struct of_phandle_args *clkspec,
 					  void *data)
 {
 	struct q6dsp_cc *cc = data;

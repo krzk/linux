@@ -375,7 +375,8 @@ static int _cmp_sci_clk(const void *a, const void *b)
  * when a corresponding of_clk_get call is executed. Returns a pointer
  * to the TI SCI hw clock struct, or ERR_PTR value in failure.
  */
-static struct clk_hw *sci_clk_get(struct of_phandle_args *clkspec, void *data)
+static struct clk_hw *sci_clk_get(const struct of_phandle_args *clkspec,
+				  void *data)
 {
 	struct sci_clk_provider *provider = data;
 	struct sci_clk **clk;

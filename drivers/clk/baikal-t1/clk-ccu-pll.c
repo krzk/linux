@@ -126,7 +126,7 @@ static int ccu_pll_find_sys_regs(struct ccu_pll_data *data)
 	return 0;
 }
 
-static struct clk_hw *ccu_pll_of_clk_hw_get(struct of_phandle_args *clkspec,
+static struct clk_hw *ccu_pll_of_clk_hw_get(const struct of_phandle_args *clkspec,
 					    void *priv)
 {
 	struct ccu_pll_data *data = priv;

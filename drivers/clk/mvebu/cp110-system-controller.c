@@ -192,7 +192,7 @@ static void cp110_unregister_gate(struct clk_hw *hw)
 	kfree(to_cp110_gate_clk(hw));
 }
 
-static struct clk_hw *cp110_of_clk_get(struct of_phandle_args *clkspec,
+static struct clk_hw *cp110_of_clk_get(const struct of_phandle_args *clkspec,
 				       void *data)
 {
 	struct clk_hw_onecell_data *clk_data = data;

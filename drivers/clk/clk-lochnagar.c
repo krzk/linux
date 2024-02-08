@@ -215,7 +215,7 @@ static const struct clk_ops lochnagar_clk_ops = {
 };
 
 static struct clk_hw *
-lochnagar_of_clk_hw_get(struct of_phandle_args *clkspec, void *data)
+lochnagar_of_clk_hw_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct lochnagar_clk_priv *priv = data;
 	unsigned int idx = clkspec->args[0];

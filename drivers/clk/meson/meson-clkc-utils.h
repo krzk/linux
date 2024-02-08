@@ -14,6 +14,7 @@ struct meson_clk_hw_data {
 	unsigned int	num;
 };
 
-struct clk_hw *meson_clk_hw_get(struct of_phandle_args *clkspec, void *clk_hw_data);
+struct clk_hw *meson_clk_hw_get(const struct of_phandle_args *clkspec,
+				void *clk_hw_data);
 
 #endif

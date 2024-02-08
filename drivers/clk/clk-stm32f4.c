@@ -872,7 +872,7 @@ static int stm32f4_rcc_lookup_clk_idx(u8 primary, u8 secondary)
 }
 
 static struct clk_hw *
-stm32f4_rcc_lookup_clk(struct of_phandle_args *clkspec, void *data)
+stm32f4_rcc_lookup_clk(const struct of_phandle_args *clkspec, void *data)
 {
 	int i = stm32f4_rcc_lookup_clk_idx(clkspec->args[0], clkspec->args[1]);
 

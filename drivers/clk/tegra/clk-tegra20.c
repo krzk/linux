@@ -1069,7 +1069,7 @@ static const struct of_device_id pmc_match[] __initconst = {
 
 static bool tegra20_car_initialized;
 
-static struct clk *tegra20_clk_src_onecell_get(struct of_phandle_args *clkspec,
+static struct clk *tegra20_clk_src_onecell_get(const struct of_phandle_args *clkspec,
 					       void *data)
 {
 	struct clk_hw *parent_hw;

@@ -269,7 +269,7 @@ static void si521xx_diff_idx_to_reg_bit(const u16 chip_info, const int idx,
 }
 
 static struct clk_hw *
-si521xx_of_clk_get(struct of_phandle_args *clkspec, void *data)
+si521xx_of_clk_get(const struct of_phandle_args *clkspec, void *data)
 {
 	struct si521xx *si = data;
 	unsigned int idx = clkspec->args[0];
