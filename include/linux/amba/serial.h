@@ -15,6 +15,7 @@
 #include <linux/bits.h>
 #endif
 
+#include <linux/dmaengine.h>
 #include <linux/types.h>
 
 /* -------------------------------------------------------------------------------
@@ -223,7 +224,7 @@ struct amba_pl010_data {
 
 struct dma_chan;
 struct amba_pl011_data {
-	bool (*dma_filter)(struct dma_chan *chan, void *filter_param);
+	dma_filter_fn dma_filter;
 	void *dma_rx_param;
 	void *dma_tx_param;
 	bool dma_rx_poll_enable;
