@@ -8,6 +8,7 @@
 #define _MSM_VIDC_CORE_H_
 
 #include <linux/platform_device.h>
+#include <linux/vmalloc.h>
 
 #include "msm_vidc_internal.h"
 #include "msm_vidc_state.h"
