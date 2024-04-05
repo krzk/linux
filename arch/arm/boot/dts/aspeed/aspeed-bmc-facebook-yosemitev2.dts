@@ -95,7 +95,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_rmii1_default>;
 	use-ncsi;
-	mellanox,multi-host;
+	mlx,multi-host;
 };
 
 &adc {
