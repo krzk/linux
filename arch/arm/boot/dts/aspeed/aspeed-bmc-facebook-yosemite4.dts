@@ -88,7 +88,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_rmii3_default>;
 	use-ncsi;
-	mellanox,multi-host;
+	mlx,multi-host;
 };
 
 &mac3 {
@@ -96,7 +96,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_rmii4_default>;
 	use-ncsi;
-	mellanox,multi-host;
+	mlx,multi-host;
 };
 
 &fmc {
