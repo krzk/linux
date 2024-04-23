@@ -404,8 +404,8 @@ static ssize_t inst_info_read(struct file *file, char __user *buf,
 		cur += write_str(cur, end - cur,
 			"type: %s\n", i == INPUT_PORT ?
 			"Output" : "Capture");
-		cur += write_str(cur, end - cur, "count: %u\n",
-				inst->bufq[i].vb2q->num_buffers);
+		cur += write_str(cur, end - cur, "bitmap: 0x%x\n",
+				inst->bufq[i].vb2q->bufs_bitmap);
 
 		for (j = 0; j < f->fmt.pix_mp.num_planes; j++)
 			cur += write_str(cur, end - cur,
