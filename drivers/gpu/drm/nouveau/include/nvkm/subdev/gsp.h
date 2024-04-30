@@ -211,12 +211,6 @@ struct nvkm_gsp {
 		struct mutex mutex;;
 		struct idr idr;
 	} client_id;
-
-	/* A linked list of registry items. The registry RPC will be built from it. */
-	struct list_head registry_list;
-
-	/* The size of the registry RPC */
-	size_t registry_rpc_size;
 };
 
 static inline bool
