@@ -4,8 +4,8 @@ gen	:= arch/$(ARCH)/include/generated
 kapi	:= $(gen)/asm
 uapi	:= $(gen)/uapi/asm
 
-syscall	:= $(src)/syscall.tbl
-systbl	:= $(src)/syscalltbl
+syscall	:= $(srctree)/$(src)/syscall.tbl
+systbl	:= $(srctree)/$(src)/syscalltbl
 
 gen-y := $(kapi)/syscall_table.h
 kapi-hdrs-y := $(kapi)/unistd_nr.h

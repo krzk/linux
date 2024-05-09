@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
-HID_SAMPLES_PATH ?= $(abspath $(src))
+HID_SAMPLES_PATH ?= $(abspath $(srctree)/$(src))
 TOOLS_PATH := $(HID_SAMPLES_PATH)/../../tools
 
 pound := \#

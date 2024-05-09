@@ -62,7 +62,8 @@ stringify = $(squote)$(quote)$1$(quote)$(squote)
 
 ###
 # The path to Kbuild or Makefile. Kbuild has precedence over Makefile.
-kbuild-file = $(or $(wildcard $(src)/Kbuild),$(src)/Makefile)
+kbuild-dir = $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
+kbuild-file = $(or $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Makefile)
 
 ###
 # Read a file, replacing newlines with spaces

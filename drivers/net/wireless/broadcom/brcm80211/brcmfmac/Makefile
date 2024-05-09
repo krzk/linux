@@ -6,8 +6,8 @@
 #
 
 ccflags-y += \
-	-I $(src) \
-	-I $(src)/../include
+	-I $(srctree)/$(src) \
+	-I $(srctree)/$(src)/../include
 
 obj-$(CONFIG_BRCMFMAC) += brcmfmac.o
 brcmfmac-objs += \

@@ -2,7 +2,7 @@
 
 ifdef building_out_of_srctree
 
-symlinks := $(patsubst $(src)/%,%,$(wildcard $(src)/*.py))
+symlinks := $(patsubst $(srctree)/$(src)/%,%,$(wildcard $(srctree)/$(src)/*.py))
 
 quiet_cmd_symlink = SYMLINK $@
       cmd_symlink = ln -fsn $(patsubst $(obj)/%,$(abspath $(srctree))/$(src)/%,$@) $@

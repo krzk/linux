@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
-ccflags-y := -I $(src)
-ccflags-y += -I $(obj)/generated
-ccflags-y += -I $(src)/disp/dpu1
-ccflags-$(CONFIG_DRM_MSM_DSI) += -I $(src)/dsi
-ccflags-$(CONFIG_DRM_MSM_DP) += -I $(src)/dp
+ccflags-y := -I $(srctree)/$(src)
+ccflags-y += -I $(srctree)/$(src)/disp/dpu1
+ccflags-$(CONFIG_DRM_MSM_DSI) += -I $(srctree)/$(src)/dsi
+ccflags-$(CONFIG_DRM_MSM_DP) += -I $(srctree)/$(src)/dp
 
 adreno-y := \
 	adreno/adreno_device.o \

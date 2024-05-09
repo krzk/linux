@@ -3,7 +3,7 @@
 # Makefile for RISC-V KVM support
 #
 
-ccflags-y += -I $(src)
+ccflags-y += -I $(srctree)/$(src)
 
 include $(srctree)/virt/kvm/Makefile.kvm
 

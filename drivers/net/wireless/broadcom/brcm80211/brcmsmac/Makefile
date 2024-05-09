@@ -16,9 +16,9 @@
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ccflags-y := \
-	-I $(src) \
-	-I $(src)/phy \
-	-I $(src)/../include
+	-I $(srctree)/$(src) \
+	-I $(srctree)/$(src)/phy \
+	-I $(srctree)/$(src)/../include
 
 brcmsmac-y := \
 	mac80211_if.o \

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause)
 
-ccflags-y += -I$(src)/../funcore -I$(src)
+ccflags-y += -I$(srctree)/$(src)/../funcore -I$(srctree)/$(src)
 
 obj-$(CONFIG_FUN_ETH) += funeth.o
 
