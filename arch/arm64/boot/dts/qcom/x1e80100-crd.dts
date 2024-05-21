@@ -696,6 +696,24 @@
 	status = "okay";
 };
 
+&mdss_dp0 {
+	status = "okay";
+};
+
+&mdss_dp0_out {
+	data-lanes = <0 1>;
+	remote-endpoint = <&usb_1_ss0_qmpphy_dp_in>;
+};
+
+&mdss_dp1 {
+	status = "okay";
+};
+
+&mdss_dp1_out {
+	data-lanes = <0 1>;
+	remote-endpoint = <&usb_1_ss1_qmpphy_dp_in>;
+};
+
 &mdss_dp3 {
 	compatible = "qcom,x1e80100-dp";
 	/delete-property/ #sound-dai-cells;
@@ -970,6 +988,10 @@
 	status = "okay";
 };
 
+&usb_1_ss0_qmpphy_dp_in {
+	remote-endpoint = <&mdss_dp0_out>;
+};
+
 &usb_1_ss0 {
 	status = "okay";
 };
@@ -1011,6 +1033,10 @@
 	orientation-switch;
 
 	status = "okay";
+};
+
+&usb_1_ss1_qmpphy_dp_in {
+	remote-endpoint = <&mdss_dp1_out>;
 };
 
 &usb_1_ss1 {
