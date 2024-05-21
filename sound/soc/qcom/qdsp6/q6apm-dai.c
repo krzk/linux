@@ -19,15 +19,17 @@
 #define DRV_NAME "q6apm-dai"
 
 #define PLAYBACK_MIN_NUM_PERIODS	2
-#define PLAYBACK_MAX_NUM_PERIODS	8
-#define PLAYBACK_MAX_PERIOD_SIZE	65536
-#define PLAYBACK_MIN_PERIOD_SIZE	128
+#define PLAYBACK_MAX_NUM_PERIODS	4
+#define PLAYBACK_MAX_PERIOD_SIZE	8192
+#define PLAYBACK_MAX_BUF_SIZE		65536
+#define PLAYBACK_MIN_PERIOD_SIZE	8192
 #define CAPTURE_MIN_NUM_PERIODS		2
-#define CAPTURE_MAX_NUM_PERIODS		8
-#define CAPTURE_MAX_PERIOD_SIZE		4096
-#define CAPTURE_MIN_PERIOD_SIZE		320
-#define BUFFER_BYTES_MAX (PLAYBACK_MAX_NUM_PERIODS * PLAYBACK_MAX_PERIOD_SIZE)
-#define BUFFER_BYTES_MIN (PLAYBACK_MIN_NUM_PERIODS * PLAYBACK_MIN_PERIOD_SIZE)
+#define CAPTURE_MAX_NUM_PERIODS		4
+#define CAPTURE_MAX_PERIOD_SIZE		8192
+#define CAPTURE_MAX_BUF_SIZE		65536
+#define CAPTURE_MIN_PERIOD_SIZE		8192
+#define BUFFER_BYTES_MAX PLAYBACK_MAX_BUF_SIZE
+#define BUFFER_BYTES_MIN (8192)
 #define COMPR_PLAYBACK_MAX_FRAGMENT_SIZE (128 * 1024)
 #define COMPR_PLAYBACK_MAX_NUM_FRAGMENTS (16 * 4)
 #define COMPR_PLAYBACK_MIN_FRAGMENT_SIZE (8 * 1024)
@@ -239,6 +241,7 @@ static int q6apm_dai_prepare(struct snd_soc_component *component,
 	cfg.num_channels = runtime->channels;
 	cfg.bit_width = prtd->bits_per_sample;
 	cfg.fmt = SND_AUDIOCODEC_PCM;
+	audioreach_set_default_channel_mapping(cfg.channel_map, runtime->channels);
 
 	if (prtd->state) {
 		/* clear the previous setup if any  */
@@ -665,6 +668,8 @@ static int q6apm_dai_compr_set_params(struct snd_soc_component *component,
 		cfg.num_channels = 2;
 		cfg.bit_width = prtd->bits_per_sample;
 		cfg.fmt = codec->id;
+		audioreach_set_default_channel_mapping(cfg.channel_map,
+						       cfg.num_channels);
 		memcpy(&cfg.codec, codec, sizeof(*codec));
 
 		ret = q6apm_graph_media_format_shmem(prtd->graph, &cfg);
