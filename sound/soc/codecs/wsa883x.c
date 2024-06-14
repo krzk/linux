@@ -435,6 +435,7 @@
 #define WSA883X_VERSION_1_0 0
 #define WSA883X_VERSION_1_1 1
 
+#define SWRS_SCP_HOST_CLK_DIV2_CTL_BANK(m)	(0xE0 + 0x10 * (m))
 #define WSA883X_MAX_SWR_PORTS   4
 #define WSA883X_RATES (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 |\
 			SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_48000 |\
@@ -1111,8 +1112,16 @@ static int wsa883x_port_prep(struct sdw_slave *slave,
 	return 0;
 }
 
+static int wsa883x_bus_config(struct sdw_slave *slave,
+			      struct sdw_bus_params *params)
+{
+	sdw_write(slave, SWRS_SCP_HOST_CLK_DIV2_CTL_BANK(params->next_bank), 0x01);
+	return 0;
+}
+
 static const struct sdw_slave_ops wsa883x_slave_ops = {
 	.update_status = wsa883x_update_status,
+	.bus_config = wsa883x_bus_config,
 	.port_prep = wsa883x_port_prep,
 };
 
