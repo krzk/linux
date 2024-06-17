@@ -133,7 +133,7 @@ static int uniphier_aio_compr_get_params(struct snd_soc_component *component,
 
 static int uniphier_aio_compr_set_params(struct snd_soc_component *component,
 					 struct snd_compr_stream *cstream,
-					 struct snd_compr_params *params)
+					 const struct snd_compr_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
 	struct uniphier_aio *aio = uniphier_priv(snd_soc_rtd_to_cpu(rtd, 0));

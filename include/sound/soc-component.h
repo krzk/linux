@@ -33,7 +33,7 @@ struct snd_compress_ops {
 		    struct snd_compr_stream *stream);
 	int (*set_params)(struct snd_soc_component *component,
 			  struct snd_compr_stream *stream,
-			  struct snd_compr_params *params);
+			  const struct snd_compr_params *params);
 	int (*get_params)(struct snd_soc_component *component,
 			  struct snd_compr_stream *stream,
 			  struct snd_codec *params);

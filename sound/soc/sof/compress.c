@@ -160,7 +160,8 @@ static int sof_compr_free(struct snd_soc_component *component,
 }
 
 static int sof_compr_set_params(struct snd_soc_component *component,
-				struct snd_compr_stream *cstream, struct snd_compr_params *params)
+				struct snd_compr_stream *cstream,
+				const struct snd_compr_params *params)
 {
 	struct snd_sof_dev *sdev = snd_soc_component_get_drvdata(component);
 	struct snd_soc_pcm_runtime *rtd = cstream->private_data;

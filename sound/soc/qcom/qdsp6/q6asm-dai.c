@@ -694,7 +694,7 @@ static int q6asm_dai_compr_free(struct snd_soc_component *component,
 
 static int __q6asm_dai_compr_set_codec_params(struct snd_soc_component *component,
 					      struct snd_compr_stream *stream,
-					      struct snd_codec *codec,
+					      const struct snd_codec *codec,
 					      int stream_id)
 {
 	struct snd_compr_runtime *runtime = stream->runtime;
@@ -872,7 +872,7 @@ static int __q6asm_dai_compr_set_codec_params(struct snd_soc_component *componen
 
 static int q6asm_dai_compr_set_params(struct snd_soc_component *component,
 				      struct snd_compr_stream *stream,
-				      struct snd_compr_params *params)
+				      const struct snd_compr_params *params)
 {
 	struct snd_compr_runtime *runtime = stream->runtime;
 	struct q6asm_dai_rtd *prtd = runtime->private_data;
