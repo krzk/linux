@@ -488,7 +488,7 @@ void snd_soc_component_compr_free(struct snd_soc_component *component,
 				  int rollback);
 int snd_soc_component_compr_trigger(struct snd_compr_stream *cstream, int cmd);
 int snd_soc_component_compr_set_params(struct snd_compr_stream *cstream,
-				       struct snd_compr_params *params);
+				       const struct snd_compr_params *params);
 int snd_soc_component_compr_get_params(struct snd_compr_stream *cstream,
 				       struct snd_codec *params);
 int snd_soc_component_compr_get_caps(struct snd_compr_stream *cstream,
