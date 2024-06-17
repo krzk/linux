@@ -68,7 +68,7 @@ static int hda_probes_compr_shutdown(struct sof_client_dev *cdev,
 
 static int hda_probes_compr_set_params(struct sof_client_dev *cdev,
 				       struct snd_compr_stream *cstream,
-				       struct snd_compr_params *params,
+				       const struct snd_compr_params *params,
 				       struct snd_soc_dai *dai)
 {
 	struct hdac_ext_stream *hext_stream = hda_compr_get_stream(cstream);
