@@ -526,7 +526,7 @@ int snd_soc_component_compr_trigger(struct snd_compr_stream *cstream, int cmd)
 EXPORT_SYMBOL_GPL(snd_soc_component_compr_trigger);
 
 int snd_soc_component_compr_set_params(struct snd_compr_stream *cstream,
-				       struct snd_compr_params *params)
+				       const struct snd_compr_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
 	struct snd_soc_component *component;
