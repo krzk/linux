@@ -119,7 +119,7 @@ int wm_adsp_compr_free(struct snd_soc_component *component,
 		       struct snd_compr_stream *stream);
 int wm_adsp_compr_set_params(struct snd_soc_component *component,
 			     struct snd_compr_stream *stream,
-			     struct snd_compr_params *params);
+			     const struct snd_compr_params *params);
 int wm_adsp_compr_get_caps(struct snd_soc_component *component,
 			   struct snd_compr_stream *stream,
 			   struct snd_compr_caps *caps);

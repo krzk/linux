@@ -94,7 +94,7 @@ static int sst_platform_compr_free(struct snd_soc_component *component,
 
 static int sst_platform_compr_set_params(struct snd_soc_component *component,
 					 struct snd_compr_stream *cstream,
-					 struct snd_compr_params *params)
+					 const struct snd_compr_params *params)
 {
 	struct sst_runtime_stream *stream;
 	int retval;

@@ -128,7 +128,7 @@ static void sprd_platform_compr_dma_complete(void *data)
 
 static int sprd_platform_compr_dma_config(struct snd_soc_component *component,
 					  struct snd_compr_stream *cstream,
-					  struct snd_compr_params *params,
+					  const struct snd_compr_params *params,
 					  int channel)
 {
 	struct snd_compr_runtime *runtime = cstream->runtime;
@@ -263,7 +263,7 @@ sg_err:
 
 static int sprd_platform_compr_set_params(struct snd_soc_component *component,
 					  struct snd_compr_stream *cstream,
-					  struct snd_compr_params *params)
+					  const struct snd_compr_params *params)
 {
 	struct snd_compr_runtime *runtime = cstream->runtime;
 	struct sprd_compr_stream *stream = runtime->private_data;
