@@ -234,7 +234,7 @@ int snd_seq_device_new(struct snd_card *card, int device, const char *id,
 		put_device(&dev->dev);
 		return err;
 	}
-	
+
 	if (result)
 		*result = dev;
 
