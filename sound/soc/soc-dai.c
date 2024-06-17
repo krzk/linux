@@ -781,7 +781,7 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_compr_trigger);
 
 int snd_soc_dai_compr_set_params(struct snd_soc_dai *dai,
 				 struct snd_compr_stream *cstream,
-				 struct snd_compr_params *params)
+				 const struct snd_compr_params *params)
 {
 	int ret = 0;
 
