@@ -320,7 +320,7 @@ out:
 }
 
 static int soc_compr_set_params(struct snd_compr_stream *cstream,
-				struct snd_compr_params *params)
+				const struct snd_compr_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
 	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
@@ -364,7 +364,7 @@ err:
 }
 
 static int soc_compr_set_params_fe(struct snd_compr_stream *cstream,
-				   struct snd_compr_params *params)
+				   const struct snd_compr_params *params)
 {
 	struct snd_soc_pcm_runtime *fe = cstream->private_data;
 	struct snd_pcm_substream *fe_substream =
