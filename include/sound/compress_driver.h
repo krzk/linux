@@ -113,7 +113,7 @@ struct snd_compr_ops {
 	int (*open)(struct snd_compr_stream *stream);
 	int (*free)(struct snd_compr_stream *stream);
 	int (*set_params)(struct snd_compr_stream *stream,
-			struct snd_compr_params *params);
+			const struct snd_compr_params *params);
 	int (*get_params)(struct snd_compr_stream *stream,
 			struct snd_codec *params);
 	int (*set_metadata)(struct snd_compr_stream *stream,
