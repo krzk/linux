@@ -67,7 +67,7 @@ static int acp_probes_compr_shutdown(struct sof_client_dev *cdev,
 
 static int acp_probes_compr_set_params(struct sof_client_dev *cdev,
 				       struct snd_compr_stream *cstream,
-				       struct snd_compr_params *params,
+				       const struct snd_compr_params *params,
 				       struct snd_soc_dai *dai)
 {
 	struct snd_sof_dev *sdev = sof_client_dev_to_sof_dev(cdev);

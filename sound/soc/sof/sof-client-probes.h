@@ -19,7 +19,7 @@ struct sof_probes_host_ops {
 	int (*shutdown)(struct sof_client_dev *cdev, struct snd_compr_stream *cstream,
 			struct snd_soc_dai *dai);
 	int (*set_params)(struct sof_client_dev *cdev, struct snd_compr_stream *cstream,
-			  struct snd_compr_params *params,
+			  const struct snd_compr_params *params,
 			  struct snd_soc_dai *dai);
 	int (*trigger)(struct sof_client_dev *cdev, struct snd_compr_stream *cstream,
 		       int cmd, struct snd_soc_dai *dai);
