@@ -382,7 +382,7 @@ struct snd_soc_cdai_ops {
 	int (*shutdown)(struct snd_compr_stream *,
 			struct snd_soc_dai *);
 	int (*set_params)(struct snd_compr_stream *,
-			struct snd_compr_params *, struct snd_soc_dai *);
+			const struct snd_compr_params *, struct snd_soc_dai *);
 	int (*get_params)(struct snd_compr_stream *,
 			struct snd_codec *, struct snd_soc_dai *);
 	int (*set_metadata)(struct snd_compr_stream *,

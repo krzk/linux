@@ -95,7 +95,7 @@ exit:
 }
 
 static int sof_probes_compr_set_params(struct snd_compr_stream *cstream,
-				       struct snd_compr_params *params,
+				       const struct snd_compr_params *params,
 				       struct snd_soc_dai *dai)
 {
 	struct snd_soc_card *card = snd_soc_component_get_drvdata(dai->component);
