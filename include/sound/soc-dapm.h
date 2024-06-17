@@ -468,7 +468,8 @@ int snd_soc_dapm_link_dai_widgets(struct snd_soc_card *card);
 void snd_soc_dapm_connect_dai_link_widgets(struct snd_soc_card *card);
 
 int snd_soc_dapm_update_dai(struct snd_pcm_substream *substream,
-			    struct snd_pcm_hw_params *params, struct snd_soc_dai *dai);
+			    const struct snd_pcm_hw_params *params,
+			    struct snd_soc_dai *dai);
 int snd_soc_dapm_widget_name_cmp(struct snd_soc_dapm_widget *widget, const char *s);
 
 /* dapm path setup */
@@ -763,7 +764,7 @@ static inline void snd_soc_dapm_init_bias_level(
  * Returns: The current bias level of the passed DAPM context.
  */
 static inline enum snd_soc_bias_level snd_soc_dapm_get_bias_level(
-	struct snd_soc_dapm_context *dapm)
+	const struct snd_soc_dapm_context *dapm)
 {
 	return dapm->bias_level;
 }

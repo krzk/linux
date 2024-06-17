@@ -379,7 +379,7 @@ int dpcm_dapm_stream_event(struct snd_soc_pcm_runtime *fe, int dir,
 }
 
 static void soc_pcm_set_dai_params(struct snd_soc_dai *dai,
-				   struct snd_pcm_hw_params *params)
+				   const struct snd_pcm_hw_params *params)
 {
 	if (params) {
 		dai->rate	 = params_rate(params);
@@ -393,7 +393,7 @@ static void soc_pcm_set_dai_params(struct snd_soc_dai *dai,
 }
 
 static int soc_pcm_apply_symmetry(struct snd_pcm_substream *substream,
-					struct snd_soc_dai *soc_dai)
+				  const struct snd_soc_dai *soc_dai)
 {
 	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
 	int ret;
