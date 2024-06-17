@@ -122,7 +122,8 @@ exit:
 }
 
 static int avs_probe_compr_set_params(struct snd_compr_stream *cstream,
-				      struct snd_compr_params *params, struct snd_soc_dai *dai)
+				      const struct snd_compr_params *params,
+				      struct snd_soc_dai *dai)
 {
 	struct hdac_ext_stream *host_stream = avs_compr_get_host_stream(cstream);
 	struct snd_compr_runtime *rtd = cstream->runtime;
