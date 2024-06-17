@@ -39,7 +39,7 @@ struct snd_compress_ops {
 			  struct snd_codec *params);
 	int (*set_metadata)(struct snd_soc_component *component,
 			    struct snd_compr_stream *stream,
-			    struct snd_compr_metadata *metadata);
+			    const struct snd_compr_metadata *metadata);
 	int (*get_metadata)(struct snd_soc_component *component,
 			    struct snd_compr_stream *stream,
 			    struct snd_compr_metadata *metadata);

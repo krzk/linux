@@ -711,7 +711,7 @@ static int q6apm_dai_compr_set_params(struct snd_soc_component *component,
 
 static int q6apm_dai_compr_set_metadata(struct snd_soc_component *component,
 					struct snd_compr_stream *stream,
-					struct snd_compr_metadata *metadata)
+					const struct snd_compr_metadata *metadata)
 {
 	struct snd_compr_runtime *runtime = stream->runtime;
 	struct q6apm_dai_rtd *prtd = runtime->private_data;
