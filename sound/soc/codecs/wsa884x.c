@@ -699,6 +699,7 @@
 
 #define WSA884X_NUM_REGISTERS		(WSA884X_EMEM_63 + 1)
 #define WSA884X_MAX_REGISTER		(WSA884X_NUM_REGISTERS - 1)
+#define SWRS_SCP_HOST_CLK_DIV2_CTL_BANK(m)     (0xE0 + 0x10 * (m))
 
 #define WSA884X_SUPPLIES_NUM		2
 #define WSA884X_MAX_SWR_PORTS		6
@@ -733,6 +734,7 @@ struct wsa884x_priv {
 	struct sdw_stream_config sconfig;
 	struct sdw_stream_runtime *sruntime;
 	struct sdw_port_config port_config[WSA884X_MAX_SWR_PORTS];
+	struct sdw_port_config vi_port_config;
 	struct gpio_desc *sd_n;
 	struct reset_control *sd_reset;
 	bool port_prepared[WSA884X_MAX_SWR_PORTS];
@@ -1579,8 +1581,16 @@ static int wsa884x_port_prep(struct sdw_slave *slave,
 	return 0;
 }
 
+static int wsa884x_bus_config(struct sdw_slave *slave,
+			      struct sdw_bus_params *params)
+{
+	sdw_write(slave, SWRS_SCP_HOST_CLK_DIV2_CTL_BANK(params->next_bank), 0x01);
+	return 0;
+}
+
 static const struct sdw_slave_ops wsa884x_slave_ops = {
 	.update_status = wsa884x_update_status,
+	.bus_config = wsa884x_bus_config,
 	.port_prep = wsa884x_port_prep,
 };
 
