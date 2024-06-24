@@ -41,7 +41,7 @@ properties:
     maxItems: 6
 
   '#sound-dai-cells':
-    const: 0
+    const: 1
 
   vdd-1p8-supply: true
   vdd-io-supply: true
