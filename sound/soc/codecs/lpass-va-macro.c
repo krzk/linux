@@ -1485,7 +1485,7 @@ static void va_macro_set_lpass_codec_version(struct va_macro *va)
 
 	lpass_macro_set_codec_version(version);
 
-	dev_dbg(va->dev, "LPASS Codec Version %s\n", lpass_macro_get_codec_version_string(version));
+	dev_err(va->dev, "AAA LPASS Codec Version %s\n", lpass_macro_get_codec_version_string(version));
 }
 
 static int va_macro_probe(struct platform_device *pdev)
