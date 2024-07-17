@@ -180,7 +180,7 @@
 			};
 
 			codec {
-				sound-dai = <&north_spkr>, <&south_spkr>, <&swr0 0>, <&lpass_wsamacro 0>;
+				sound-dai = <&north_spkr 0>, <&south_spkr 0>, <&swr0 0>, <&lpass_wsamacro 0>;
 			};
 
 			platform {
@@ -203,6 +203,24 @@
 				sound-dai = <&q6apm>;
 			};
 		};
+
+#if 1
+		vi-feedback-dai-link {
+			link-name = "CODEC_DMA-LPAIF_WSA-TX-0";
+
+			cpu {
+				sound-dai = <&q6apmbedai WSA_CODEC_DMA_TX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6apm>;
+			};
+
+			codec {
+				sound-dai = <&north_spkr 1>, <&south_spkr 1>, <&swr0 10>, <&swr0 11>, <&lpass_wsamacro 2>;
+			};
+		};
+#endif
 	};
 
 	vph_pwr: vph-pwr-regulator {
@@ -1022,7 +1040,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&spkr_1_sd_n_active>;
 		powerdown-gpios = <&lpass_tlmm 17 GPIO_ACTIVE_LOW>;
-		#sound-dai-cells = <0>;
+		#sound-dai-cells = <1>;
 		sound-name-prefix = "SpkrLeft";
 		vdd-1p8-supply = <&vreg_l15b_1p8>;
 		vdd-io-supply = <&vreg_l3g_1p2>;
@@ -1036,7 +1054,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&spkr_2_sd_n_active>;
 		powerdown-gpios = <&lpass_tlmm 18 GPIO_ACTIVE_LOW>;
-		#sound-dai-cells = <0>;
+		#sound-dai-cells = <1>;
 		sound-name-prefix = "SpkrRight";
 		vdd-1p8-supply = <&vreg_l15b_1p8>;
 		vdd-io-supply = <&vreg_l3g_1p2>;
