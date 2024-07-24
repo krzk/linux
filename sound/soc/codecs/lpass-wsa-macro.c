@@ -373,6 +373,7 @@ enum {
 	WSA_MACRO_AIF_MIX1_PB,
 	WSA_MACRO_AIF_VI,
 	WSA_MACRO_AIF_ECHO,
+	WSA_MACRO_AIF_CPS, /* Starting from codec v2.6 */
 	WSA_MACRO_MAX_DAIS,
 };
 
@@ -1318,6 +1319,7 @@ static int wsa_macro_get_channel_map(const struct snd_soc_dai *dai,
 
 	switch (dai->id) {
 	case WSA_MACRO_AIF_VI:
+	case WSA_MACRO_AIF_CPS:
 		*tx_slot = wsa->active_ch_mask[dai->id];
 		*tx_num = wsa->active_ch_cnt[dai->id];
 		break;
@@ -1411,6 +1413,21 @@ static struct snd_soc_dai_driver wsa_macro_dai[] = {
 			.formats = WSA_MACRO_ECHO_FORMATS,
 			.rate_max = 48000,
 			.rate_min = 8000,
+			.channels_min = 1,
+			.channels_max = 2,
+		},
+		.ops = &wsa_macro_dai_ops,
+	},
+	/* For codec version v2.6 and newer */
+	{
+		.name = "wsa_macro_cpsfeedback",
+		.id = WSA_MACRO_AIF_CPS,
+		.capture = {
+			.stream_name = "WSA_AIF_CPS Capture",
+			.rates = SNDRV_PCM_RATE_48000,
+			.formats = SNDRV_PCM_FMTBIT_S32_LE,
+			.rate_max = 48000,
+			.rate_min = 48000,
 			.channels_min = 1,
 			.channels_max = 2,
 		},
@@ -2320,8 +2337,8 @@ static const struct snd_kcontrol_new rx_mux[WSA_MACRO_RX_MAX] = {
 			  wsa_macro_rx_mux_get, wsa_macro_rx_mux_put),
 };
 
-static int wsa_macro_vi_feed_mixer_get(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *ucontrol)
+static int wsa_macro_feed_mixer_get(struct snd_kcontrol *kcontrol,
+				    struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dapm_widget *widget = snd_soc_dapm_kcontrol_widget(kcontrol);
 	struct snd_soc_component *component = snd_soc_dapm_to_component(widget->dapm);
@@ -2338,8 +2355,8 @@ static int wsa_macro_vi_feed_mixer_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int wsa_macro_vi_feed_mixer_put(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *ucontrol)
+static int wsa_macro_feed_mixer_put(struct snd_kcontrol *kcontrol,
+				    struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dapm_widget *widget = snd_soc_dapm_kcontrol_widget(kcontrol);
 	struct snd_soc_component *component = snd_soc_dapm_to_component(widget->dapm);
@@ -2387,11 +2404,20 @@ static int wsa_macro_vi_feed_mixer_put(struct snd_kcontrol *kcontrol,
 
 static const struct snd_kcontrol_new aif_vi_mixer[] = {
 	SOC_SINGLE_EXT("WSA_SPKR_VI_1", SND_SOC_NOPM, WSA_MACRO_TX0, 1, 0,
-			wsa_macro_vi_feed_mixer_get,
-			wsa_macro_vi_feed_mixer_put),
+			wsa_macro_feed_mixer_get,
+			wsa_macro_feed_mixer_put),
 	SOC_SINGLE_EXT("WSA_SPKR_VI_2", SND_SOC_NOPM, WSA_MACRO_TX1, 1, 0,
-			wsa_macro_vi_feed_mixer_get,
-			wsa_macro_vi_feed_mixer_put),
+			wsa_macro_feed_mixer_get,
+			wsa_macro_feed_mixer_put),
+};
+
+static const struct snd_kcontrol_new aif_cps_mixer[] = {
+	SOC_SINGLE_EXT("WSA_SPKR_CPS_1", SND_SOC_NOPM, WSA_MACRO_TX0, 1, 0,
+			wsa_macro_feed_mixer_get,
+			wsa_macro_feed_mixer_put),
+	SOC_SINGLE_EXT("WSA_SPKR_CPS_2", SND_SOC_NOPM, WSA_MACRO_TX1, 1, 0,
+			wsa_macro_feed_mixer_get,
+			wsa_macro_feed_mixer_put),
 };
 
 static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets[] = {
@@ -2482,7 +2508,8 @@ static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets[] = {
 			      SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 };
 
-static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_v2_1[] = {
+/* RX widgets for codec <=v2.1 */
+static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_rx_v2_1[] = {
 	SND_SOC_DAPM_MUX("WSA_RX0 INP0", SND_SOC_NOPM, 0, 0, &rx0_prim_inp0_mux_v2_1),
 	SND_SOC_DAPM_MUX("WSA_RX0 INP1", SND_SOC_NOPM, 0, 0, &rx0_prim_inp1_mux_v2_1),
 	SND_SOC_DAPM_MUX("WSA_RX0 INP2", SND_SOC_NOPM, 0, 0, &rx0_prim_inp2_mux_v2_1),
@@ -2497,7 +2524,8 @@ static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_v2_1[] = {
 			   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 };
 
-static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_v2_5[] = {
+/* RX widgets for codec >=v2.5 */
+static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_rx_v2_5[] = {
 	SND_SOC_DAPM_MUX("WSA_RX0 INP0", SND_SOC_NOPM, 0, 0, &rx0_prim_inp0_mux_v2_5),
 	SND_SOC_DAPM_MUX("WSA_RX0 INP1", SND_SOC_NOPM, 0, 0, &rx0_prim_inp1_mux_v2_5),
 	SND_SOC_DAPM_MUX("WSA_RX0 INP2", SND_SOC_NOPM, 0, 0, &rx0_prim_inp2_mux_v2_5),
@@ -2510,6 +2538,15 @@ static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_v2_5[] = {
 	SND_SOC_DAPM_MUX_E("WSA_RX1 MIX INP", SND_SOC_NOPM, WSA_MACRO_RX_MIX1,
 			   0, &rx1_mix_mux_v2_5, wsa_macro_enable_mix_path,
 			   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+};
+
+/* CPS widgets for codec >=v2.6 */
+static const struct snd_soc_dapm_widget wsa_macro_dapm_widgets_cps_v2_6[] = {
+	SND_SOC_DAPM_AIF_OUT("WSA AIF_CPS", "WSA_AIF_CPS Capture", 0,
+			     SND_SOC_NOPM, 0, 0),
+	SND_SOC_DAPM_MIXER("WSA_AIF_CPS Mixer", SND_SOC_NOPM, WSA_MACRO_AIF_CPS,
+			   0, aif_cps_mixer, ARRAY_SIZE(aif_cps_mixer)),
+	SND_SOC_DAPM_INPUT("CPSINPUT_WSA"),
 };
 
 static const struct snd_soc_dapm_route wsa_audio_map[] = {
@@ -2627,6 +2664,13 @@ static const struct snd_soc_dapm_route wsa_audio_map[] = {
 	{"WSA_SPK2 OUT", NULL, "WSA_MCLK"},
 };
 
+static const struct snd_soc_dapm_route wsa_audio_map_cps_v2_6[] = {
+	{"WSA_AIF_CPS Mixer", "WSA_SPKR_CPS_1", "CPSINPUT_WSA"},
+	{"WSA_AIF_CPS Mixer", "WSA_SPKR_CPS_2", "CPSINPUT_WSA"},
+	{"WSA AIF_CPS", NULL, "WSA_AIF_CPS Mixer"},
+	{"WSA AIF_CPS", NULL, "WSA_MCLK"},
+};
+
 static int wsa_swrm_clock(struct wsa_macro *wsa, bool enable)
 {
 	struct regmap *regmap = wsa->regmap;
@@ -2661,6 +2705,7 @@ static int wsa_macro_component_probe(struct snd_soc_component *comp)
 	struct wsa_macro *wsa = snd_soc_component_get_drvdata(comp);
 	const struct snd_soc_dapm_widget *widgets;
 	unsigned int num_widgets;
+	int ret;
 
 	snd_soc_component_init_regmap(comp, wsa->regmap);
 
@@ -2677,27 +2722,44 @@ static int wsa_macro_component_probe(struct snd_soc_component *comp)
 
 	wsa_macro_set_spkr_mode(comp, WSA_MACRO_SPKR_MODE_1);
 
+	/* RX widgets - exclusive between <=v2.1 and >=v2.5 */
 	switch (wsa->codec_version) {
 	case LPASS_CODEC_VERSION_1_0:
 	case LPASS_CODEC_VERSION_1_1:
 	case LPASS_CODEC_VERSION_1_2:
 	case LPASS_CODEC_VERSION_2_0:
 	case LPASS_CODEC_VERSION_2_1:
-		widgets = wsa_macro_dapm_widgets_v2_1;
-		num_widgets = ARRAY_SIZE(wsa_macro_dapm_widgets_v2_1);
+		widgets = wsa_macro_dapm_widgets_rx_v2_1;
+		num_widgets = ARRAY_SIZE(wsa_macro_dapm_widgets_rx_v2_1);
 		break;
 	case LPASS_CODEC_VERSION_2_5:
 	case LPASS_CODEC_VERSION_2_6:
 	case LPASS_CODEC_VERSION_2_7:
 	case LPASS_CODEC_VERSION_2_8:
-		widgets = wsa_macro_dapm_widgets_v2_5;
-		num_widgets = ARRAY_SIZE(wsa_macro_dapm_widgets_v2_5);
+		widgets = wsa_macro_dapm_widgets_rx_v2_5;
+		num_widgets = ARRAY_SIZE(wsa_macro_dapm_widgets_rx_v2_5);
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	return snd_soc_dapm_new_controls(dapm, widgets, num_widgets);
+	ret = snd_soc_dapm_new_controls(dapm, widgets, num_widgets);
+	if (ret)
+		return ret;
+
+	/* CPS widgets - incremental */
+	if (wsa->codec_version >= LPASS_CODEC_VERSION_2_6) {
+		ret = snd_soc_dapm_new_controls(dapm,
+						wsa_macro_dapm_widgets_cps_v2_6,
+						ARRAY_SIZE(wsa_macro_dapm_widgets_cps_v2_6));
+		if (ret)
+			return ret;
+
+		return snd_soc_dapm_add_routes(dapm, wsa_audio_map_cps_v2_6,
+					       ARRAY_SIZE(wsa_audio_map_cps_v2_6));
+	}
+
+	return 0;
 }
 
 static int swclk_gate_enable(struct clk_hw *hw)
@@ -2778,6 +2840,7 @@ static int wsa_macro_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct wsa_macro *wsa;
+	unsigned int num_dais;
 	kernel_ulong_t flags;
 	void __iomem *base;
 	int ret, def_count;
@@ -2854,6 +2917,11 @@ static int wsa_macro_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
+	if (wsa->codec_version >= LPASS_CODEC_VERSION_2_6)
+		num_dais = ARRAY_SIZE(wsa_macro_dai);
+	else
+		num_dais = ARRAY_SIZE(wsa_macro_dai) - 1; /* Minus last CPS DAI */
+
 	struct regmap_config *reg_config __free(kfree) = kmemdup(&wsa_regmap_config,
 								 sizeof(*reg_config),
 								 GFP_KERNEL);
@@ -2907,8 +2975,7 @@ static int wsa_macro_probe(struct platform_device *pdev)
 			   CDC_WSA_SWR_RST_EN_MASK, CDC_WSA_SWR_RST_DISABLE);
 
 	ret = devm_snd_soc_register_component(dev, &wsa_macro_component_drv,
-					      wsa_macro_dai,
-					      ARRAY_SIZE(wsa_macro_dai));
+					      wsa_macro_dai, num_dais);
 	if (ret)
 		goto err_clkout;
 
