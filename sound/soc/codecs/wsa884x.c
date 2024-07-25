@@ -1786,7 +1786,7 @@ static int wsa884x_vi_hw_params(struct snd_pcm_substream *substream,
 {
 	struct wsa884x_priv *wsa884x = dev_get_drvdata(dai->dev);
 
-	wsa884x->vi_port_config = wsa884x_pconfig[3];
+	wsa884x->vi_port_config = wsa884x_pconfig[WSA884X_PORT_VISENSE];
 	wsa884x->vi_sconfig.frame_rate = params_rate(params);
 
 	return sdw_stream_add_slave(wsa884x->slave, &wsa884x->vi_sconfig,
