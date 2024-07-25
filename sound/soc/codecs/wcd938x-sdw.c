@@ -1243,6 +1243,10 @@ static int wcd9380_probe(struct sdw_slave *pdev,
 	if (ret < 0)
 		dev_info(dev, "Static Port mapping not specified\n");
 
+	pr_err("BBBBB %u = %u\n",
+	       WCD938X_MAX_SWR_PORTS,
+	       WCD938X_MAX_TX_SWR_PORTS);
+
 	wcd->sdev = pdev;
 	dev_set_drvdata(dev, wcd);
 
