@@ -1788,6 +1788,13 @@ static int wsa884x_vi_hw_params(struct snd_pcm_substream *substream,
 
 	wsa884x->vi_port_config = wsa884x_pconfig[WSA884X_PORT_VISENSE];
 	wsa884x->vi_sconfig.frame_rate = params_rate(params);
+	wsa884x->vi_sconfig.ch_count = 1;
+	wsa884x->vi_sconfig.bps = 1;
+	wsa884x->vi_sconfig.type = SDW_STREAM_PDM;
+	wsa884x->vi_sconfig.direction = SDW_DATA_DIR_TX;
+
+	dev_err(wsa884x->dev, "AAA add slave dai %d/%s VI SENSE\n",
+	       dai->id, dai->name);
 
 	return sdw_stream_add_slave(wsa884x->slave, &wsa884x->vi_sconfig,
 				    &wsa884x->vi_port_config, 1,
@@ -1803,6 +1810,10 @@ static int wsa884x_hw_params(struct snd_pcm_substream *substream,
 
 	wsa884x->active_ports = 0;
 	for (i = 0; i < WSA884X_MAX_SWR_PORTS; i++) {
+		if (i == WSA884X_PORT_VISENSE)
+			continue;
+		if (i == WSA884X_PORT_CPS)
+			continue;
 		if (!wsa884x->port_enable[i])
 			continue;
 
@@ -2141,9 +2152,11 @@ static int wsa884x_probe(struct sdw_slave *pdev,
 					WSA884X_MAX_SWR_PORTS))
 		dev_dbg(dev, "Static Port mapping not specified\n");
 
-	pdev->prop.sink_ports = GENMASK(WSA884X_MAX_SWR_PORTS - 1, 0);
+	pdev->prop.sink_ports = GENMASK(WSA884X_PORT_PBR, 0);
+	pdev->prop.source_ports = GENMASK(WSA884X_PORT_CPS, WSA884X_PORT_VISENSE);
 	pdev->prop.simple_clk_stop_capable = true;
 	pdev->prop.sink_dpn_prop = wsa884x_sink_dpn_prop;
+	pdev->prop.src_dpn_prop = wsa884x_sink_dpn_prop;
 	pdev->prop.scp_int1_mask = SDW_SCP_INT1_BUS_CLASH | SDW_SCP_INT1_PARITY;
 
 	wsa884x_reset_deassert(wsa884x);
