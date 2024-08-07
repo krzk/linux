@@ -513,6 +513,7 @@
 #define WSA884X_INTR_MASK0		(WSA884X_DIG_CTRL1_BASE + 0x81)
 #define WSA884X_INTR_MASK1		(WSA884X_DIG_CTRL1_BASE + 0x82)
 #define WSA884X_INTR_STATUS0		(WSA884X_DIG_CTRL1_BASE + 0x83)
+#define WSA884X_INTR_STATUS0_PDM_WD_MASK			BIT(5)
 #define WSA884X_INTR_STATUS1		(WSA884X_DIG_CTRL1_BASE + 0x84)
 #define WSA884X_INTR_CLEAR0		(WSA884X_DIG_CTRL1_BASE + 0x85)
 #define WSA884X_INTR_CLEAR1		(WSA884X_DIG_CTRL1_BASE + 0x86)
@@ -1405,6 +1406,9 @@ static const struct reg_sequence wsa884x_reg_init[] = {
 	{ WSA884X_ANA_WO_CTL_1, 0x00 },
 	{ WSA884X_OTP_REG_38, 0x00 },
 	{ WSA884X_OTP_REG_40, FIELD_PREP_CONST(WSA884X_OTP_REG_40_ISENSE_RESCAL_MASK, 0x8) },
+	{ WSA884X_INTR_MASK0, 0x00 }, // 0x00 - unmasked
+	{ WSA884X_INTR_MASK1, 0x00 },
+	// { WSA884X_OCP_CTL, 0x76 },
 };
 
 static void wsa884x_set_gain_parameters(struct wsa884x_priv *wsa884x)
@@ -1511,9 +1515,64 @@ static int wsa884x_update_status(struct sdw_slave *slave,
 	}
 
 	wsa884x_init(wsa884x);
+	{
+		u32 sts0 = 0, sts1 = 0;
+
+		regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS0, &sts0);
+		regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS1, &sts1);
+		dev_err(&slave->dev, "AAA %s:%d sts0=0x%x sts1=0x%x\n",
+			__func__, __LINE__, sts0, sts1);
+		regmap_write(wsa884x->regmap, WSA884X_INTR_CLEAR0, sts0);
+		regmap_write(wsa884x->regmap, WSA884X_INTR_CLEAR1, sts1);
+	}
 
 	return 0;
 }
+
+static int wsa884x_interrupt_callback(struct sdw_slave *slave,
+				      struct sdw_slave_intr_status *status)
+{
+	struct wsa884x_priv *wsa884x = dev_get_drvdata(&slave->dev);
+
+	dev_err(&slave->dev, "AAA %s:%d\n", __func__, __LINE__);
+	u32 sts0 = 0, sts1 = 0;
+	u32 sts0_bck;
+
+	regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS0, &sts0);
+	regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS1, &sts1);
+	dev_err(&slave->dev, "AAA1 %s:%d sts0=0x%x sts1=0x%x\n",
+		__func__, __LINE__, sts0, sts1);
+	sts0_bck = sts0;
+#if 0
+	regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS0, &sts0);
+	regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS1, &sts1);
+	dev_err(&slave->dev, "AAA2 %s:%d sts0=0x%x sts1=0x%x\n",
+		__func__, __LINE__, sts0, sts1);
+#endif
+	regmap_write(wsa884x->regmap, WSA884X_INTR_CLEAR0, sts0);
+	regmap_write(wsa884x->regmap, WSA884X_INTR_CLEAR1, sts1);
+
+#if 0
+	regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS0, &sts0);
+	regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS1, &sts1);
+	dev_err(&slave->dev, "AAA3 %s:%d sts0=0x%x sts1=0x%x\n",
+		__func__, __LINE__, sts0, sts1);
+#endif
+
+#if 0
+	if (sts0_bck & WSA884X_INTR_STATUS0_PDM_WD_MASK) {
+		dev_err(&slave->dev, "AAA %s:%d PDM WD MASK\n", __func__, __LINE__);
+		regmap_update_bits(wsa884x->regmap, WSA884X_PDM_WD_CTL,
+				   WSA884X_PDM_WD_CTL_PDM_WD_EN_MASK, 0);
+		regmap_update_bits(wsa884x->regmap, WSA884X_PDM_WD_CTL,
+				   WSA884X_PDM_WD_CTL_PDM_WD_EN_MASK, 1);
+	}
+#endif
+
+	dev_err(&slave->dev, "AAA %s:%d\n", __func__, __LINE__);
+	return IRQ_HANDLED;
+}
+
 
 static int wsa884x_port_prep(struct sdw_slave *slave,
 			     struct sdw_prepare_ch *prepare_ch,
@@ -1531,6 +1590,7 @@ static int wsa884x_port_prep(struct sdw_slave *slave,
 
 static const struct sdw_slave_ops wsa884x_slave_ops = {
 	.update_status = wsa884x_update_status,
+	.interrupt_callback = wsa884x_interrupt_callback,
 	.port_prep = wsa884x_port_prep,
 };
 
@@ -1656,6 +1716,18 @@ static int wsa884x_spkr_event(struct snd_soc_dapm_widget *w,
 		snd_soc_component_write_field(component, WSA884X_PDM_WD_CTL,
 					      WSA884X_PDM_WD_CTL_PDM_WD_EN_MASK,
 					      0x1);
+	{
+		u32 sts0 = 0, sts1 = 0;
+
+		regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS0, &sts0);
+		regmap_read(wsa884x->regmap, WSA884X_INTR_STATUS1, &sts1);
+		dev_err(wsa884x->dev, "AAA %s:%d sts0=0x%x sts1=0x%x\n",
+			__func__, __LINE__, sts0, sts1);
+#if 1
+		regmap_write(wsa884x->regmap, WSA884X_INTR_CLEAR0, sts0);
+		regmap_write(wsa884x->regmap, WSA884X_INTR_CLEAR1, sts1);
+#endif
+	}
 
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
@@ -1890,7 +1962,9 @@ static int wsa884x_probe(struct sdw_slave *pdev,
 	pdev->prop.sink_ports = GENMASK(WSA884X_MAX_SWR_PORTS, 0);
 	pdev->prop.simple_clk_stop_capable = true;
 	pdev->prop.sink_dpn_prop = wsa884x_sink_dpn_prop;
-	pdev->prop.scp_int1_mask = SDW_SCP_INT1_BUS_CLASH | SDW_SCP_INT1_PARITY;
+	//pdev->prop.scp_int1_mask = SDW_SCP_INT1_BUS_CLASH | SDW_SCP_INT1_PARITY | SDW_SCP_INT1_IMPL_DEF | SDW_SCP_INT1_SCP2_CASCADE | SDW_SCP_INT1_PORT0_3;
+	pdev->prop.scp_int1_mask = SDW_SCP_INT1_BUS_CLASH | SDW_SCP_INT1_PARITY |
+				   SDW_SCP_INT1_IMPL_DEF;
 
 	wsa884x_reset_deassert(wsa884x);
 	ret = devm_add_action_or_reset(dev, wsa884x_reset_powerdown, wsa884x);

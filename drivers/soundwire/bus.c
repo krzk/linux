@@ -1635,6 +1635,7 @@ static int sdw_handle_slave_alerts(struct sdw_slave *slave)
 		goto io_err;
 	}
 	buf = ret;
+	dev_err(&slave->dev, "AAA INT 1 interrupt: 0x%x\n", buf);
 
 	ret = sdw_nread_no_pm(slave, SDW_SCP_INTSTAT2, 2, buf2);
 	if (ret < 0) {
