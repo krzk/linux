@@ -410,6 +410,156 @@ static void csid_subdev_reg_update(struct csid_device *csid, int port_id, bool i
 
 static void csid_subdev_init(struct csid_device *csid) {}
 
+static size_t csid_dump_regs(struct csid_device *csid, char *buf, size_t buf_len)
+{
+	struct vfe_device *vfe = &csid->camss->vfe[csid->id];
+	size_t len = 0;
+	u32 val;
+	int i;
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_TOP_IRQ_STATUS 0x%08x\n",
+			 readl(csid->base + CSID_TOP_IRQ_STATUS));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_TOP_IRQ_MASK 0x%08x\n",
+			 readl(csid->base + CSID_TOP_IRQ_MASK));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_IRQ_STATUS 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_IRQ_STATUS));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_IRQ_MASK 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_IRQ_MASK));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_BUF_DONE_IRQ_STATUS 0x%08x\n",
+			 readl(csid->base + CSID_BUF_DONE_IRQ_STATUS));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_BUF_DONE_IRQ_MASK 0x%08x\n",
+			 readl(csid->base + CSID_BUF_DONE_IRQ_MASK));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_CFG0 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_CFG0));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_CFG1 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_CFG1));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_TOTAL_PKTS_RCVD 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_TOTAL_PKTS_RCVD));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_STATS_ECC 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_STATS_ECC));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "CSID_CSI2_RX_CRC_ERRORS 0x%08x\n",
+			 readl(csid->base + CSID_CSI2_RX_CRC_ERRORS));
+
+	for (i = 0; i < vfe->res->line_num; i++) {
+		val = readl(csid->base + CSID_CSI2_RDIN_IRQ_STATUS(i));
+		len += scnprintf(buf + len, buf_len - len,
+				 "CSID_CSI2_RDIN_IRQ_STATUS(%d) 0x%08x\n",
+				 i, val);
+		if (!val)
+			continue;
+
+		if (val & CSID_CSI2_RDIN_CCIF_VIOLATION)
+			len += scnprintf(buf + len, buf_len - len, "\tCCIF_VIOLATION\n");
+
+		if (val & BIT(28))
+			len += scnprintf(buf + len, buf_len - len,  "\tSENSOR_SWITCH_OUT_OF_SYNC_FRAME_DROP\n");
+
+		if (val & BIT(27))
+			len += scnprintf(buf + len, buf_len - len,  "\tERROR_REC_WIDTH_VIOLATION \n");
+
+		if (val & BIT(26))
+			len += scnprintf(buf + len, buf_len - len,   "\tERROR_REC_HEIGHT_VIOLATION \n");
+
+		if (val & BIT(25))
+			len += scnprintf(buf + len, buf_len - len,   "\tBATCH_END_MISSING_VIOLATION \n");
+
+		if (val & BIT(24))
+			len += scnprintf(buf + len, buf_len - len,   "\tILLEGAL_BATCH_ID_IRQ \n");
+
+		if (val & BIT(23))
+			len += scnprintf(buf + len, buf_len - len,   "\tRUP_DONE \n");
+
+		if (val & BIT(22))
+			len += scnprintf(buf + len, buf_len - len,   "\tCAMIF_EPOCH_1_IRQ \n");
+
+		if (val & BIT(21))
+			len += scnprintf(buf + len, buf_len - len,   "\tCAMIF_EPOCH_0_IRQ \n");
+
+		if (val & BIT(19))
+			len += scnprintf(buf + len, buf_len - len,   "\tERROR_REC_OVERFLOW_IRQ \n");
+
+		if (val & BIT(18))
+			len += scnprintf(buf + len, buf_len - len,   "\tERROR_REC_FRAME_DROP \n");
+
+		if (val & BIT(17))
+			len += scnprintf(buf + len, buf_len - len,   "\tVCDT_GRP_CHANG \n");
+
+		if (val & BIT(16))
+			len += scnprintf(buf + len, buf_len - len,   "\tVCDT_GRP_0_SEL \n");
+
+		if (val & BIT(15))
+			len += scnprintf(buf + len, buf_len - len,   "\tVCDT_GRP_1_SEL \n");
+
+		if (val & BIT(14))
+			len += scnprintf(buf + len, buf_len - len,   "\tERROR_LINE_COUNT \n");
+
+		if (val & BIT(13))
+			len += scnprintf(buf + len, buf_len - len,   "\tERROR_PIX_COUNT \n");
+
+		if (val & BIT(12))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_INPUT_SOF \n");
+
+		if (val & BIT(11))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_INPUT_SOL \n");
+
+		if (val & BIT(10))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_INPUT_EOL \n");
+
+		if (val & BIT(9))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_INPUT_EOF \n");
+
+		if (val & BIT(8))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_FRAME_DROP_SOF \n");
+
+		if (val & BIT(7))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_FRAME_DROP_SOL \n");
+
+		if (val & BIT(6))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_FRAME_DROP_EOL \n");
+
+		if (val & BIT(5))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_FRAME_DROP_EOF \n");
+
+		if (val & BIT(4))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_CAMIF_SOF \n");
+
+		if (val & BIT(3))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_CAMIF_EOF \n");
+
+		if (val & BIT(2))
+			len += scnprintf(buf + len, buf_len - len,   "\tINFO_FIFO_OVERFLOW \n");
+
+		if (val & BIT(1))
+			len += scnprintf(buf + len, buf_len - len,   "\tRES1 \n");
+
+		if (val & BIT(0))
+			len += scnprintf(buf + len, buf_len - len,   "\tRES0 \n");
+	}
+
+	return len;
+}
+
 const struct csid_hw_ops csid_ops_680 = {
 	.configure_testgen_pattern = NULL,
 	.configure_stream = csid_configure_stream,
@@ -419,4 +569,5 @@ const struct csid_hw_ops csid_ops_680 = {
 	.src_pad_code = csid_src_pad_code,
 	.subdev_init = csid_subdev_init,
 	.reg_update = csid_subdev_reg_update,
+	.dump_regs = csid_dump_regs,
 };
