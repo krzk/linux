@@ -210,6 +210,63 @@ static void vfe_subdev_init(struct device *dev, struct vfe_device *vfe)
 	vfe->video_ops = vfe_video_ops_680;
 }
 
+static size_t vfe_dump_regs(struct vfe_device *vfe, char *buf, size_t buf_len)
+{
+	u32 val;
+	size_t len = 0;
+	int i;
+
+	for (i = 0; i < 2; i++) {
+		len += scnprintf(buf + len, buf_len - len, "VFE_TOP_IRQ%d_MASK @ 0x%08x 0x%08x\n",
+				 i, VFE_TOP_IRQn_MASK(vfe, i),
+				 readl(vfe->base + VFE_TOP_IRQn_MASK(vfe, i)));
+
+		len += scnprintf(buf + len, buf_len - len, "VFE_TOP_IRQ%d_STATUS @ 0x%08x 0x%08x\n",
+				 i,  VFE_TOP_IRQn_STATUS(vfe, i),
+				readl(vfe->base + VFE_TOP_IRQn_STATUS(vfe, i)));
+	}
+
+	len += scnprintf(buf + len, buf_len - len, "VFE_TOP_DEBUG_11 @ 0x%08x 0x%08x\n",
+				 VFE_TOP_DEBUG_11(vfe),
+				 readl(vfe->base + VFE_TOP_DEBUG_11(vfe)));
+
+	len += scnprintf(buf + len, buf_len - len, "VFE_TOP_DEBUG_12 @ 0x%08x 0x%08x\n",
+				 VFE_TOP_DEBUG_12(vfe),
+				 readl(vfe->base + VFE_TOP_DEBUG_12(vfe)));
+
+	len += scnprintf(buf + len, buf_len - len, "VFE_TOP_DEBUG_13 @ 0x%08x 0x%08x\n",
+				 VFE_TOP_DEBUG_13(vfe),
+				 readl(vfe->base + VFE_TOP_DEBUG_13(vfe)));
+
+	for (i = 0; i < 2; i++) {
+		len += scnprintf(buf + len, buf_len - len,
+				 "VFE_BUS_IRQ_STATUS(%d) @0x%08x 0x%08x\n", i,
+				 VFE_BUS_IRQn_STATUS(vfe, i),
+				 readl(vfe->base + VFE_BUS_IRQn_STATUS(vfe, i)));
+	}
+
+	val = readl(vfe->base + VFE_BUS_WR_VIOLATION_STATUS(vfe));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "VFE_BUS_WR_VIOLATION_STATUS @ 0x%08x 0x%08x\n", VFE_BUS_WR_VIOLATION_STATUS(vfe), val);
+	for (i = 0; i < 32; i++) {
+		if (val & BIT(i)) {
+			len += scnprintf(buf + len, buf_len - len,
+				 "\tVFE_BUS_WR_VIOLATION_STATUS : client %d\n", i);
+		}
+	}
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "VFE_BUS_WR_OVERFLOW_STATUS @ 0x%08x 0x%08x\n", VFE_BUS_WR_OVERFLOW_STATUS(vfe),
+			 readl(vfe->base + VFE_BUS_WR_OVERFLOW_STATUS(vfe)));
+
+	len += scnprintf(buf + len, buf_len - len,
+			 "VFE_BUS_WR_IMAGE_VIOLATION_STATUS @ 0x%08x 0x%08x\n", VFE_BUS_WR_IMAGE_VIOLATION_STATUS(vfe),
+			 readl(vfe->base + VFE_BUS_WR_IMAGE_VIOLATION_STATUS(vfe)));
+
+	return len;
+}
+
 static void vfe_reg_update(struct vfe_device *vfe, enum vfe_line_id line_id)
 {
 	int port_id = line_id;
@@ -241,4 +298,5 @@ const struct vfe_hw_ops vfe_ops_680 = {
 	.vfe_wm_update = vfe_wm_update,
 	.reg_update = vfe_reg_update,
 	.reg_update_clear = vfe_reg_update_clear,
+	.dump_regs = vfe_dump_regs,
 };
