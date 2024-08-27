@@ -59,6 +59,12 @@ struct csiphy_formats {
 	const struct csiphy_format_info *formats;
 };
 
+typedef enum {
+	CSIPHY_TYPE_DPHY = 0,
+	CSIPHY_TYPE_CPHY,
+	CSIPHY_TYPE_TPG
+} camss_csiphy_type_t;
+
 struct csiphy_device;
 
 struct csiphy_hw_ops {
@@ -84,6 +90,7 @@ struct csiphy_hw_ops {
 
 struct csiphy_subdev_resources {
 	u8 id;
+	camss_csiphy_type_t type;
 	const struct csiphy_hw_ops *hw_ops;
 	const struct csiphy_formats *formats;
 };
