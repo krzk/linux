@@ -627,8 +627,8 @@ int msm_csiphy_subdev_init(struct camss *camss,
 		return ret;
 
 	csiphy->irq = ret;
-	snprintf(csiphy->irq_name, sizeof(csiphy->irq_name), "%s_%s%d",
-		 dev_name(dev), MSM_CSIPHY_NAME, csiphy->id);
+	snprintf(csiphy->irq_name, sizeof(csiphy->irq_name), "%s_%s",
+		 dev_name(dev), res->interrupt[0]);
 
 	ret = devm_request_irq(dev, csiphy->irq, csiphy->res->hw_ops->isr,
 			       IRQF_TRIGGER_RISING | IRQF_NO_AUTOEN,
