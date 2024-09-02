@@ -23,6 +23,7 @@
 #include "camss.h"
 
 #define MSM_CSIPHY_NAME "msm_csiphy"
+#define MSM_TPGPHY_NAME "msm_tpgphy"
 
 static const struct csiphy_format_info formats_8x16[] = {
 	{ MEDIA_BUS_FMT_UYVY8_1X16, 8 },
@@ -836,14 +837,19 @@ int msm_csiphy_register_entity(struct csiphy_device *csiphy,
 	struct v4l2_subdev *sd = &csiphy->subdev;
 	struct media_pad *pads = csiphy->pads;
 	struct device *dev = csiphy->camss->dev;
+	char *name;
 	int ret;
 
 	mutex_init(&csiphy->mutex);
 	v4l2_subdev_init(sd, &csiphy_v4l2_ops);
 	sd->internal_ops = &csiphy_v4l2_internal_ops;
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+	if (csiphy->res->type == CSIPHY_TYPE_TPG)
+		name = MSM_TPGPHY_NAME;
+	else
+		name = MSM_CSIPHY_NAME;
 	snprintf(sd->name, ARRAY_SIZE(sd->name), "%s%d",
-		 MSM_CSIPHY_NAME, csiphy->id);
+		 name, csiphy->id);
 	v4l2_set_subdevdata(sd, csiphy);
 
 	ret = csiphy_init_formats(sd, NULL);
