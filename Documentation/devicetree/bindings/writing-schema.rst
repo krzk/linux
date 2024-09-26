@@ -206,6 +206,10 @@ json-schema Resources
 Annotated Example Schema
 ------------------------
 
-Also available as a separate file: :download:`example-schema.yaml`
+Several examples for typical cases:
+ - :download:`examples/gpio-controller-and-hogs.yaml`
+ - :download:`examples/multiple-variants-and-variable-lists.yaml`
+
+Example-schema available as a separate file: :download:`example-schema.yaml`
 
 .. literalinclude:: example-schema.yaml

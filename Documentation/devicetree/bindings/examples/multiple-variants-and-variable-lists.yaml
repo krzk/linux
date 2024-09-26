@@ -1,0 +1,110 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/examples/multiple-variants-and-variable-lists.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: An Example Device with Multiple Variants and Variable Clock Inputs
+
+maintainers:
+  - Rob Herring <robh@kernel.org>
+  - Krzysztof Kozlowski <krzk@kernel.org>
+  - Conor Dooley <conor@kernel.org>
+
+properties:
+  compatible:
+    enum:
+      - test,variant-2-clocks
+      - test,variant-3-clocks
+      - test,variant-4-clocks
+
+  # Same principles as for clocks apply also to all list-based properties, like
+  # power-domains, reg, resets, etc.
+  clocks:
+    minItems: 2
+    maxItems: 4
+
+  # It is preferred that variants (devices) share as much as possible from
+  # lists, e.g. the list has common part with 'minItems: X'.  Example shows
+  # case when list cannot be constructed that way.
+  clock-names:
+    minItems: 2
+    maxItems: 4
+
+required:
+  - compatible
+  - clocks
+  - clock-names
+
+allOf:
+  - if:
+      properties:
+        compatible:
+          const: test,variant-2-clocks
+    then:
+      properties:
+        clocks:
+          maxItems: 2
+        clock-names:
+          items:
+            - const: bus
+            - const: core
+
+  - if:
+      properties:
+        compatible:
+          const: test,variant-3-clocks
+    then:
+      properties:
+        clocks:
+          minItems: 3
+          maxItems: 3
+        clock-names:
+          items:
+            - const: bus
+            - const: ref
+            - const: lane
+
+  - if:
+      properties:
+        compatible:
+          const: test,variant-4-clocks
+    then:
+      properties:
+        clocks:
+          minItems: 4
+        clock-names:
+          items:
+            - const: bus
+            - const: ref
+            - const: tx_lane
+            - const: rx_lane
+
+additionalProperties: false
+
+# Usually, if examples different by one property only one example is useful.
+# For the purpose of the excercise all variants are described.
+examples:
+  - |
+    device {
+        compatible = "test,variant-2-clocks";
+
+        clocks = <&cc 1>, <&cc 2>;
+        clock-names = "bus", "core";
+    };
+
+  - |
+    device {
+        compatible = "test,variant-3-clocks";
+
+        clocks = <&cc 1>, <&cc 2>, <&cc 3>;
+        clock-names = "bus", "ref", "lane";
+    };
+
+  - |
+    device {
+        compatible = "test,variant-4-clocks";
+
+        clocks = <&cc 1>, <&cc 2>, <&cc 3>, <&cc 4>;
+        clock-names = "bus", "ref", "tx_lane", "rx_lane";
+    };

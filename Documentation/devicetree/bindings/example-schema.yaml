@@ -25,6 +25,8 @@ description: |
   indentation less than the first line of the literal block. Lines also cannot
   begin with a tab character.
 
+  See also examples/ subdirectory for more detailed code snippets.
+
 select: false
   # 'select' is a schema applied to a DT node to determine if this binding
   # schema should be applied to the node. It is optional and by default the
