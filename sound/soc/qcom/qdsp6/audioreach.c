@@ -1304,6 +1304,7 @@ int audioreach_map_memory_regions(struct q6apm_graph *graph, unsigned int dir, s
 	struct apm_shared_map_region_payload *mregions;
 	struct apm_cmd_shared_mem_map_regions *cmd;
 	uint32_t num_regions, buf_sz, payload_size;
+	uint32_t old;
 	struct audioreach_graph_data *data;
 	struct gpr_pkt *pkt;
 	void *p;
@@ -1322,8 +1323,12 @@ int audioreach_map_memory_regions(struct q6apm_graph *graph, unsigned int dir, s
 		num_regions = periods;
 	}
 
+	old = buf_sz;
 	/* DSP expects size should be aligned to 4K */
 	buf_sz = ALIGN(buf_sz, 4096);
+	if (old != buf_sz)
+		pr_err("AAA2 buf_sz difference old %u, new %u, period_sz %zu, periods %u, num_regions %u\n",
+		       old, buf_sz, period_sz, periods, num_regions);
 
 	payload_size = sizeof(*cmd) + (sizeof(*mregions) * num_regions);
 

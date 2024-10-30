@@ -228,6 +228,9 @@ int q6apm_map_memory_regions(struct q6apm_graph *graph, unsigned int dir, phys_a
 
 	data->period_sz = period_sz;
 
+	pr_err("AAA %s:%d periods %u, size %zu\n",
+	       __func__, __LINE__, periods, period_sz);
+
 	if (data->buf) {
 		mutex_unlock(&graph->lock);
 		return 0;
