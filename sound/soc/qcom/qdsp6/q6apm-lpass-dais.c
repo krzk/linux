@@ -232,6 +232,7 @@ static int q6apm_lpass_dai_startup(struct snd_pcm_substream *substream, struct s
 	struct q6apm_graph *graph;
 	int graph_id = dai->id;
 
+	dai_data->params_changed[dai->id] = true;
 	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
 		graph = q6apm_graph_open(dai->dev, NULL, dai->dev, graph_id);
 		if (IS_ERR(graph)) {
