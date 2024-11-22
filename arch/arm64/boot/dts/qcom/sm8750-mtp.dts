@@ -1160,8 +1160,8 @@
 };
 
 &remoteproc_adsp {
-	firmware-name = "qcom/sm8750/adsp.mbn",
-			"qcom/sm8750/adsp_dtb.mbn";
+	firmware-name = "qcom/sm8750/adsp.mdt",
+			"qcom/sm8750/adsp_dtb.mdt";
 
 	status = "okay";
 };
