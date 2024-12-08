@@ -235,12 +235,6 @@ enum _slab_flag_bits {
 #endif
 
 /*
- * freeptr_t represents a SLUB freelist pointer, which might be encoded
- * and not dereferenceable if CONFIG_SLAB_FREELIST_HARDENED is enabled.
- */
-typedef struct { unsigned long v; } freeptr_t;
-
-/*
  * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
  *
  * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
@@ -311,8 +305,9 @@ struct kmem_cache_args {
 	 * Using %0 as a value for @freeptr_offset is valid. If @freeptr_offset
 	 * is specified, %use_freeptr_offset must be set %true.
 	 *
-	 * Note that @ctor currently isn't supported with custom free pointers
-	 * as a @ctor requires an external free pointer.
+	 * Note that fields unioned with free pointer cannot be initialized by
+	 * @ctor since free pointer is set after @ctor invocation, so those
+	 * values will be overwritten.
 	 */
 	unsigned int freeptr_offset;
 	/**
