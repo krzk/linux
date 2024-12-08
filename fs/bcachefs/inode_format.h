@@ -101,7 +101,8 @@ struct bch_inode_generation {
 	x(bi_dir_offset,		64)	\
 	x(bi_subvol,			32)	\
 	x(bi_parent_subvol,		32)	\
-	x(bi_nocow,			8)
+	x(bi_nocow,			8)	\
+	x(bi_depth,			32)
 
 /* subset of BCH_INODE_FIELDS */
 #define BCH_INODE_OPTS()			\
@@ -163,5 +164,13 @@ LE64_BITMASK(INODEv3_NR_FIELDS,	struct bch_inode_v3, bi_flags, 24, 31);
 LE64_BITMASK(INODEv3_FIELDS_START,
 				struct bch_inode_v3, bi_flags, 31, 36);
 LE64_BITMASK(INODEv3_MODE,	struct bch_inode_v3, bi_flags, 36, 52);
+
+struct bch_inode_alloc_cursor {
+	struct bch_val		v;
+	__u8			bits;
+	__u8			pad;
+	__le32			gen;
+	__le64			idx;
+};
 
 #endif /* _BCACHEFS_INODE_FORMAT_H */
