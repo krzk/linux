@@ -24,7 +24,7 @@ static inline struct folio *memfd_alloc_folio(struct file *memfd, pgoff_t idx)
 {
 	return ERR_PTR(-EINVAL);
 }
-int memfd_check_seals_mmap(struct file *file, unsigned long *vm_flags)
+static inline int memfd_check_seals_mmap(struct file *file, unsigned long *vm_flags)
 {
 	return 0;
 }
