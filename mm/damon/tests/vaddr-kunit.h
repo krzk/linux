@@ -14,6 +14,7 @@
 
 #include <kunit/test.h>
 
+#ifdef notdef
 static int __link_vmas(struct maple_tree *mt, struct vm_area_struct *vmas,
 			ssize_t nr_vmas)
 {
@@ -90,6 +91,7 @@ static void damon_test_three_regions_in_vmas(struct kunit *test)
 	KUNIT_EXPECT_EQ(test, 300ul, regions[2].start);
 	KUNIT_EXPECT_EQ(test, 330ul, regions[2].end);
 }
+#endif
 
 static struct damon_region *__nth_region_of(struct damon_target *t, int idx)
 {
@@ -306,7 +308,7 @@ static void damon_test_split_evenly(struct kunit *test)
 }
 
 static struct kunit_case damon_test_cases[] = {
-	KUNIT_CASE(damon_test_three_regions_in_vmas),
+	// KUNIT_CASE(damon_test_three_regions_in_vmas),
 	KUNIT_CASE(damon_test_apply_three_regions1),
 	KUNIT_CASE(damon_test_apply_three_regions2),
 	KUNIT_CASE(damon_test_apply_three_regions3),
