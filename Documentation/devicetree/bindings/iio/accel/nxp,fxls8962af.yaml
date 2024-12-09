@@ -14,12 +14,20 @@ description: |
   SPI and I2C interface.
     https://www.nxp.com/docs/en/data-sheet/FXLS8962AF.pdf
     https://www.nxp.com/docs/en/data-sheet/FXLS8964AF.pdf
+    https://www.nxp.com/docs/en/data-sheet/FXLS8967AF.pdf
+    https://www.nxp.com/docs/en/data-sheet/FXLS8974CF.pdf
 
 properties:
   compatible:
-    enum:
-      - nxp,fxls8962af
-      - nxp,fxls8964af
+    oneOf:
+      - enum:
+          - nxp,fxls8962af
+          - nxp,fxls8964af
+      - items:
+          - enum:
+              - nxp,fxls8967af
+              - nxp,fxls8974cf
+          - const: nxp,fxls8962af
 
   reg:
     maxItems: 1
