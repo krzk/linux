@@ -20,6 +20,8 @@ struct q6apm_graph;
 #define MODULE_ID_PLACEHOLDER_DECODER	0x07001009
 #define MODULE_ID_I2S_SINK		0x0700100A
 #define MODULE_ID_I2S_SOURCE		0x0700100B
+#define MODULE_ID_TDM_SINK              0x0700100E
+#define MODULE_ID_TDM_SOURCE            0x0700100F
 #define MODULE_ID_SAL			0x07001010
 #define MODULE_ID_MFC			0x07001015
 #define MODULE_ID_DATA_LOGGING		0x0700101A
@@ -118,6 +120,27 @@ struct apm_module_conn_obj {
 	uint32_t src_mod_op_port_id;
 	uint32_t dst_mod_inst_id;
 	uint32_t dst_mod_ip_port_id;
+} __packed;
+
+#define APM_PARAM_ID_MODULE_CTRL_LINK_CFG      0x08001061
+
+struct apm_param_id_module_ctrl_link_cfg {
+       uint32_t num_ctrl_link_cfg;
+} __packed;
+
+struct apm_module_ctrl_link_cfg {
+       uint32_t peer1_mod_inst_id;
+       uint32_t peer1_mod_ctrl_port_id;
+       uint32_t peer2_mod_inst_id;
+       uint32_t peer2_mod_ctrl_port_id;
+       uint32_t num_props;
+} __packed;
+
+#define APM_PARAM_ID_CTRL_LINK_INTENT_LIST             0x08001062
+#define APM_MODULE_PROP_ID_CTRL_LINK_INTENT_LIST       0x08001062
+struct apm_module_ctrl_link_prop_id_intent_list {
+       uint32_t num_intents;
+       uint32_t intent_id_list[];
 } __packed;
 
 #define APM_PARAM_ID_GAIN			0x08001006
@@ -490,6 +513,34 @@ struct param_id_i2s_intf_cfg {
 #define PORT_ID_I2S_OUPUT		1
 #define I2S_STACK_SIZE			2048
 
+#define CONFIG_TDM_SYNC_SRC_EXTERNAL              0x0
+#define CONFIG_TDM_SYNC_SRC_INTERNAL              0x1
+
+#define PARAM_ID_TDM_INTF_CFG                   0x0800101B
+struct param_id_tdm_intf_cfg {
+        uint32_t lpaif_type;
+	uint32_t intf_idx;
+	uint16_t sync_src;
+	uint16_t ctrl_data_out_enable;
+	uint32_t slot_mask;
+	uint16_t nslots_per_frame;
+	uint16_t slot_width;
+	uint16_t sync_mode;
+	uint16_t ctrl_invert_sync_pulse;
+	uint16_t ctrl_sync_data_delay;
+	uint16_t reserved;
+} __packed;
+
+#define TDM_INTF_TYPE_PRIMARY           0
+#define TDM_INTF_TYPE_SECOINDARY        1
+#define TDM_INTF_TYPE_TERTINARY         2
+#define TDM_INTF_TYPE_QUATERNARY        3
+#define TDM_INTF_TYPE_QUINARY           4
+
+#define PORT_ID_TDM_INPUT               2
+#define PORT_ID_TDM_OUPUT               1
+#define TDM_STACK_SIZE                  2048
+
 #define PARAM_ID_DISPLAY_PORT_INTF_CFG		0x08001154
 
 struct param_id_display_port_intf_cfg {
@@ -726,6 +777,19 @@ struct audioreach_graph_info {
 	uint32_t dst_mod_ip_port_id;
 };
 
+#define MAX_INTENTS 4
+
+struct audioreach_control_link {
+       uint32_t id;
+       uint32_t peer1_mod_inst_id;
+       uint32_t peer1_mod_port_id;
+       uint32_t peer2_mod_inst_id;
+       uint32_t peer2_mod_port_id;
+       uint32_t intent[MAX_INTENTS];
+       struct list_head node;
+       struct audioreach_sub_graph *sub_graph;
+};
+
 struct audioreach_sub_graph {
 	uint32_t sub_graph_id;
 	uint32_t perf_mode;
@@ -736,6 +800,8 @@ struct audioreach_sub_graph {
 	struct audioreach_graph_info *info;
 	uint32_t num_containers;
 	struct list_head container_list;
+	uint32_t num_control_links;
+	struct list_head control_link_list;
 };
 
 struct audioreach_container {
@@ -780,6 +846,17 @@ struct audioreach_module {
 	uint32_t data_format;
 	uint32_t hw_interface_type;
 
+	/* TDM module */
+	uint32_t sync_src;
+	uint32_t ctrl_data_out_enable;
+	uint32_t slot_mask;
+	uint32_t nslots_per_frame;
+	uint32_t slot_width;
+	uint32_t sync_mode;
+	uint32_t ctrl_invert_sync_pulse;
+	uint32_t ctrl_sync_data_delay;
+	uint32_t reserved;
+
 	/* PCM module specific */
 	uint32_t interleave_type;
 
@@ -806,6 +883,7 @@ struct audioreach_module_config {
 
 	u16	data_format;
 	u16	num_channels;
+	u16	active_channels_mask;
 	u16	dp_idx;
 	u32	channel_allocation;
 	u32	sd_line_mask;
