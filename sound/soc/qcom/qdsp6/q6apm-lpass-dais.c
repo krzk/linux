@@ -262,6 +262,14 @@ static const struct snd_soc_dai_ops q6i2s_ops = {
 	.hw_params        = q6dma_hw_params,
 };
 
+static const struct snd_soc_dai_ops q6tdm_ops = {
+        .prepare        = q6apm_lpass_dai_prepare,
+        .startup        = q6apm_lpass_dai_startup,
+        .shutdown       = q6apm_lpass_dai_shutdown,
+        .set_channel_map  = q6dma_set_channel_map,
+        .hw_params        = q6dma_hw_params,
+};
+
 static const struct snd_soc_dai_ops q6hdmi_ops = {
 	.prepare	= q6apm_lpass_dai_prepare,
 	.startup	= q6apm_lpass_dai_startup,
@@ -293,6 +301,7 @@ static int q6apm_lpass_dai_dev_probe(struct platform_device *pdev)
 
 	memset(&cfg, 0, sizeof(cfg));
 	cfg.q6i2s_ops = &q6i2s_ops;
+	cfg.q6tdm_ops = &q6tdm_ops;
 	cfg.q6dma_ops = &q6dma_ops;
 	cfg.q6hdmi_ops = &q6hdmi_ops;
 	dais = q6dsp_audio_ports_set_config(dev, &cfg, &num_dais);

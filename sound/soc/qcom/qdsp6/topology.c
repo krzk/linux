@@ -97,6 +97,7 @@ static struct audioreach_sub_graph *audioreach_tplg_alloc_sub_graph(struct q6apm
 		return ERR_PTR(-ENOMEM);
 
 	INIT_LIST_HEAD(&sg->container_list);
+	INIT_LIST_HEAD(&sg->control_link_list);
 
 	mutex_lock(&apm->lock);
 	ret = idr_alloc_u32(&apm->sub_graphs_idr, sg, &sub_graph_id, sub_graph_id, GFP_KERNEL);
@@ -111,6 +112,50 @@ static struct audioreach_sub_graph *audioreach_tplg_alloc_sub_graph(struct q6apm
 	sg->sub_graph_id = sub_graph_id;
 
 	return sg;
+}
+
+static struct audioreach_control_link *audioreach_tplg_alloc_control_link(struct q6apm *apm,
+                                                           struct audioreach_sub_graph *sg,
+                                                           uint32_t control_link_id,
+                                                           bool *found)
+{
+       struct audioreach_control_link *cont;
+       int ret;
+
+       if (!control_link_id)
+               return ERR_PTR(-EINVAL);
+
+       mutex_lock(&apm->lock);
+       cont = idr_find(&apm->control_links_idr, control_link_id);
+       mutex_unlock(&apm->lock);
+
+       if (cont) {
+               *found = true;
+               return cont;
+       }
+       *found = false;
+
+       cont = kzalloc(sizeof(*cont), GFP_KERNEL);
+       if (!cont)
+               return ERR_PTR(-ENOMEM);
+
+       mutex_lock(&apm->lock);
+       ret = idr_alloc_u32(&apm->control_links_idr, cont, &control_link_id, control_link_id, GFP_KERNEL);
+       mutex_unlock(&apm->lock);
+
+       if (ret < 0) {
+               dev_err(apm->dev, "Failed to allocate Control link ID (%x)\n", control_link_id);
+               kfree(cont);
+               return ERR_PTR(ret);
+       }
+
+       cont->id = control_link_id;
+       cont->sub_graph = sg;
+       /* add to container list */
+       list_add_tail(&cont->node, &sg->control_link_list);
+       sg->num_control_links++;
+
+       return cont;
 }
 
 static struct audioreach_container *audioreach_tplg_alloc_container(struct q6apm *apm,
@@ -331,6 +376,92 @@ static struct audioreach_module_priv_data *audioreach_get_module_priv_data(
 	}
 
 	return NULL;
+}
+
+static void audioreach_parse_control_link_tokens(struct q6apm *apm, struct audioreach_control_link *link,
+                                                struct
+snd_soc_tplg_vendor_array *cl_array) {
+       struct snd_soc_tplg_vendor_value_elem *cl_elem = cl_array->value;
+       int tkn_count = 0;
+
+       pr_err("Debug:%s:%d:+++++++++++++++\n",__func__,__LINE__);
+       while (tkn_count <= (le32_to_cpu(cl_array->num_elems) - 1)) {
+               switch (le32_to_cpu(cl_elem->token)) {
+               case AR_TKN_U32_CONTROL_LINK_IID:
+		       pr_err("Debug:%s:%d:AR_TKN_U32_CONTROL_LINK_IID\n",__func__,__LINE__);
+                       link->id = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_PEER1_MOD_IID:
+		       pr_err("Debug:%s:%d:AR_TKN_U32_CONTROL_LINK_PEER1_MOD_IID\n",__func__,__LINE__);
+                       link->peer1_mod_inst_id = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_PEER1_MOD_PORT_ID:
+		       pr_err("Debug:%s:%d:AR_TKN_U32_CONTROL_LINK_PEER1_MOD_PORT_ID\n",__func__,__LINE__);
+                       link->peer1_mod_port_id = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_PEER2_MOD_IID:
+		       pr_err("Debug:%s:%d:AR_TKN_U32_CONTROL_LINK_PEER2_MOD_IID\n",__func__,__LINE__);
+                       link->peer2_mod_inst_id = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_PEER2_MOD_PORT_ID:
+		       pr_err("Debug:%s:%d:AR_TKN_U32_CONTROL_LINK_PEER2_MOD_PORT_ID\n",__func__,__LINE__);
+                       link->peer2_mod_port_id = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_INTENT0:
+                       link->intent[0] = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_INTENT1:
+                       link->intent[1] = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_INTENT2:
+                       link->intent[2] = le32_to_cpu(cl_elem->value);
+                       break;
+               case AR_TKN_U32_CONTROL_LINK_INTENT3:
+                       link->intent[3] = le32_to_cpu(cl_elem->value);
+                       break;
+               default:
+                       dev_err(apm->dev, "Not a valid token %d for control link graph\n", cl_elem->token);
+                       break;
+
+               }
+               tkn_count++;
+               cl_elem++;
+       }
+
+     pr_err("LInk: %x: p1 inst id: %x, %x, %x, %x, %x, %x, %x, %x\n", link->id, link->peer1_mod_inst_id, link->peer1_mod_port_id,
+                     link->peer2_mod_inst_id, link->peer2_mod_port_id, link->intent[0], link->intent[1], link->intent[2], link->intent[3]);
+}
+
+static void audioreach_parse_cl_tokens(struct q6apm *apm, struct audioreach_sub_graph *sg,
+                                         struct snd_soc_tplg_private *private) {
+       struct snd_soc_tplg_vendor_value_elem *sg_elem;
+       struct snd_soc_tplg_vendor_array *sg_array = NULL;
+       struct audioreach_control_link *control_link;
+       int link_id, tkn_count, sz;
+       bool found = false;
+
+       for (sz = 0; sz < le32_to_cpu(private->size);) {
+               tkn_count = 0;
+               sg_array = (struct snd_soc_tplg_vendor_array *)((u8 *)private->array + sz);
+               sg_elem = sg_array->value;
+               sz = sz + le32_to_cpu(sg_array->size);
+               while (tkn_count <= (le32_to_cpu(sg_array->num_elems) - 1)) {
+                       switch (le32_to_cpu(sg_elem->token)) {
+                       case AR_TKN_U32_CONTROL_LINK_IID:
+                               link_id = le32_to_cpu(sg_elem->value);
+                               control_link = audioreach_tplg_alloc_control_link(apm, sg, link_id, &found);
+                               /* Error or Already parsed control link data */
+                               if (IS_ERR(control_link) || found)
+                                       break;
+                               audioreach_parse_control_link_tokens(apm, control_link, sg_array);
+                       break;
+                       default:
+                               break;
+                       }
+                       tkn_count++;
+                       sg_elem++;
+               }
+       }
 }
 
 static struct audioreach_sub_graph *audioreach_parse_sg_tokens(struct q6apm *apm,
@@ -601,6 +732,8 @@ static int audioreach_widget_load_module_common(struct snd_soc_component *compon
 	sg = audioreach_parse_sg_tokens(apm, &tplg_w->priv);
 	if (IS_ERR(sg))
 		return PTR_ERR(sg);
+		
+	audioreach_parse_cl_tokens(apm, sg, &tplg_w->priv);
 
 	cont = audioreach_parse_cont_tokens(apm, sg, &tplg_w->priv);
 	if (IS_ERR(cont))
@@ -776,6 +909,62 @@ static int audioreach_widget_dp_module_load(struct audioreach_module *mod,
 	return 0;
 }
 
+static int audioreach_widget_tdm_module_load(struct audioreach_module *mod,
+                                             struct snd_soc_tplg_vendor_array *mod_array)
+{
+        struct snd_soc_tplg_vendor_value_elem *mod_elem;
+        int tkn_count = 0;
+
+        mod_elem = mod_array->value;
+
+        while (tkn_count <= (le32_to_cpu(mod_array->num_elems) - 1)) {
+                switch (le32_to_cpu(mod_elem->token)) {
+                case AR_TKN_U32_MODULE_HW_IF_IDX:
+                        mod->hw_interface_idx = le32_to_cpu(mod_elem->value);
+                        break;
+                case AR_TKN_U32_MODULE_FMT_DATA:
+                        mod->data_format = le32_to_cpu(mod_elem->value);
+                        break;
+                case AR_TKN_U32_MODULE_HW_IF_TYPE:
+                        mod->hw_interface_type = le32_to_cpu(mod_elem->value);
+                        break;
+                case AR_TKN_U32_MODULE_SYNC_SRC:
+			mod->sync_src = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_CTRL_DATA_OUT_ENABLE:
+			mod->ctrl_data_out_enable = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_SLOT_MASK:
+			mod->slot_mask = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_NSLOTS_PER_FRAME:
+			mod->nslots_per_frame = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_SLOT_WIDTH:
+			mod->slot_width = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_SYNC_MODE:
+			mod->sync_mode = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_CTRL_INVERT_SYNC_PULSE:
+			mod->ctrl_invert_sync_pulse = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_CTRL_SYNC_DATA_DELAY:
+			mod->ctrl_sync_data_delay = le32_to_cpu(mod_elem->value);
+			break;
+		case AR_TKN_U32_MODULE_RESERVED:
+			mod->reserved = le32_to_cpu(mod_elem->value);
+			break;
+                default:
+                        break;
+                }
+                tkn_count++;
+                mod_elem++;
+        }
+
+        return 0;
+}
+
 static int audioreach_widget_load_buffer(struct snd_soc_component *component,
 					 int index, struct snd_soc_dapm_widget *w,
 					 struct snd_soc_tplg_dapm_widget *tplg_w)
@@ -808,6 +997,10 @@ static int audioreach_widget_load_buffer(struct snd_soc_component *component,
 		break;
 	case MODULE_ID_DISPLAY_PORT_SINK:
 		audioreach_widget_dp_module_load(mod, mod_array);
+		break;
+	case MODULE_ID_TDM_SINK:
+	case MODULE_ID_TDM_SOURCE:
+		audioreach_widget_tdm_module_load(mod, mod_array);
 		break;
 	default:
 		return -EINVAL;
