@@ -97,14 +97,14 @@ static const struct dpu_lm_cfg sdm630_lm[] = {
 	{
 		.name = "lm_0", .id = LM_0,
 		.base = 0x44000, .len = 0x320,
-		.features = MIXER_MSM8998_MASK,
+		.sourcesplit = 1,
 		.sblk = &msm8998_lm_sblk,
 		.pingpong = PINGPONG_0,
 		.dspp = DSPP_0,
 	}, {
 		.name = "lm_2", .id = LM_2,
 		.base = 0x46000, .len = 0x320,
-		.features = MIXER_MSM8998_MASK,
+		.sourcesplit = 1,
 		.sblk = &msm8998_lm_sblk,
 		.pingpong = PINGPONG_2,
 	},

@@ -64,16 +64,6 @@ enum {
 	DPU_SSPP_MAX
 };
 
-/*
- * MIXER sub-blocks/features
- * @DPU_MIXER_SOURCESPLIT     Layer mixer supports source-split configuration
- * @DPU_MIXER_MAX             maximum value
- */
-enum {
-	DPU_MIXER_SOURCESPLIT = 0x1,
-	DPU_MIXER_MAX,
-};
-
 /**
  * DSPP sub-blocks
  * @DPU_DSPP_PCC             Panel color correction block
@@ -423,6 +413,7 @@ struct dpu_sspp_cfg {
  * @sblk:              LM Sub-blocks information
  * @pingpong:          ID of connected PingPong, PINGPONG_NONE if unsupported
  * @lm_pair:           ID of LM that can be controlled by same CTL
+ * @sourcesplit		Layer mixer supports source-split configuration
  */
 struct dpu_lm_cfg {
 	DPU_HW_BLK_INFO;
@@ -430,6 +421,7 @@ struct dpu_lm_cfg {
 	u32 pingpong;
 	u32 dspp;
 	unsigned long lm_pair;
+	unsigned long sourcesplit : 1;
 };
 
 /**

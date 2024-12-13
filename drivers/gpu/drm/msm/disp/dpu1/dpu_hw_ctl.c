@@ -491,8 +491,7 @@ static void dpu_hw_ctl_setup_blendstage(struct dpu_hw_ctl *ctx,
 	if (stages < 0)
 		return;
 
-	if (test_bit(DPU_MIXER_SOURCESPLIT,
-		&ctx->mixer_hw_caps->features))
+	if (ctx->mixer_hw_caps->sourcesplit)
 		pipes_per_stage = PIPES_PER_STAGE;
 	else
 		pipes_per_stage = 1;
