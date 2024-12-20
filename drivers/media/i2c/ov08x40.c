@@ -1331,11 +1331,6 @@ static int ov08x40_power_on(struct device *dev)
 		return ret;
 	}
 
-	if (ov08x->reset_gpio) {
-		gpiod_set_value_cansleep(ov08x->reset_gpio, 1);
-		usleep_range(1000, 2000);
-	}
-
 	ret = regulator_bulk_enable(ARRAY_SIZE(ov08x40_supply_names),
 				    ov08x->supplies);
 	if (ret < 0) {
@@ -1343,8 +1338,12 @@ static int ov08x40_power_on(struct device *dev)
 		goto disable_clk;
 	}
 
-	gpiod_set_value_cansleep(ov08x->reset_gpio, 0);
-	usleep_range(1500, 1800);
+	if (ov08x->reset_gpio) {
+		gpiod_set_value_cansleep(ov08x->reset_gpio, 1);
+		usleep_range(2000, 2200);
+		gpiod_set_value_cansleep(ov08x->reset_gpio, 0);
+		usleep_range(5000, 5100);
+	}
 
 	return 0;
 
@@ -1360,10 +1359,9 @@ static int ov08x40_power_off(struct device *dev)
 	struct v4l2_subdev *sd = dev_get_drvdata(dev);
 	struct ov08x40 *ov08x = to_ov08x40(sd);
 
-	if (is_acpi_node(dev_fwnode(dev)))
-		return 0;
+	if (ov08x->reset_gpio)
+		gpiod_set_value_cansleep(ov08x->reset_gpio, 1);
 
-	gpiod_set_value_cansleep(ov08x->reset_gpio, 1);
 	regulator_bulk_disable(ARRAY_SIZE(ov08x40_supply_names),
 			       ov08x->supplies);
 	clk_disable_unprepare(ov08x->xvclk);
