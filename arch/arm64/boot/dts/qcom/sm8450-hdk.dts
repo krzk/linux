@@ -717,13 +717,55 @@
 	status = "okay";
 };
 
+&i2c9 {
+	status = "disabled";
+};
+
+&lt9611_1v2 {
+	status = "disabled";
+};
+
+&lt9611_3v3 {
+	status = "disabled";
+};
+
+&lt9611_codec {
+	status = "disabled";
+};
+
 &mdss_dsi0 {
 	vdda-supply = <&vreg_l6b_1p2>;
 	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	panel@0 {
+		compatible = "tianma,fhd-video", "novatek,nt36672a";
+		reg = <0>;
+
+		//backlight = <&pmi8998_wled>;
+		reset-gpios = <&tlmm 20 GPIO_ACTIVE_LOW>;
+
+		vddio-supply = <&vreg_l12c_1p8>;
+		vddpos-supply = <&vreg_l7c_3p0>;
+		vddneg-supply = <&vreg_l8c_1p8>;
+
+		pinctrl-0 = <&disp0_reset_n_active>, <&mdp_vsync>;
+		pinctrl-1 = <&disp0_reset_n_suspend>, <&mdp_vsync>;
+		pinctrl-names = "default", "sleep";
+
+		port {
+			panel0_in: endpoint {
+				remote-endpoint = <&mdss_dsi0_out>;
+			};
+		};
+	};
 };
 
 &mdss_dsi0_out {
-	remote-endpoint = <&lt9611_a>;
+	//remote-endpoint = <&lt9611_a>;
+	remote-endpoint = <&panel0_in>;
 	data-lanes = <0 1 2 3>;
 };
 
@@ -1148,6 +1190,42 @@
 		pins = "gpio92";
 		function = "gpio";
 		drive-strength = <2>;
+		bias-pull-up;
+	};
+
+	disp0_reset_n_active: disp0-reset-n-active-state {
+		pins = "gpio0";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+	};
+
+	disp0_reset_n_suspend: disp0-reset-n-suspend-state {
+		pins = "gpio0";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	mdp_vsync: mdp-vsync-state {
+		pins = "gpio86";
+		function = "mdp_vsync";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	ts_irq: ts-irq-state {
+		pins = "gpio21";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+		output-disable;
+	};
+
+	ts_reset: ts-reset-state {
+		pins = "gpio20";
+		function = "gpio";
+		drive-strength = <8>;
 		bias-pull-up;
 	};
 };
