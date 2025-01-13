@@ -140,7 +140,7 @@ config PHY_QCOM_EUSB2_REPEATER
 	select GENERIC_PHY
 	help
 	  Enable support for the USB high-speed SNPS eUSB2 repeater on Qualcomm
-	  PMICs. The repeater is paired with a Synopsys eUSB2 Phy
+	  PMICs. The repeater can be paired with a Synopsys or M31 eUSB2 Phy
 	  on Qualcomm SOCs.
 
 config PHY_QCOM_M31_USB
@@ -153,6 +153,16 @@ config PHY_QCOM_M31_USB
 	  management required after resetting the hardware and power
 	  management. This driver is required even for peripheral only or
 	  host only mode configurations.
+
+config PHY_QCOM_M31_EUSB
+	tristate "Qualcomm M31 eUSB2 PHY driver support"
+	depends on USB && (ARCH_QCOM || COMPILE_TEST)
+	select GENERIC_PHY
+	help
+	  Enable this to support M31 EUSB2 PHY transceivers on Qualcomm
+	  chips with DWC3 USB core. It supports initializing and cleaning
+	  up of the associated USB repeater that is paired with the eUSB2
+	  PHY.
 
 config PHY_QCOM_USB_HS
 	tristate "Qualcomm USB HS PHY module"
