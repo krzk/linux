@@ -35,6 +35,7 @@
 #include <linux/mutex.h>
 #include <linux/of.h>
 #include <linux/sysfs.h>
+#include <linux/string_choices.h>
 #include <linux/types.h>
 
 /*
@@ -1083,7 +1084,7 @@ static void lm63_init_client(struct lm63_data *data)
 		(data->config_fan & 0x08) ? "1.4" : "360",
 		((data->config_fan & 0x08) ? 700 : 180000) / data->pwm1_freq);
 	dev_dbg(dev, "PWM output active %s, %s mode\n",
-		(data->config_fan & 0x10) ? "low" : "high",
+		str_low_high(data->config_fan & 0x10),
 		(data->config_fan & 0x20) ? "manual" : "auto");
 }
 
