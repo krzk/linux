@@ -4,6 +4,7 @@
  * Author: Mike Leach <mike.leach@linaro.org>
  */
 
+#include <linux/string_choices.h>
 #include <linux/sysfs.h>
 #include "coresight-config.h"
 #include "coresight-priv.h"
@@ -233,7 +234,7 @@ static int cscfg_prog_config(struct cscfg_config_csdev *config_csdev, bool enabl
 		feat_csdev = config_csdev->feats_csdev[i];
 		csdev = feat_csdev->csdev;
 		dev_dbg(&csdev->dev, "cfg %s;  %s feature:%s", config_csdev->config_desc->name,
-			enable ? "enable" : "disable", feat_csdev->feat_desc->name);
+			str_enable_disable(enable), feat_csdev->feat_desc->name);
 
 		if (enable)
 			err = cscfg_set_on_enable(feat_csdev);
