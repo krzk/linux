@@ -44,6 +44,7 @@
 #include <linux/netdevice.h>
 #include <linux/skbuff.h>
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/dma-mapping.h>
@@ -537,7 +538,7 @@ static void myri10ge_dummy_rdma(struct myri10ge_priv *mgp, int enable)
 		msleep(1);
 	if (mgp->cmd->data != MYRI10GE_NO_CONFIRM_DATA)
 		dev_err(&mgp->pdev->dev, "dummy rdma %s failed\n",
-			(enable ? "enable" : "disable"));
+			str_enable_disable(enable));
 }
 
 static int
@@ -3896,12 +3897,12 @@ static int myri10ge_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (mgp->msix_enabled)
 		dev_info(dev, "%d MSI-X IRQs, tx bndry %d, fw %s, MTRR %s, WC Enabled\n",
 			 mgp->num_slices, mgp->tx_boundary, mgp->fw_name,
-			 (mgp->wc_cookie > 0 ? "Enabled" : "Disabled"));
+			 str_enabled_disabled(mgp->wc_cookie > 0));
 	else
 		dev_info(dev, "%s IRQ %d, tx bndry %d, fw %s, MTRR %s, WC Enabled\n",
 			 mgp->msi_enabled ? "MSI" : "xPIC",
 			 pdev->irq, mgp->tx_boundary, mgp->fw_name,
-			 (mgp->wc_cookie > 0 ? "Enabled" : "Disabled"));
+			 str_enabled_disabled(mgp->wc_cookie > 0));
 
 	board_number++;
 	return 0;

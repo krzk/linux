@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /* Copyright (C) 2019-2021, Intel Corporation. */
 
+#include <linux/string_choices.h>
 #include "ice_common.h"
 
 /**
@@ -254,7 +255,7 @@ static int ice_dvm_update_dflt_recipes(struct ice_hw *hw)
 		if (status) {
 			ice_debug(hw, ICE_DBG_INIT, "Failed to update RID %d lkup_idx %d fv_idx %d mask_valid %s mask 0x%04x\n",
 				  params->rid, params->lkup_idx, params->fv_idx,
-				  params->mask_valid ? "true" : "false",
+				  str_true_false(params->mask_valid),
 				  params->mask);
 			return status;
 		}

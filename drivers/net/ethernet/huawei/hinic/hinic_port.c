@@ -9,6 +9,7 @@
 #include <linux/etherdevice.h>
 #include <linux/if_vlan.h>
 #include <linux/pci.h>
+#include <linux/string_choices.h>
 #include <linux/device.h>
 #include <linux/errno.h>
 
@@ -1130,7 +1131,7 @@ int hinic_set_autoneg(struct hinic_hwdev *hwdev, bool enable)
 				 &autoneg, &out_size);
 	if (err || !out_size || autoneg.status) {
 		dev_err(&hwdev->hwif->pdev->dev, "Failed to %s autoneg, err: %d, status: 0x%x, out size: 0x%x\n",
-			enable ? "enable" : "disable", err, autoneg.status,
+			str_enable_disable(enable), err, autoneg.status,
 			out_size);
 		return -EIO;
 	}
@@ -1242,7 +1243,7 @@ int hinic_dcb_set_pfc(struct hinic_hwdev *hwdev, u8 pfc_en, u8 pfc_bitmap)
 				 &pfc, sizeof(pfc), &pfc, &out_size);
 	if (err || pfc.status || !out_size) {
 		dev_err(&hwdev->hwif->pdev->dev, "Failed to %s pfc, err: %d, status: 0x%x, out size: 0x%x\n",
-			pfc_en ? "enable" : "disable", err, pfc.status,
+			str_enable_disable(pfc_en), err, pfc.status,
 			out_size);
 		mutex_unlock(&nic_cfg->cfg_mutex);
 		return -EIO;

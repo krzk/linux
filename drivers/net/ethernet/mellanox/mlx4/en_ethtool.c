@@ -37,6 +37,7 @@
 #include <linux/mlx4/driver.h>
 #include <linux/mlx4/device.h>
 #include <linux/in.h>
+#include <linux/string_choices.h>
 #include <net/ip.h>
 #include <linux/bitmap.h>
 #include <linux/mii.h>
@@ -1953,7 +1954,7 @@ static int mlx4_en_set_priv_flags(struct net_device *dev, u32 flags)
 					bf_enabled_new;
 
 		en_info(priv, "BlueFlame %s\n",
-			bf_enabled_new ?  "Enabled" : "Disabled");
+			str_enabled_disabled(bf_enabled_new));
 	}
 
 	if (phv_enabled_new != phv_enabled_old) {
@@ -1965,7 +1966,7 @@ static int mlx4_en_set_priv_flags(struct net_device *dev, u32 flags)
 		else
 			priv->pflags &= ~MLX4_EN_PRIV_FLAGS_PHV;
 		en_info(priv, "PHV bit %s\n",
-			phv_enabled_new ?  "Enabled" : "Disabled");
+			str_enabled_disabled(phv_enabled_new));
 	}
 	return 0;
 }

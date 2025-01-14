@@ -39,6 +39,7 @@
 #include <linux/debugfs.h>
 #include <linux/if_bridge.h>
 #include <linux/filter.h>
+#include <linux/string_choices.h>
 #include <net/netdev_queues.h>
 #include <net/page_pool/types.h>
 #include <net/pkt_sched.h>
@@ -4288,7 +4289,7 @@ static int mlx5e_handle_feature(struct net_device *netdev,
 	if (err) {
 		MLX5E_SET_FEATURE(features, feature, !enable);
 		netdev_err(netdev, "%s feature %pNF failed, err %d\n",
-			   enable ? "Enable" : "Disable", &feature, err);
+			   str_enable_disable(enable), &feature, err);
 		return err;
 	}
 

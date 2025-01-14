@@ -2,6 +2,7 @@
 /* Copyright(c) 2013 - 2018 Intel Corporation. */
 
 #include <linux/net/intel/libie/rx.h>
+#include <linux/string_choices.h>
 
 #include "iavf.h"
 #include "iavf_prototype.h"
@@ -1904,7 +1905,7 @@ static int iavf_init_interrupt_scheme(struct iavf_adapter *adapter)
 			 adapter->num_tc);
 
 	dev_info(&adapter->pdev->dev, "Multiqueue %s: Queue pair count = %u",
-		 (adapter->num_active_queues > 1) ? "Enabled" : "Disabled",
+		 str_enabled_disabled(adapter->num_active_queues > 1),
 		 adapter->num_active_queues);
 
 	return 0;

@@ -6,6 +6,7 @@
 #include <linux/if_bridge.h>
 #include <linux/if_macvlan.h>
 #include <linux/module.h>
+#include <linux/string_choices.h>
 #include <net/pkt_cls.h>
 #include <net/xdp_sock_drv.h>
 
@@ -7262,7 +7263,7 @@ static void i40e_print_link_message_eee(struct i40e_vsi *vsi,
 		netdev_info(vsi->netdev,
 			    "NIC Link is Up, %sbps Full Duplex, Flow Control: %s, EEE: %s\n",
 			    speed, fc,
-			    kedata.eee_enabled ? "Enabled" : "Disabled");
+			    str_enabled_disabled(kedata.eee_enabled));
 	else
 		netdev_info(vsi->netdev,
 			    "NIC Link is Up, %sbps Full Duplex, Flow Control: %s\n",

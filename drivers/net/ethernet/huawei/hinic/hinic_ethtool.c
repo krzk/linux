@@ -26,6 +26,7 @@
 #include <linux/ethtool.h>
 #include <linux/vmalloc.h>
 #include <linux/sfp.h>
+#include <linux/string_choices.h>
 
 #include "hinic_hw_qp.h"
 #include "hinic_hw_dev.h"
@@ -432,12 +433,10 @@ static int set_link_settings_separate_cmd(struct hinic_dev *nic_dev,
 					(autoneg == AUTONEG_ENABLE));
 		if (err)
 			netif_err(nic_dev, drv, nic_dev->netdev, "%s autoneg failed\n",
-				  (autoneg == AUTONEG_ENABLE) ?
-				  "Enable" : "Disable");
+				  str_enable_disable(autoneg == AUTONEG_ENABLE));
 		else
 			netif_info(nic_dev, drv, nic_dev->netdev, "%s autoneg successfully\n",
-				   (autoneg == AUTONEG_ENABLE) ?
-				   "Enable" : "Disable");
+				   str_enable_disable(autoneg == AUTONEG_ENABLE));
 	}
 
 	if (!err && (set_settings & HILINK_LINK_SET_SPEED)) {

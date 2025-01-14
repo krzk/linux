@@ -32,6 +32,7 @@
 
 #include <linux/dim.h>
 #include <linux/ethtool_netlink.h>
+#include <linux/string_choices.h>
 
 #include "en.h"
 #include "en/channels.h"
@@ -2355,7 +2356,7 @@ static int mlx5e_handle_pflag(struct net_device *netdev,
 	err = mlx5e_priv_flags[flag].handler(netdev, enable);
 	if (err) {
 		netdev_err(netdev, "%s private flag '%s' failed err %d\n",
-			   enable ? "Enable" : "Disable", mlx5e_priv_flags[flag].name, err);
+			   str_enable_disable(enable), mlx5e_priv_flags[flag].name, err);
 		return err;
 	}
 

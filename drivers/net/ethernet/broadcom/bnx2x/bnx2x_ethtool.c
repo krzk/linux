@@ -23,6 +23,7 @@
 #include <linux/netdevice.h>
 #include <linux/types.h>
 #include <linux/sched.h>
+#include <linux/string_choices.h>
 #include <linux/crc32.h>
 #include "bnx2x.h"
 #include "bnx2x_cmn.h"
@@ -3411,7 +3412,7 @@ static int bnx2x_set_rss_flags(struct bnx2x *bp, struct ethtool_rxnfc *info)
 			bp->rss_conf_obj.udp_rss_v4 = udp_rss_requested;
 			DP(BNX2X_MSG_ETHTOOL,
 			   "rss re-configured, UDP 4-tupple %s\n",
-			   udp_rss_requested ? "enabled" : "disabled");
+			   str_enabled_disabled(udp_rss_requested));
 			if (bp->state == BNX2X_STATE_OPEN)
 				return bnx2x_rss(bp, &bp->rss_conf_obj, false,
 						 true);
@@ -3420,7 +3421,7 @@ static int bnx2x_set_rss_flags(struct bnx2x *bp, struct ethtool_rxnfc *info)
 			bp->rss_conf_obj.udp_rss_v6 = udp_rss_requested;
 			DP(BNX2X_MSG_ETHTOOL,
 			   "rss re-configured, UDP 4-tupple %s\n",
-			   udp_rss_requested ? "enabled" : "disabled");
+			   str_enabled_disabled(udp_rss_requested));
 			if (bp->state == BNX2X_STATE_OPEN)
 				return bnx2x_rss(bp, &bp->rss_conf_obj, false,
 						 true);

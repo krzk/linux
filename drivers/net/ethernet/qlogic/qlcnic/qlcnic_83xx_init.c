@@ -4,6 +4,7 @@
  * Copyright (c) 2009-2013 QLogic Corporation
  */
 
+#include <linux/string_choices.h>
 #include "qlcnic_sriov.h"
 #include "qlcnic.h"
 #include "qlcnic_hw.h"
@@ -1074,7 +1075,7 @@ int qlcnic_set_vxlan_parsing(struct qlcnic_adapter *adapter, u16 port)
 	if (ret)
 		netdev_err(adapter->netdev,
 			   "Failed to %s VXLAN parsing for port %d\n",
-			   port ? "enable" : "disable", port);
+			   str_enable_disable(port), port);
 	else
 		netdev_info(adapter->netdev,
 			    "%s VXLAN parsing for port %d\n",

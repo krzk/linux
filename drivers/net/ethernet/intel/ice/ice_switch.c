@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /* Copyright (c) 2018, Intel Corporation. */
 
+#include <linux/string_choices.h>
 #include "ice_lib.h"
 #include "ice_switch.h"
 #include "ice_trace.h"
@@ -2097,7 +2098,7 @@ ice_update_recipe_lkup_idx(struct ice_hw *hw,
 	if (status)
 		ice_debug(hw, ICE_DBG_SW, "Failed to update recipe %d lkup_idx %d fv_idx %d mask %d mask_valid %s, status %d\n",
 			  params->rid, params->lkup_idx, params->fv_idx,
-			  params->mask, params->mask_valid ? "true" : "false",
+			  params->mask, str_true_false(params->mask_valid),
 			  status);
 
 error_out:

@@ -25,6 +25,7 @@
 #include <linux/log2.h>
 #include <linux/refcount.h>
 #include <linux/rhashtable.h>
+#include <linux/string_choices.h>
 #include <net/switchdev.h>
 #include <net/pkt_cls.h>
 #include <net/netevent.h>
@@ -1129,7 +1130,7 @@ static int mlxsw_sp_handle_feature(struct net_device *dev,
 	err = feature_handler(dev, enable);
 	if (err) {
 		netdev_err(dev, "%s feature %pNF failed, err %d\n",
-			   enable ? "Enable" : "Disable", &feature, err);
+			   str_enable_disable(enable), &feature, err);
 		return err;
 	}
 

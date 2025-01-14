@@ -15,6 +15,7 @@
 #include <linux/bpf_trace.h>
 #include <linux/fsl/ptp_qoriq.h>
 #include <linux/ptp_classify.h>
+#include <linux/string_choices.h>
 #include <net/pkt_cls.h>
 #include <net/sock.h>
 #include <net/tso.h>
@@ -2172,7 +2173,7 @@ static int dpaa2_eth_link_state_update(struct dpaa2_eth_priv *priv)
 	}
 
 	netdev_info(priv->net_dev, "Link Event: state %s\n",
-		    state.up ? "up" : "down");
+		    str_up_down(state.up));
 
 out:
 	priv->link_state = state;

@@ -29,6 +29,7 @@
 #include <net/ipv6.h>
 #include <net/ip6_checksum.h>
 #include <linux/prefetch.h>
+#include <linux/string_choices.h>
 #include "bnx2x_cmn.h"
 #include "bnx2x_init.h"
 #include "bnx2x_sp.h"
@@ -2630,7 +2631,7 @@ int bnx2x_nic_load(struct bnx2x *bp, int load_mode)
 
 	DP(NETIF_MSG_IFUP, "Starting NIC load\n");
 	DP(NETIF_MSG_IFUP,
-	   "CNIC is %s\n", CNIC_ENABLED(bp) ? "enabled" : "disabled");
+	   "CNIC is %s\n", str_enabled_disabled(CNIC_ENABLED(bp)));
 
 #ifdef BNX2X_STOP_ON_ERROR
 	if (unlikely(bp->panic)) {

@@ -3,6 +3,7 @@
 
 #include <linux/delay.h>
 #include <linux/iopoll.h>
+#include <linux/string_choices.h>
 #include "ice_common.h"
 #include "ice_ptp_hw.h"
 #include "ice_ptp_consts.h"

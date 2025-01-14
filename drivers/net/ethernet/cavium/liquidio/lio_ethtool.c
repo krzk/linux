@@ -19,6 +19,7 @@
 #include <linux/netdevice.h>
 #include <linux/net_tstamp.h>
 #include <linux/pci.h>
+#include <linux/string_choices.h>
 #include "liquidio_common.h"
 #include "octeon_droq.h"
 #include "octeon_iq.h"
@@ -2102,8 +2103,7 @@ static int octnet_set_intrmod_cfg(struct lio *lio,
 	if (retval == 0) {
 		dev_info(&oct_dev->pci_dev->dev,
 			 "Rx-Adaptive Interrupt moderation %s\n",
-			 (intr_cfg->rx_enable) ?
-			 "enabled" : "disabled");
+			 str_enabled_disabled(intr_cfg->rx_enable));
 		WRITE_ONCE(sc->caller_is_done, true);
 		return 0;
 	}

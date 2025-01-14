@@ -56,6 +56,7 @@
 #include <linux/zlib.h>
 #include <linux/io.h>
 #include <linux/semaphore.h>
+#include <linux/string_choices.h>
 #include <linux/stringify.h>
 #include <linux/vmalloc.h>
 #include "bnx2x.h"
@@ -2348,7 +2349,7 @@ static void bnx2x_init_dropless_fc(struct bnx2x *bp)
 	}
 
 	DP(NETIF_MSG_IFUP | NETIF_MSG_LINK, "dropless_fc is %s\n",
-	   pause_enabled ? "enabled" : "disabled");
+	   str_enabled_disabled(pause_enabled));
 }
 
 int bnx2x_initial_phy_init(struct bnx2x *bp, int load_mode)

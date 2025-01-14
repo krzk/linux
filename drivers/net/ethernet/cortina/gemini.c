@@ -31,6 +31,7 @@
 #include <linux/etherdevice.h>
 #include <linux/if_vlan.h>
 #include <linux/skbuff.h>
+#include <linux/string_choices.h>
 #include <linux/phy.h>
 #include <linux/crc32.h>
 #include <linux/ethtool.h>
@@ -1335,7 +1336,7 @@ static void gmac_enable_irq(struct net_device *netdev, int enable)
 	u32 val, mask;
 
 	netdev_dbg(netdev, "%s device %d %s\n", __func__,
-		   netdev->dev_id, enable ? "enable" : "disable");
+		   netdev->dev_id, str_enable_disable(enable));
 	spin_lock_irqsave(&geth->irq_lock, flags);
 
 	mask = GMAC0_IRQ0_2 << (netdev->dev_id * 2);
@@ -1364,7 +1365,7 @@ static void gmac_enable_rx_irq(struct net_device *netdev, int enable)
 	u32 val, mask;
 
 	netdev_dbg(netdev, "%s device %d %s\n", __func__, netdev->dev_id,
-		   enable ? "enable" : "disable");
+		   str_enable_disable(enable));
 	spin_lock_irqsave(&geth->irq_lock, flags);
 	mask = DEFAULT_Q0_INT_BIT << netdev->dev_id;
 

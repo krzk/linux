@@ -48,6 +48,7 @@
 #include <uapi/rdma/mlx4-abi.h>
 #include <linux/mlx4/device.h>
 #include <linux/mlx4/doorbell.h>
+#include <linux/string_choices.h>
 
 #include "mlx4.h"
 #include "fw.h"
@@ -2276,8 +2277,7 @@ static int mlx4_validate_optimized_steering(struct mlx4_dev *dev)
 				 "DMFS high rate steer mode differ, driver requested %s but %s in FW.\n",
 				 dmfs_high_rate_steering_mode_str(
 					dev->caps.dmfs_high_steer_mode),
-				 (port_cap.dmfs_optimized_state ?
-					"enabled" : "disabled"));
+				 str_enabled_disabled(port_cap.dmfs_optimized_state));
 		}
 	}
 

@@ -17,6 +17,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/crc32.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 #include <linux/module.h>
 #include <linux/unaligned.h>
 #include "smsc9420.h"
@@ -1056,8 +1057,8 @@ static void smsc9420_phy_update_flowcontrol(struct smsc9420_pdata *pd)
 			flow = 0;
 
 		netif_info(pd, link, pd->dev, "rx pause %s, tx pause %s\n",
-			   cap & FLOW_CTRL_RX ? "enabled" : "disabled",
-			   cap & FLOW_CTRL_TX ? "enabled" : "disabled");
+			   str_enabled_disabled(cap & FLOW_CTRL_RX),
+			   str_enabled_disabled(cap & FLOW_CTRL_TX));
 	} else {
 		netif_info(pd, link, pd->dev, "half duplex\n");
 		flow = 0;

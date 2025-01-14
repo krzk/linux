@@ -65,6 +65,7 @@ static const char version[] =
 #include <linux/crc32.h>
 #include <linux/platform_device.h>
 #include <linux/spinlock.h>
+#include <linux/string_choices.h>
 #include <linux/ethtool.h>
 #include <linux/mii.h>
 #include <linux/workqueue.h>
@@ -1174,8 +1175,7 @@ static void smc_10bt_check_media(struct net_device *dev, int init)
 			netif_carrier_on(dev);
 		}
 		if (netif_msg_link(lp))
-			netdev_info(dev, "link %s\n",
-				    new_carrier ? "up" : "down");
+			netdev_info(dev, "link %s\n", str_up_down(new_carrier));
 	}
 }
 

@@ -4,6 +4,7 @@
  * Copyright (c) 2009-2013 QLogic Corporation
  */
 
+#include <linux/string_choices.h>
 #include <linux/types.h>
 
 #include "qlcnic_sriov.h"
@@ -1342,7 +1343,7 @@ int qlcnic_sriov_cfg_bc_intr(struct qlcnic_adapter *adapter, u8 enable)
 	if (err != QLCNIC_RCODE_SUCCESS) {
 		dev_err(&adapter->pdev->dev,
 			"Failed to %s bc events, err=%d\n",
-			(enable ? "enable" : "disable"), err);
+			str_enable_disable(enable), err);
 	}
 
 	qlcnic_free_mbx_args(&cmd);

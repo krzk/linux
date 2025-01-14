@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /* Copyright(c) 1999 - 2024 Intel Corporation. */
 
+#include <linux/string_choices.h>
 #include "ixgbe.h"
 #include "ixgbe_sriov.h"
 
@@ -1251,7 +1252,7 @@ int ixgbe_init_interrupt_scheme(struct ixgbe_adapter *adapter)
 	ixgbe_cache_ring_register(adapter);
 
 	e_dev_info("Multiqueue %s: Rx Queue count = %u, Tx Queue count = %u XDP Queue count = %u\n",
-		   (adapter->num_rx_queues > 1) ? "Enabled" : "Disabled",
+		   str_enabled_disabled(adapter->num_rx_queues > 1),
 		   adapter->num_rx_queues, adapter->num_tx_queues,
 		   adapter->num_xdp_queues);
 

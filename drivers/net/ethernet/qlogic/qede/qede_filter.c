@@ -8,6 +8,7 @@
 #include <linux/etherdevice.h>
 #include <net/udp_tunnel.h>
 #include <linux/bitops.h>
+#include <linux/string_choices.h>
 #include <linux/vmalloc.h>
 
 #include <linux/qed/qed_if.h>
@@ -663,10 +664,10 @@ static int qede_config_accept_any_vlan(struct qede_dev *edev, bool action)
 	rc = edev->ops->vport_update(edev->cdev, params);
 	if (rc) {
 		DP_ERR(edev, "Failed to %s accept-any-vlan\n",
-		       action ? "enable" : "disable");
+		       str_enable_disable(action));
 	} else {
 		DP_INFO(edev, "%s accept-any-vlan\n",
-			action ? "enabled" : "disabled");
+		       str_enabled_disabled(action));
 		edev->accept_any_vlan = action;
 	}
 

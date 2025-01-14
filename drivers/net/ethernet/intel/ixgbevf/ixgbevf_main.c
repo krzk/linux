@@ -18,6 +18,7 @@
 #include <linux/ip.h>
 #include <linux/tcp.h>
 #include <linux/sctp.h>
+#include <linux/string_choices.h>
 #include <linux/ipv6.h>
 #include <linux/slab.h>
 #include <net/checksum.h>
@@ -2994,7 +2995,7 @@ static int ixgbevf_init_interrupt_scheme(struct ixgbevf_adapter *adapter)
 	}
 
 	hw_dbg(&adapter->hw, "Multiqueue %s: Rx Queue count = %u, Tx Queue count = %u XDP Queue count %u\n",
-	       (adapter->num_rx_queues > 1) ? "Enabled" : "Disabled",
+	       str_enabled_disabled(adapter->num_rx_queues > 1),
 	       adapter->num_rx_queues, adapter->num_tx_queues,
 	       adapter->num_xdp_queues);
 

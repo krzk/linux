@@ -14,6 +14,7 @@
 
 #include <linux/crc32.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 #include <linux/ethtool.h>
 #include <linux/io.h>
 #include "stmmac.h"
@@ -625,7 +626,7 @@ int dwmac1000_ptp_enable(struct ptp_clock_info *ptp,
 		}
 
 		netdev_dbg(priv->dev, "Auxiliary Snapshot %s.\n",
-			   on ? "enabled" : "disabled");
+			   str_enabled_disabled(on));
 		writel(tcr_val, ptpaddr + PTP_TCR);
 
 		/* wait for auxts fifo clear to finish */

@@ -12,6 +12,7 @@
 #include <linux/netdevice.h>
 #include <linux/pci.h>
 #include <linux/platform_device.h>
+#include <linux/string_choices.h>
 #include <linux/if_vlan.h>
 #include <linux/crash_dump.h>
 
@@ -8000,7 +8001,7 @@ static int hclge_set_loopback(struct hnae3_handle *handle,
 	ret = hclge_tqp_enable(handle, en);
 	if (ret)
 		dev_err(&hdev->pdev->dev, "failed to %s tqp in loopback, ret = %d\n",
-			en ? "enable" : "disable", ret);
+			str_enable_disable(en), ret);
 
 	return ret;
 }
@@ -11200,9 +11201,9 @@ static void hclge_info_show(struct hclge_dev *hdev)
 	dev_info(dev, "This is %s PF\n",
 		 hdev->flag & HCLGE_FLAG_MAIN ? "main" : "not main");
 	dev_info(dev, "DCB %s\n",
-		 handle->kinfo.tc_info.dcb_ets_active ? "enable" : "disable");
+		 str_enable_disable(handle->kinfo.tc_info.dcb_ets_active));
 	dev_info(dev, "MQPRIO %s\n",
-		 handle->kinfo.tc_info.mqprio_active ? "enable" : "disable");
+		 str_enable_disable(handle->kinfo.tc_info.mqprio_active));
 	dev_info(dev, "Default tx spare buffer size: %u\n",
 		 hdev->tx_spare_buf_size);
 

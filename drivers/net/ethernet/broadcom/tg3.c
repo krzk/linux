@@ -24,6 +24,7 @@
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
+#include <linux/string_choices.h>
 #include <linux/stringify.h>
 #include <linux/kernel.h>
 #include <linux/sched/signal.h>
@@ -1890,7 +1891,7 @@ static void tg3_link_report(struct tg3 *tp)
 
 		if (tp->phy_flags & TG3_PHYFLG_EEE_CAP)
 			netdev_info(tp->dev, "EEE is %s\n",
-				    tp->setlpicnt ? "enabled" : "disabled");
+				    str_enabled_disabled(tp->setlpicnt));
 
 		tg3_ump_link_report(tp);
 	}

@@ -21,6 +21,7 @@
 #include <linux/in.h>
 #include <linux/io.h>
 #include <linux/ip.h>
+#include <linux/string_choices.h>
 #include <linux/tcp.h>
 #include <linux/interrupt.h>
 #include <linux/dma-mapping.h>
@@ -5568,7 +5569,7 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	if (tp->dash_type != RTL_DASH_NONE) {
 		netdev_info(dev, "DASH %s\n",
-			    tp->dash_enabled ? "enabled" : "disabled");
+			    str_enabled_disabled(tp->dash_enabled));
 		rtl8168_driver_start(tp);
 	}
 

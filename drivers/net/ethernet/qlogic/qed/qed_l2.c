@@ -17,6 +17,7 @@
 #include <linux/slab.h>
 #include <linux/stddef.h>
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include <linux/workqueue.h>
 #include <linux/bitops.h>
 #include <linux/bug.h>
@@ -2003,10 +2004,10 @@ void qed_arfs_mode_configure(struct qed_hwfn *p_hwfn,
 		DP_VERBOSE(p_hwfn,
 			   QED_MSG_SP,
 			   "Configured Filtering: tcp = %s, udp = %s, ipv4 = %s, ipv6 =%s mode=%08x\n",
-			   p_cfg_params->tcp ? "Enable" : "Disable",
-			   p_cfg_params->udp ? "Enable" : "Disable",
-			   p_cfg_params->ipv4 ? "Enable" : "Disable",
-			   p_cfg_params->ipv6 ? "Enable" : "Disable",
+			   str_enable_disable(p_cfg_params->tcp),
+			   str_enable_disable(p_cfg_params->udp),
+			   str_enable_disable(p_cfg_params->ipv4),
+			   str_enable_disable(p_cfg_params->ipv6),
 			   (u32)p_cfg_params->mode);
 	} else {
 		DP_VERBOSE(p_hwfn, QED_MSG_SP, "Disabled Filtering\n");

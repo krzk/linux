@@ -15,6 +15,7 @@
 #include <linux/fcntl.h>
 #include <linux/interrupt.h>
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include <linux/if_ether.h>
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -3531,7 +3532,7 @@ static void bcmgenet_dump_tx_queue(struct bcmgenet_tx_ring *ring)
 		  "(sw)cb_ptr: %d (sw)end_ptr: %d\n",
 		  ring->index, ring->queue,
 		  txq_stopped ? "stopped" : "active",
-		  intsts & intmsk ? "enabled" : "disabled",
+		  str_enabled_disabled(intsts & intmsk),
 		  free_bds, ring->size,
 		  ring->prod_index, p_index & DMA_P_INDEX_MASK,
 		  ring->c_index, c_index & DMA_C_INDEX_MASK,

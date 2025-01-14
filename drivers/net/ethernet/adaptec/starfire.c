@@ -32,6 +32,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/pci.h>
+#include <linux/string_choices.h>
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>
 #include <linux/init.h>
@@ -809,7 +810,7 @@ static int starfire_init_one(struct pci_dev *pdev,
 	}
 
 	printk(KERN_INFO "%s: scatter-gather and hardware TCP cksumming %s.\n",
-	       dev->name, enable_hw_cksum ? "enabled" : "disabled");
+	       dev->name, str_enabled_disabled(enable_hw_cksum));
 	return 0;
 
 err_out_cleardev:

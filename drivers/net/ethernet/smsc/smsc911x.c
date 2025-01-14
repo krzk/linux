@@ -33,6 +33,7 @@
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/sched.h>
+#include <linux/string_choices.h>
 #include <linux/timer.h>
 #include <linux/bug.h>
 #include <linux/bitops.h>
@@ -931,8 +932,8 @@ static void smsc911x_phy_update_flowcontrol(struct smsc911x_data *pdata)
 			afc &= ~0xF;
 
 		SMSC_TRACE(pdata, hw, "rx pause %s, tx pause %s",
-			   (cap & FLOW_CTRL_RX ? "enabled" : "disabled"),
-			   (cap & FLOW_CTRL_TX ? "enabled" : "disabled"));
+			   str_enabled_disabled(cap & FLOW_CTRL_RX),
+			   str_enabled_disabled(cap & FLOW_CTRL_TX));
 	} else {
 		SMSC_TRACE(pdata, hw, "half duplex");
 		flow = 0;

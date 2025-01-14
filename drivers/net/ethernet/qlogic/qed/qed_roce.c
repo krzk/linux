@@ -19,6 +19,7 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include <linux/if_vlan.h>
 #include "qed.h"
 #include "qed_cxt.h"
@@ -214,7 +215,7 @@ static u8 qed_roce_get_qp_tc(struct qed_hwfn *p_hwfn, struct qed_rdma_qp *qp)
 
 	DP_VERBOSE(p_hwfn, QED_MSG_SP,
 		   "qp icid %u tc: %u (vlan priority %s)\n",
-		   qp->icid, tc, qp->vlan_id ? "enabled" : "disabled");
+		   qp->icid, tc, str_enabled_disabled(qp->vlan_id));
 
 	return tc;
 }

@@ -13,6 +13,7 @@
 
 #include <linux/prefetch.h>
 #include <linux/module.h>
+#include <linux/string_choices.h>
 #include "be.h"
 #include "be_cmds.h"
 #include <asm/div64.h>
@@ -730,7 +731,7 @@ void be_link_status_update(struct be_adapter *adapter, u8 link_status)
 	else
 		netif_carrier_off(netdev);
 
-	netdev_info(netdev, "Link is %s\n", link_status ? "Up" : "Down");
+	netdev_info(netdev, "Link is %s\n", str_up_down(link_status));
 }
 
 static int be_gso_hdr_len(struct sk_buff *skb)

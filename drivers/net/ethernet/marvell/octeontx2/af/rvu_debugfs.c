@@ -11,6 +11,7 @@
 #include <linux/debugfs.h>
 #include <linux/module.h>
 #include <linux/pci.h>
+#include <linux/string_choices.h>
 
 #include "rvu_struct.h"
 #include "rvu_reg.h"
@@ -3467,7 +3468,7 @@ static int rvu_dbg_npc_exact_show_info(struct seq_file *s, void *unused)
 
 	seq_puts(s, "\n\tExact Table Info\n");
 	seq_printf(s, "Exact Match Feature : %s\n",
-		   rvu->hw->cap.npc_exact_match_enabled ? "enabled" : "disable");
+		   str_enabled_disabled(rvu->hw->cap.npc_exact_match_enabled));
 	if (!rvu->hw->cap.npc_exact_match_enabled)
 		return 0;
 
@@ -3502,7 +3503,6 @@ static int rvu_dbg_npc_exact_drop_cnt(struct seq_file *s, void *unused)
 	u16 chan, pcifunc;
 	int blkaddr, i;
 	u64 cfg, cam1;
-	char *str;
 
 	blkaddr = rvu_get_blkaddr(rvu, BLKTYPE_NPC, 0);
 	table = rvu->hw->table;
@@ -3521,12 +3521,11 @@ static int rvu_dbg_npc_exact_drop_cnt(struct seq_file *s, void *unused)
 				  NPC_AF_MCAMEX_BANKX_CAMX_W0(i, 0, 1));
 		chan = field->kw_mask[0] & cam1;
 
-		str = (cfg & 1) ? "enabled" : "disabled";
 
 		seq_printf(s, "0x%x\t%d\t\t%llu\t0x%x\t%s\n", pcifunc, i,
 			   rvu_read64(rvu, blkaddr,
 				      NPC_AF_MATCH_STATX(table->counter_idx[i])),
-			   chan, str);
+			   chan, str_enabled_disabled(cfg & 1));
 	}
 
 	return 0;
