@@ -17,6 +17,7 @@
 #include <linux/phylink.h>
 #include <linux/rtnetlink.h>
 #include <linux/spinlock.h>
+#include <linux/string_choices.h>
 #include <linux/timer.h>
 #include <linux/workqueue.h>
 
@@ -2081,7 +2082,7 @@ static void phylink_phy_change(struct phy_device *phydev, bool up)
 	phylink_run_resolve(pl);
 
 	phylink_dbg(pl, "phy link %s %s/%s/%s/%s/%s/%slpi\n",
-		    up ? "up" : "down",
+		    str_up_down(up),
 		    phy_modes(phydev->interface),
 		    phy_speed_to_str(phydev->speed),
 		    phy_duplex_to_str(phydev->duplex),
@@ -2445,7 +2446,7 @@ static void phylink_link_changed(struct phylink *pl, bool up, const char *what)
 	if (!up)
 		pl->link_failed = true;
 	phylink_run_resolve(pl);
-	phylink_dbg(pl, "%s link %s\n", what, up ? "up" : "down");
+	phylink_dbg(pl, "%s link %s\n", what, str_up_down(up));
 }
 
 /**
