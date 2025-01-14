@@ -23,6 +23,7 @@
 #include <linux/pm_opp.h>
 #include <linux/regulator/consumer.h>
 #include <linux/sched/clock.h>
+#include <linux/string_choices.h>
 #include <linux/iopoll.h>
 #include <scsi/scsi_cmnd.h>
 #include <scsi/scsi_dbg.h>
@@ -1187,7 +1188,7 @@ static int ufshcd_scale_clks(struct ufs_hba *hba, unsigned long freq,
 
 out:
 	trace_ufshcd_profile_clk_scaling(dev_name(hba->dev),
-			(scale_up ? "up" : "down"),
+			str_up_down(scale_up),
 			ktime_to_us(ktime_sub(ktime_get(), start)), ret);
 	return ret;
 }
@@ -1549,7 +1550,7 @@ static int ufshcd_devfreq_target(struct device *dev,
 		hba->clk_scaling.target_freq = *freq;
 
 	trace_ufshcd_profile_clk_scaling(dev_name(hba->dev),
-		(scale_up ? "up" : "down"),
+		str_up_down(scale_up),
 		ktime_to_us(ktime_sub(ktime_get(), start)), ret);
 
 out:
@@ -6006,7 +6007,7 @@ int ufshcd_wb_toggle(struct ufs_hba *hba, bool enable)
 
 	hba->dev_info.wb_enabled = enable;
 	dev_dbg(hba->dev, "%s: Write Booster %s\n",
-			__func__, enable ? "enabled" : "disabled");
+			__func__, str_enabled_disabled(enable));
 
 	return ret;
 }
@@ -6024,7 +6025,7 @@ static void ufshcd_wb_toggle_buf_flush_during_h8(struct ufs_hba *hba,
 		return;
 	}
 	dev_dbg(hba->dev, "%s: WB-Buf Flush during H8 %s\n",
-			__func__, enable ? "enabled" : "disabled");
+			__func__, str_enabled_disabled(enable));
 }
 
 int ufshcd_wb_toggle_buf_flush(struct ufs_hba *hba, bool enable)
@@ -6044,7 +6045,7 @@ int ufshcd_wb_toggle_buf_flush(struct ufs_hba *hba, bool enable)
 
 	hba->dev_info.wb_buf_flush_enabled = enable;
 	dev_dbg(hba->dev, "%s: WB-Buf Flush %s\n",
-			__func__, enable ? "enabled" : "disabled");
+			__func__, str_enabled_disabled(enable));
 
 	return ret;
 }

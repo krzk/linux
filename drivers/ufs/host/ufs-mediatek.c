@@ -19,6 +19,7 @@
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/reset.h>
+#include <linux/string_choices.h>
 
 #include <ufs/ufshcd.h>
 #include "ufshcd-pltfrm.h"
@@ -480,10 +481,8 @@ static int ufs_mtk_mphy_power_on(struct ufs_hba *hba, bool on)
 	}
 out:
 	if (ret) {
-		dev_info(hba->dev,
-			 "failed to %s va09: %d\n",
-			 on ? "enable" : "disable",
-			 ret);
+		dev_info(hba->dev, "failed to %s va09: %d\n",
+			 str_enable_disable(on), ret);
 	} else {
 		host->mphy_powered_on = on;
 	}
