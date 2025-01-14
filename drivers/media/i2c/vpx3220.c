@@ -10,6 +10,7 @@
 #include <linux/delay.h>
 #include <linux/types.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 #include <linux/uaccess.h>
 #include <linux/i2c.h>
 #include <linux/videodev2.h>
@@ -401,7 +402,7 @@ static int vpx3220_s_routing(struct v4l2_subdev *sd,
 
 static int vpx3220_s_stream(struct v4l2_subdev *sd, int enable)
 {
-	v4l2_dbg(1, debug, sd, "s_stream %s\n", enable ? "on" : "off");
+	v4l2_dbg(1, debug, sd, "s_stream %s\n", str_on_off(enable));
 
 	vpx3220_write(sd, 0xf2, (enable ? 0x1b : 0x00));
 	return 0;

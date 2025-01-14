@@ -24,6 +24,7 @@
 #include <linux/i2c.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 
 #include <media/i2c/ths7303.h>
 #include <media/v4l2-device.h>
@@ -281,7 +282,7 @@ static int ths7303_log_status(struct v4l2_subdev *sd)
 {
 	struct ths7303_state *state = to_state(sd);
 
-	v4l2_info(sd, "stream %s\n", state->stream_on ? "On" : "Off");
+	v4l2_info(sd, "stream %s\n", str_on_off(state->stream_on));
 
 	if (state->bt.pixelclock) {
 		struct v4l2_bt_timings *bt = &state->bt;

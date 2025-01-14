@@ -18,6 +18,7 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_graph.h>
+#include <linux/string_choices.h>
 #include <linux/v4l2-dv-timings.h>
 #include <media/i2c/tvp7002.h>
 #include <media/v4l2-async.h>
@@ -771,8 +772,7 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
 		v4l2_info(sd, "Detected DV Timings: %ux%u\n",
 				bt->width, bt->height);
 	}
-	v4l2_info(sd, "Streaming enabled: %s\n",
-					device->streaming ? "yes" : "no");
+	v4l2_info(sd, "Streaming enabled: %s\n", str_yes_no(device->streaming));
 
 	/* Print the current value of the gain control */
 	v4l2_ctrl_handler_log_status(&device->hdl, sd->name);
