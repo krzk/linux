@@ -7,6 +7,7 @@
 
 #include "tda18250_priv.h"
 #include <linux/regmap.h>
+#include <linux/string_choices.h>
 
 static const struct dvb_tuner_ops tda18250_ops;
 
@@ -107,7 +108,7 @@ static int tda18250_wait_for_irq(struct dvb_frontend *fe,
 	dev_dbg(&client->dev, "waited IRQ (0x%02x) %d ms, triggered: %s", irq,
 			jiffies_to_msecs(jiffies) -
 			(jiffies_to_msecs(timeout) - maxwait),
-			triggered ? "true" : "false");
+			str_true_false(triggered));
 
 	if (!triggered)
 		return -ETIMEDOUT;
