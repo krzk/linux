@@ -21,6 +21,7 @@
 #include <linux/moduleparam.h>
 #include <linux/init.h>
 #include <linux/firmware.h>
+#include <linux/string_choices.h>
 #include <media/dvb_frontend.h>
 #include "cx24120.h"
 
@@ -453,13 +454,13 @@ static int cx24120_msg_mpeg_output_global_config(struct cx24120_state *state,
 	ret = cx24120_message_send(state, &cmd);
 	if (ret != 0) {
 		dev_dbg(&state->i2c->dev, "failed to %s MPEG output\n",
-			enable ? "enable" : "disable");
+			str_enable_disable(enable));
 		return ret;
 	}
 
 	state->mpeg_enabled = enable;
 	dev_dbg(&state->i2c->dev, "MPEG output %s\n",
-		enable ? "enabled" : "disabled");
+		str_enabled_disabled(enable));
 
 	return 0;
 }
