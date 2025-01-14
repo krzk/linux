@@ -13,6 +13,7 @@
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 #include <linux/dmi.h>
 #include <linux/jiffies.h>
 #include <linux/err.h>
