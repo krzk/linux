@@ -15,6 +15,7 @@
 #include <linux/device.h>
 #include <linux/printk.h>
 #include <linux/spi/spi.h>
+#include <linux/string_choices.h>
 #include <linux/rtc.h>
 #include <linux/of.h>
 #include <linux/bcd.h>
@@ -161,7 +162,7 @@ static int mcp795_update_alarm(struct device *dev, bool enable)
 {
 	int ret;
 
-	dev_dbg(dev, "%s alarm\n", enable ? "Enable" : "Disable");
+	dev_dbg(dev, "%s alarm\n", str_enable_disable(enable));
 
 	if (enable) {
 		/* clear ALM0IF (Alarm 0 Interrupt Flag) bit */

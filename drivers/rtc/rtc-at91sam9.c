@@ -20,6 +20,7 @@
 #include <linux/rtc.h>
 #include <linux/slab.h>
 #include <linux/suspend.h>
+#include <linux/string_choices.h>
 #include <linux/time.h>
 
 /*
@@ -252,7 +253,7 @@ static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
 	u32 mr = rtt_readl(rtc, MR);
 
 	seq_printf(seq, "update_IRQ\t: %s\n",
-		   (mr & AT91_RTT_RTTINCIEN) ? "yes" : "no");
+		   str_yes_no(mr & AT91_RTT_RTTINCIEN));
 	return 0;
 }
 

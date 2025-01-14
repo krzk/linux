@@ -14,6 +14,7 @@
 #include <linux/slab.h>
 #include <linux/clk.h>
 #include <linux/rtc.h>
+#include <linux/string_choices.h>
 #include <linux/bcd.h>
 
 #include <asm/mach-pic32/pic32.h>
@@ -247,7 +248,7 @@ static int pic32_rtc_proc(struct device *dev, struct seq_file *seq)
 
 	repeat = readw(base + PIC32_RTCALRM);
 	repeat &= PIC32_RTCALRM_ARPT;
-	seq_printf(seq, "periodic_IRQ\t: %s\n", repeat  ? "yes" : "no");
+	seq_printf(seq, "periodic_IRQ\t: %s\n", str_yes_no(repeat));
 
 	clk_disable(pdata->clk);
 	return 0;

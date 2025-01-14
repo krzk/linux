@@ -32,6 +32,7 @@
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
+#include <linux/string_choices.h>
 #include <linux/platform_device.h>
 #include <linux/log2.h>
 #include <linux/pm.h>
@@ -599,12 +600,12 @@ static int cmos_procfs(struct device *dev, struct seq_file *seq)
 		   "DST_enable\t: %s\n"
 		   "periodic_freq\t: %d\n"
 		   "batt_status\t: %s\n",
-		   (rtc_control & RTC_PIE) ? "yes" : "no",
-		   (rtc_control & RTC_UIE) ? "yes" : "no",
-		   use_hpet_alarm() ? "yes" : "no",
+		   str_yes_no(rtc_control & RTC_PIE),
+		   str_yes_no(rtc_control & RTC_UIE),
+		   str_yes_no(use_hpet_alarm()),
 		   // (rtc_control & RTC_SQWE) ? "yes" : "no",
 		   (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
-		   (rtc_control & RTC_DST_EN) ? "yes" : "no",
+		   str_yes_no(rtc_control & RTC_DST_EN),
 		   cmos->rtc->irq_freq,
 		   (valid & RTC_VRT) ? "okay" : "dead");
 

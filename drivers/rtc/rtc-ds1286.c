@@ -13,6 +13,7 @@
 #include <linux/platform_device.h>
 #include <linux/bcd.h>
 #include <linux/rtc/ds1286.h>
+#include <linux/string_choices.h>
 #include <linux/io.h>
 #include <linux/slab.h>
 
@@ -133,12 +134,12 @@ static int ds1286_proc(struct device *dev, struct seq_file *seq)
 		   "interrupt_mode\t: %s\n"
 		   "INTB_mode\t: %s_active\n"
 		   "interrupt_pins\t: %s\n",
-		   (cmd & RTC_TDF) ? "yes" : "no",
-		   (cmd & RTC_WAF) ? "yes" : "no",
+		   str_yes_no(cmd & RTC_TDF),
+		   str_yes_no(cmd & RTC_WAF),
 		   (cmd & RTC_TDM) ? "disabled" : "enabled",
 		   (cmd & RTC_WAM) ? "disabled" : "enabled",
 		   (cmd & RTC_PU_LVL) ? "pulse" : "level",
-		   (cmd & RTC_IBH_LO) ? "low" : "high",
+		   str_low_high(cmd & RTC_IBH_LO),
 		   (cmd & RTC_IPSW) ? "unswapped" : "swapped");
 	return 0;
 }

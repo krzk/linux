@@ -12,6 +12,7 @@
 #include <linux/rtc.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+#include <linux/string_choices.h>
 
 #include "rtc-core.h"
 
@@ -57,13 +58,13 @@ static int rtc_proc_show(struct seq_file *seq, void *offset)
 		seq_printf(seq, "alrm_time\t: %ptRt\n", &alrm.time);
 		seq_printf(seq, "alrm_date\t: %ptRd\n", &alrm.time);
 		seq_printf(seq, "alarm_IRQ\t: %s\n",
-			   alrm.enabled ? "yes" : "no");
+			   str_yes_no(alrm.enabled));
 		seq_printf(seq, "alrm_pending\t: %s\n",
-			   alrm.pending ? "yes" : "no");
+			   str_yes_no(alrm.pending));
 		seq_printf(seq, "update IRQ enabled\t: %s\n",
-			   (rtc->uie_rtctimer.enabled) ? "yes" : "no");
+			   str_yes_no(rtc->uie_rtctimer.enabled));
 		seq_printf(seq, "periodic IRQ enabled\t: %s\n",
-			   (rtc->pie_enabled) ? "yes" : "no");
+			   str_yes_no(rtc->pie_enabled));
 		seq_printf(seq, "periodic IRQ frequency\t: %d\n",
 			   rtc->irq_freq);
 		seq_printf(seq, "max user IRQ frequency\t: %d\n",

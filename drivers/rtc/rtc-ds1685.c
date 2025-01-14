@@ -21,6 +21,7 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/rtc.h>
+#include <linux/string_choices.h>
 #include <linux/workqueue.h>
 
 #include <linux/rtc/ds1685.h>
@@ -802,14 +803,14 @@ ds1685_rtc_proc(struct device *dev, struct seq_file *seq)
 	   "SQW Freq\t: %s\n"
 	   "Serial #\t: %8phC\n",
 	   model,
-	   ((ctrla & RTC_CTRL_A_DV1) ? "enabled" : "disabled"),
+	   str_enabled_disabled(ctrla & RTC_CTRL_A_DV1),
 	   ((ctrlb & RTC_CTRL_B_2412) ? "24-hour" : "12-hour"),
-	   ((ctrlb & RTC_CTRL_B_DSE) ? "enabled" : "disabled"),
+	   str_enabled_disabled(ctrlb & RTC_CTRL_B_DSE),
 	   ((ctrlb & RTC_CTRL_B_DM) ? "binary" : "BCD"),
 	   ((ctrld & RTC_CTRL_D_VRT) ? "ok" : "exhausted or n/a"),
 	   ((ctrl4a & RTC_CTRL_4A_VRT2) ? "ok" : "exhausted or n/a"),
-	   ((ctrlb & RTC_CTRL_B_UIE) ? "yes" : "no"),
-	   ((ctrlb & RTC_CTRL_B_PIE) ? "yes" : "no"),
+	   str_yes_no(ctrlb & RTC_CTRL_B_UIE),
+	   str_yes_no(ctrlb & RTC_CTRL_B_PIE),
 	   (!(ctrl4b & RTC_CTRL_4B_E32K) ?
 	    ds1685_rtc_pirq_rate[(ctrla & RTC_CTRL_A_RS_MASK)] : "none"),
 	   (!((ctrl4b & RTC_CTRL_4B_E32K)) ?
