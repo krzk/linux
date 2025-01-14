@@ -11,6 +11,7 @@
 
 #include "cx23885.h"
 #include "cimax2.h"
+#include <linux/string_choices.h>
 #include <media/dvb_ca_en50221.h>
 
 /* Max transfer size done by I2C transfer functions */
@@ -224,7 +225,7 @@ static int netup_ci_op_cam(struct dvb_ca_en50221 *en50221, int slot,
 			return -EREMOTEIO;
 
 	ci_dbg_print("%s: %s: chipaddr=[0x%x] addr=[0x%02x], %s=%x\n", __func__,
-			(read) ? "read" : "write", state->ci_i2c_addr, addr,
+			str_read_write(read), state->ci_i2c_addr, addr,
 			(flag == NETUP_CI_CTL) ? "ctl" : "mem",
 			(read) ? mem : data);
 

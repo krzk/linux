@@ -10,6 +10,7 @@
 
 #include <linux/bitfield.h>
 #include <linux/delay.h>
+#include <linux/string_choices.h>
 #include <media/i2c/adv7604.h>
 #include <media/i2c/adv7842.h>
 #include <media/i2c/adv7511.h>
@@ -260,7 +261,7 @@ static void msi_config_show(struct cobalt *cobalt, struct pci_dev *pci_dev)
 	u32 adrs_l, adrs_h;
 
 	pci_read_config_word(pci_dev, 0x52, &ctrl);
-	cobalt_info("MSI %s\n", ctrl & 1 ? "enable" : "disable");
+	cobalt_info("MSI %s\n", str_enable_disable(ctrl & 1));
 	cobalt_info("MSI multiple message: Capable %u. Enable %u\n",
 		    (1 << ((ctrl >> 1) & 7)), (1 << ((ctrl >> 4) & 7)));
 	if (ctrl & 0x80)

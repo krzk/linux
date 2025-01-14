@@ -16,6 +16,7 @@
 #include <linux/kernel.h>
 #include <linux/delay.h>
 #include <linux/kthread.h>
+#include <linux/string_choices.h>
 #include <linux/suspend.h>
 
 #include <media/v4l2-common.h>
@@ -90,7 +91,7 @@ static int pinnacle_antenna_pwr(struct saa7134_dev *dev, int on)
 	saa_setl(SAA7134_GPIO_GPSTATUS0 >> 2,   (1 << 28));
 	udelay(10);
 	ok = saa_readl(SAA7134_GPIO_GPSTATUS0) & (1 << 27);
-	pr_debug("%s %s\n", __func__, ok ? "on" : "off");
+	pr_debug("%s %s\n", __func__, str_on_off(ok));
 
 	if (!ok)
 		saa_clearl(SAA7134_GPIO_GPSTATUS0 >> 2,   (1 << 26));

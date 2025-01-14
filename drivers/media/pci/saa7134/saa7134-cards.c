@@ -14,6 +14,7 @@
 #include <linux/module.h>
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
+#include <linux/string_choices.h>
 
 #include "xc2028.h"
 #include <media/v4l2-common.h>
@@ -7980,8 +7981,7 @@ int saa7134_board_init2(struct saa7134_dev *dev)
 			msg.flags = I2C_M_RD;
 			rc = i2c_transfer(&dev->i2c_adap, &msg, 1);
 			pr_info("%s: probe IR chip @ i2c 0x%02x: %s\n",
-				   dev->name, msg.addr,
-				   (1 == rc) ? "yes" : "no");
+				   dev->name, msg.addr, str_yes_no(rc == 1));
 			if (rc == 1)
 				dev->has_remote = SAA7134_REMOTE_I2C;
 		}

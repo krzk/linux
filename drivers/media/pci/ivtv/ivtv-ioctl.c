@@ -20,6 +20,7 @@
 #include "ivtv-gpio.h"
 #include "ivtv-controls.h"
 #include "ivtv-cards.h"
+#include <linux/string_choices.h>
 #include <media/i2c/saa7127.h>
 #include <media/tveeprom.h>
 #include <media/v4l2-event.h>
@@ -1558,7 +1559,7 @@ static int ivtv_log_status(struct file *file, void *fh)
 		ivtv_vapi_result(itv, data, CX2341X_OSD_GET_STATE, 0);
 		data[0] |= (read_reg(0x2a00) >> 7) & 0x40;
 		IVTV_INFO("Overlay:      %s, Alpha: %s, Pixel Format: %s\n",
-			data[0] & 1 ? "On" : "Off",
+			str_on_off(data[0] & 1),
 			alpha_mode[(data[0] >> 1) & 0x3],
 			pixel_format[(data[0] >> 3) & 0xf]);
 	}
