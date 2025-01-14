@@ -13,6 +13,7 @@
 #include <linux/etherdevice.h>
 #include <linux/acpi.h>
 #include <linux/of.h>
+#include <linux/string_choices.h>
 #include <linux/bitfield.h>
 
 #include "hif.h"
@@ -1971,7 +1972,7 @@ static int ath10k_mac_vif_setup_ps(struct ath10k_vif *arvif)
 	}
 
 	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac vdev %d psmode %s\n",
-		   arvif->vdev_id, psmode ? "enable" : "disable");
+		   arvif->vdev_id, str_enable_disable(psmode));
 
 	ret = ath10k_wmi_set_psmode(ar, arvif->vdev_id, psmode);
 	if (ret) {

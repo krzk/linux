@@ -17,6 +17,7 @@
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
+#include <linux/string_choices.h>
 #include "core.h"
 #include "hif-ops.h"
 #include "cfg80211.h"
@@ -1196,7 +1197,7 @@ static void ath6kl_set_multicast_list(struct net_device *ndev)
 						  mc_all_on);
 	if (ret) {
 		ath6kl_warn("Failed to %s multicast-all receive\n",
-			    mc_all_on ? "enable" : "disable");
+			    str_enable_disable(mc_all_on));
 		return;
 	}
 

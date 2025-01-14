@@ -14,6 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <linux/string_choices.h>
 #include "ath9k.h"
 
 /*
@@ -419,7 +420,7 @@ void ath_ani_calibrate(struct timer_list *t)
 		"Calibration @%lu finished: %s %s %s, caldone: %s\n",
 		jiffies,
 		longcal ? "long" : "", shortcal ? "short" : "",
-		aniflag ? "ani" : "", common->ani.caldone ? "true" : "false");
+		aniflag ? "ani" : "", str_true_false(common->ani.caldone));
 
 	ath9k_ps_restore(sc);
 

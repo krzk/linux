@@ -2,6 +2,7 @@
 /* Copyright(c) 2019-2020  Realtek Corporation
  */
 
+#include <linux/string_choices.h>
 #include <linux/vmalloc.h>
 
 #include "coex.h"
@@ -1246,7 +1247,7 @@ rtw89_debug_priv_mac_dbg_port_dump_select(struct rtw89_dev *rtwdev,
 	}
 
 	rtw89_info(rtwdev, "%s debug port dump %d\n",
-		   enable ? "Enable" : "Disable", sel);
+		   str_enable_disable(enable), sel);
 
 	return count;
 }

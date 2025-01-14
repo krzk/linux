@@ -17,6 +17,7 @@
 #include "hif.h"
 
 #include <linux/export.h>
+#include <linux/string_choices.h>
 
 #include "core.h"
 #include "target.h"
@@ -203,7 +204,7 @@ int ath6kl_hif_rx_control(struct ath6kl_device *dev, bool enable_rx)
 	int status = 0;
 
 	ath6kl_dbg(ATH6KL_DBG_HIF, "hif rx %s\n",
-		   enable_rx ? "enable" : "disable");
+		   str_enable_disable(enable_rx));
 
 	/* take the lock to protect interrupt enable shadows */
 	spin_lock_bh(&dev->lock);

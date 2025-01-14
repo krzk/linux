@@ -5,6 +5,7 @@
  * Copyright (C) 2015-2016 Intel Deutschland GmbH
  */
 #include <linux/sort.h>
+#include <linux/string_choices.h>
 
 #include "mvm.h"
 
@@ -352,10 +353,10 @@ static void iwl_mvm_tt_tx_protection(struct iwl_mvm *mvm, bool enable)
 		err = iwl_mvm_tx_protection(mvm, mvmsta, enable);
 		if (err) {
 			IWL_ERR(mvm, "Failed to %s Tx protection\n",
-				enable ? "enable" : "disable");
+				str_enable_disable(enable));
 		} else {
 			IWL_DEBUG_TEMP(mvm, "%s Tx protection\n",
-				       enable ? "Enable" : "Disable");
+				       str_enable_disable(enable));
 			mvmsta->tt_tx_protection = enable;
 		}
 	}

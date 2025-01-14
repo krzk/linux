@@ -4,6 +4,7 @@
 /**************************************************************
  *   include files
  **************************************************************/
+#include <linux/string_choices.h>
 #include "halbt_precomp.h"
 /**************************************************************
  *   Global variables, these are static variables
@@ -201,8 +202,8 @@ static void btc8192e2ant_monitor_bt_enable_disable(struct btc_coexist
 	if (pre_bt_disabled != bt_disabled) {
 		rtl_dbg(rtlpriv, COMP_BT_COEXIST, DBG_LOUD,
 			"[BTCoex], BT is from %s to %s!!\n",
-			(pre_bt_disabled ? "disabled" : "enabled"),
-			(bt_disabled ? "disabled" : "enabled"));
+			str_disabled_enabled(pre_bt_disabled),
+			str_disabled_enabled(bt_disabled));
 		pre_bt_disabled = bt_disabled;
 	}
 }
@@ -787,7 +788,7 @@ static void btc8192e2ant_set_bt_auto_report(struct btc_coexist *btcoexist,
 
 	rtl_dbg(rtlpriv, COMP_BT_COEXIST, DBG_LOUD,
 		"[BTCoex], BT FW auto report : %s, FW write 0x68 = 0x%x\n",
-		(enable_auto_report ? "Enabled!!" : "Disabled!!"),
+		str_enable_disable(enable_auto_report),
 		 h2c_parameter[0]);
 
 	btcoexist->btc_fill_h2c(btcoexist, 0x68, 1, h2c_parameter);
@@ -802,7 +803,7 @@ static void btc8192e2ant_bt_auto_report(struct btc_coexist *btcoexist,
 	rtl_dbg(rtlpriv, COMP_BT_COEXIST, DBG_LOUD,
 		"[BTCoex], %s BT Auto report = %s\n",
 		(force_exec ? "force to" : ""),
-		 ((enable_auto_report) ? "Enabled" : "Disabled"));
+		str_enable_disable(enable_auto_report));
 	coex_dm->cur_bt_auto_report = enable_auto_report;
 
 	if (!force_exec) {
@@ -989,7 +990,7 @@ static void btc8192e2ant_agc_table(struct btc_coexist *btcoexist,
 	rtl_dbg(rtlpriv, COMP_BT_COEXIST, DBG_LOUD,
 		"[BTCoex], %s %s Agc Table\n",
 		(force_exec ? "force to" : ""),
-		((agc_table_en) ? "Enable" : "Disable"));
+		str_enable_disable(agc_table_en));
 	coex_dm->cur_agc_table_en = agc_table_en;
 
 	if (!force_exec) {

@@ -21,6 +21,7 @@
 #include <linux/inetdevice.h>
 #include <linux/export.h>
 #include <linux/sched/signal.h>
+#include <linux/string_choices.h>
 
 #include "core.h"
 #include "cfg80211.h"
@@ -442,13 +443,13 @@ static void ath6kl_cfg80211_sta_bmiss_enhance(struct ath6kl_vif *vif,
 		return;
 
 	ath6kl_dbg(ATH6KL_DBG_WLAN_CFG, "%s fw bmiss enhance\n",
-		   enable ? "enable" : "disable");
+		   str_enable_disable(enable));
 
 	err = ath6kl_wmi_sta_bmiss_enhance_cmd(vif->ar->wmi,
 					       vif->fw_vif_idx, enable);
 	if (err)
 		ath6kl_err("failed to %s enhanced bmiss detection: %d\n",
-			   enable ? "enable" : "disable", err);
+			   str_enable_disable(enable), err);
 }
 
 static int ath6kl_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,

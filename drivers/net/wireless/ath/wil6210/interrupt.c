@@ -5,6 +5,7 @@
  */
 
 #include <linux/interrupt.h>
+#include <linux/string_choices.h>
 
 #include "wil6210.h"
 #include "trace.h"
@@ -99,7 +100,7 @@ static void wil6210_mask_irq_rx_edma(struct wil6210_priv *wil)
 static void wil6210_mask_irq_misc(struct wil6210_priv *wil, bool mask_halp)
 {
 	wil_dbg_irq(wil, "mask_irq_misc: mask_halp(%s)\n",
-		    mask_halp ? "true" : "false");
+		    str_true_false(mask_halp));
 
 	wil_w(wil, RGF_DMA_EP_MISC_ICR + offsetof(struct RGF_ICR, IMS),
 	      mask_halp ? WIL6210_IRQ_DISABLE : WIL6210_IRQ_DISABLE_NO_HALP);
@@ -151,7 +152,7 @@ void wil6210_unmask_irq_rx_edma(struct wil6210_priv *wil)
 static void wil6210_unmask_irq_misc(struct wil6210_priv *wil, bool unmask_halp)
 {
 	wil_dbg_irq(wil, "unmask_irq_misc: unmask_halp(%s)\n",
-		    unmask_halp ? "true" : "false");
+		    str_true_false(unmask_halp));
 
 	wil_w(wil, RGF_DMA_EP_MISC_ICR + offsetof(struct RGF_ICR, IMC),
 	      unmask_halp ? WIL6210_IMC_MISC : WIL6210_IMC_MISC_NO_HALP);

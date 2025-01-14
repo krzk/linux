@@ -14,6 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <linux/string_choices.h>
 #include "common.h"
 
 #define FUDGE 2
@@ -131,7 +132,7 @@ void ath9k_cmn_beacon_config_adhoc(struct ath_hw *ah,
 
 	ath_dbg(common, BEACON,
 		"IBSS (%s) nexttbtt: %u intval: %u conf_intval: %u\n",
-		(conf->enable_beacon) ? "Enable" : "Disable",
+		str_enable_disable(conf->enable_beacon),
 		conf->nexttbtt, conf->intval, conf->beacon_interval);
 }
 EXPORT_SYMBOL(ath9k_cmn_beacon_config_adhoc);
@@ -160,7 +161,7 @@ void ath9k_cmn_beacon_config_ap(struct ath_hw *ah,
 
 	ath_dbg(common, BEACON,
 		"AP (%s) nexttbtt: %u intval: %u conf_intval: %u\n",
-		(conf->enable_beacon) ? "Enable" : "Disable",
+		str_enable_disable(conf->enable_beacon),
 		conf->nexttbtt, conf->intval, conf->beacon_interval);
 }
 EXPORT_SYMBOL(ath9k_cmn_beacon_config_ap);

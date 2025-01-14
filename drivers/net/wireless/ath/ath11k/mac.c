@@ -9,6 +9,7 @@
 #include <linux/etherdevice.h>
 #include <linux/bitfield.h>
 #include <linux/inetdevice.h>
+#include <linux/string_choices.h>
 #include <net/if_inet6.h>
 #include <net/ipv6.h>
 
@@ -1253,7 +1254,7 @@ static int ath11k_mac_vif_setup_ps(struct ath11k_vif *arvif)
 	}
 
 	ath11k_dbg(ar->ab, ATH11K_DBG_MAC, "vdev %d psmode %s\n",
-		   arvif->vdev_id, psmode ? "enable" : "disable");
+		   arvif->vdev_id, str_enable_disable(psmode));
 
 	ret = ath11k_wmi_pdev_set_ps_mode(ar, arvif->vdev_id, psmode);
 	if (ret) {

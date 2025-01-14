@@ -8,6 +8,7 @@
 #include <linux/err.h>
 #include <linux/ieee80211.h>
 #include <linux/netdevice.h>
+#include <linux/string_choices.h>
 #include <linux/dmi.h>
 
 #include "mvm.h"
@@ -631,7 +632,7 @@ static ssize_t iwl_dbgfs_tas_get_status_read(struct file *file,
 	pos += scnprintf(pos, endpos - pos, "TAS FW version: %d\n",
 			 rsp->tas_fw_version);
 	pos += scnprintf(pos, endpos - pos, "Is UHB enabled for USA?: %s\n",
-			 rsp->is_uhb_for_usa_enable ? "True" : "False");
+			 str_true_false(rsp->is_uhb_for_usa_enable));
 
 	if (fw_has_capa(&mvm->fw->ucode_capa,
 			IWL_UCODE_TLV_CAPA_UHB_CANADA_TAS_SUPPORT))
@@ -713,8 +714,7 @@ static ssize_t iwl_dbgfs_tas_get_status_read(struct file *file,
 
 		pos += scnprintf(pos, endpos - pos,
 				 "Is near disconnection?: %s\n",
-				 rsp->tas_status_mac[i].near_disconnection ?
-				 "True" : "False");
+				 str_true_false(rsp->tas_status_mac[i].near_disconnection));
 		tmp = le16_to_cpu(rsp->tas_status_mac[i].max_reg_pwr_limit);
 		pos += scnprintf(pos, endpos - pos,
 				 "Max. regulatory pwr limit (dBm): %d.%03d\n",
