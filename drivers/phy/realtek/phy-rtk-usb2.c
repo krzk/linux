@@ -14,6 +14,7 @@
 #include <linux/debugfs.h>
 #include <linux/nvmem-consumer.h>
 #include <linux/regmap.h>
+#include <linux/string_choices.h>
 #include <linux/sys_soc.h>
 #include <linux/mfd/syscon.h>
 #include <linux/phy/phy.h>
@@ -729,7 +730,7 @@ static int rtk_usb2_parameter_show(struct seq_file *s, void *unused)
 
 	seq_puts(s, "Property:\n");
 	seq_printf(s, "  check_efuse: %s\n",
-		   phy_cfg->check_efuse ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->check_efuse));
 	seq_printf(s, "  check_efuse_version: %d\n",
 		   phy_cfg->check_efuse_version);
 	seq_printf(s, "  efuse_dc_driving_rate: %d\n",
@@ -741,17 +742,17 @@ static int rtk_usb2_parameter_show(struct seq_file *s, void *unused)
 	seq_printf(s, "  dc_disconnect_mask: 0x%x\n",
 		   phy_cfg->dc_disconnect_mask);
 	seq_printf(s, "  usb_dc_disconnect_at_page0: %s\n",
-		   phy_cfg->usb_dc_disconnect_at_page0 ? "true" : "false");
+		   str_true_false(phy_cfg->usb_dc_disconnect_at_page0));
 	seq_printf(s, "  do_toggle: %s\n",
-		   phy_cfg->do_toggle ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->do_toggle));
 	seq_printf(s, "  do_toggle_driving: %s\n",
-		   phy_cfg->do_toggle_driving ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->do_toggle_driving));
 	seq_printf(s, "  driving_updated_for_dev_dis: 0x%x\n",
 		   phy_cfg->driving_updated_for_dev_dis);
 	seq_printf(s, "  use_default_parameter: %s\n",
-		   phy_cfg->use_default_parameter ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->use_default_parameter));
 	seq_printf(s, "  is_double_sensitivity_mode: %s\n",
-		   phy_cfg->is_double_sensitivity_mode ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->is_double_sensitivity_mode));
 
 	for (index = 0; index < rtk_phy->num_phy; index++) {
 		struct phy_parameter *phy_parameter;
@@ -830,7 +831,7 @@ out:
 		seq_printf(s, "  efuse_usb_dc_dis: %d\n",
 			   (int)phy_parameter->efuse_usb_dc_dis);
 		seq_printf(s, "  inverse_hstx_sync_clock: %s\n",
-			   phy_parameter->inverse_hstx_sync_clock ? "Enable" : "Disable");
+			   str_enable_disable(phy_parameter->inverse_hstx_sync_clock));
 		seq_printf(s, "  driving_level: %d\n",
 			   phy_parameter->driving_level);
 		seq_printf(s, "  driving_level_compensate: %d\n",

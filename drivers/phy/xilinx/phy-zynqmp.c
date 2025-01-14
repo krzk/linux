@@ -23,6 +23,7 @@
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 
 #include <dt-bindings/phy/phy.h>
 
@@ -865,7 +866,7 @@ static int xpsgtr_status_read(struct seq_file *seq, void *data)
 	seq_printf(seq, "Reference clock: %u (%pC)\n", gtr_phy->refclk, clk);
 	seq_printf(seq, "Reference rate:  %lu\n", clk_get_rate(clk));
 	seq_printf(seq, "PLL locked:      %s\n",
-		   pll_status & PLL_STATUS_LOCKED ? "yes" : "no");
+		   str_yes_no(pll_status & PLL_STATUS_LOCKED));
 
 	mutex_unlock(&gtr_phy->phy->mutex);
 	return 0;

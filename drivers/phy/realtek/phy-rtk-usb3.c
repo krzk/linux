@@ -14,6 +14,7 @@
 #include <linux/debugfs.h>
 #include <linux/nvmem-consumer.h>
 #include <linux/regmap.h>
+#include <linux/string_choices.h>
 #include <linux/sys_soc.h>
 #include <linux/mfd/syscon.h>
 #include <linux/phy/phy.h>
@@ -363,13 +364,13 @@ static int rtk_usb3_parameter_show(struct seq_file *s, void *unused)
 
 	seq_puts(s, "Property:\n");
 	seq_printf(s, "  check_efuse: %s\n",
-		   phy_cfg->check_efuse ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->check_efuse));
 	seq_printf(s, "  do_toggle: %s\n",
-		   phy_cfg->do_toggle ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->do_toggle));
 	seq_printf(s, "  do_toggle_once: %s\n",
-		   phy_cfg->do_toggle_once ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->do_toggle_once));
 	seq_printf(s, "  use_default_parameter: %s\n",
-		   phy_cfg->use_default_parameter ? "Enable" : "Disable");
+		   str_enable_disable(phy_cfg->use_default_parameter));
 
 	for (index = 0; index < rtk_phy->num_phy; index++) {
 		struct phy_reg *phy_reg;

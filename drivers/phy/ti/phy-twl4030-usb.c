@@ -26,6 +26,7 @@
 #include <linux/usb/ulpi.h>
 #include <linux/mfd/twl.h>
 #include <linux/regulator/consumer.h>
+#include <linux/string_choices.h>
 #include <linux/err.h>
 #include <linux/slab.h>
 
@@ -567,8 +568,7 @@ static ssize_t vbus_show(struct device *dev,
 	int ret = -EINVAL;
 
 	mutex_lock(&twl->lock);
-	ret = sprintf(buf, "%s\n",
-			twl->vbus_supplied ? "on" : "off");
+	ret = sprintf(buf, "%s\n", str_on_off(twl->vbus_supplied));
 	mutex_unlock(&twl->lock);
 
 	return ret;
