@@ -12,6 +12,7 @@
  *  Copyright (C) 2009 Abylay Ospan <aospan@netup.ru>
  */
 
+#include <linux/string_choices.h>
 #include "sp2_priv.h"
 
 static int sp2_read_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
@@ -132,7 +133,7 @@ static int sp2_ci_op_cam(struct dvb_ca_en50221 *en50221, int slot, u8 acs,
 		return ret;
 
 	dev_dbg(&s->client->dev, "%s: slot=%d, addr=0x%04x, %s, data=%x",
-			(read) ? "read" : "write", slot, addr,
+			str_read_write(read), slot, addr,
 			(acs == SP2_CI_ATTR_ACS) ? "attr" : "io",
 			(read) ? mem : data);
 
