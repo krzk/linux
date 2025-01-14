@@ -29,6 +29,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/i2c.h>
+#include <linux/string_choices.h>
 #include <linux/videodev2.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-ctrls.h>
@@ -1362,8 +1363,7 @@ static int saa711x_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct saa711x_state *state = to_state(sd);
 
-	v4l2_dbg(1, debug, sd, "%s output\n",
-			enable ? "enable" : "disable");
+	v4l2_dbg(1, debug, sd, "%s output\n", str_enable_disable(enable));
 
 	if (state->enable == enable)
 		return 0;

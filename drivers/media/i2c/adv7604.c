@@ -23,6 +23,7 @@
 #include <linux/module.h>
 #include <linux/of_graph.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 #include <linux/v4l2-dv-timings.h>
 #include <linux/videodev2.h>
 #include <linux/workqueue.h>
@@ -2563,15 +2564,14 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
 	};
 
 	v4l2_info(sd, "-----Chip status-----\n");
-	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
+	v4l2_info(sd, "Chip power: %s\n", str_off_on(no_power(sd)));
 	edid_enabled = rep_read(sd, info->edid_status_reg);
 	v4l2_info(sd, "EDID enabled port A: %s, B: %s, C: %s, D: %s\n",
-			((edid_enabled & 0x01) ? "Yes" : "No"),
-			((edid_enabled & 0x02) ? "Yes" : "No"),
-			((edid_enabled & 0x04) ? "Yes" : "No"),
-			((edid_enabled & 0x08) ? "Yes" : "No"));
-	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
-			"enabled" : "disabled");
+		  str_yes_no(edid_enabled & 0x01),
+		  str_yes_no(edid_enabled & 0x02),
+		  str_yes_no(edid_enabled & 0x04),
+		  str_yes_no(edid_enabled & 0x08));
+	v4l2_info(sd, "CEC: %s\n", str_enabled_disabled(state->cec_enabled_adap));
 	if (state->cec_enabled_adap) {
 		int i;
 
@@ -2587,19 +2587,18 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
 	v4l2_info(sd, "-----Signal status-----\n");
 	cable_det = info->read_cable_det(sd);
 	v4l2_info(sd, "Cable detected (+5V power) port A: %s, B: %s, C: %s, D: %s\n",
-			((cable_det & 0x01) ? "Yes" : "No"),
-			((cable_det & 0x02) ? "Yes" : "No"),
-			((cable_det & 0x04) ? "Yes" : "No"),
-			((cable_det & 0x08) ? "Yes" : "No"));
+		  str_yes_no(cable_det & 0x01),
+		  str_yes_no(cable_det & 0x02),
+		  str_yes_no(cable_det & 0x04),
+		  str_yes_no(cable_det & 0x08));
 	v4l2_info(sd, "TMDS signal detected: %s\n",
-			no_signal_tmds(sd) ? "false" : "true");
+			str_false_true(no_signal_tmds(sd)));
 	v4l2_info(sd, "TMDS signal locked: %s\n",
-			no_lock_tmds(sd) ? "false" : "true");
-	v4l2_info(sd, "SSPD locked: %s\n", no_lock_sspd(sd) ? "false" : "true");
-	v4l2_info(sd, "STDI locked: %s\n", no_lock_stdi(sd) ? "false" : "true");
-	v4l2_info(sd, "CP locked: %s\n", no_lock_cp(sd) ? "false" : "true");
-	v4l2_info(sd, "CP free run: %s\n",
-			(in_free_run(sd)) ? "on" : "off");
+			str_false_true(no_lock_tmds(sd)));
+	v4l2_info(sd, "SSPD locked: %s\n", str_false_true(no_lock_sspd(sd)));
+	v4l2_info(sd, "STDI locked: %s\n", str_false_true(no_lock_stdi(sd)));
+	v4l2_info(sd, "CP locked: %s\n", str_false_true(no_lock_cp(sd)));
+	v4l2_info(sd, "CP free run: %s\n", str_on_off(in_free_run(sd)));
 	v4l2_info(sd, "Prim-mode = 0x%x, video std = 0x%x, v_freq = 0x%x\n",
 			io_read(sd, 0x01) & 0x0f, io_read(sd, 0x00) & 0x3f,
 			(io_read(sd, 0x01) & 0x70) >> 4);
@@ -2639,7 +2638,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
 				(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
 				(((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
 					"(16-235)" : "(0-255)",
-				(reg_io_0x02 & 0x08) ? "enabled" : "disabled");
+				str_enabled_disabled(reg_io_0x02 & 0x08));
 	}
 	v4l2_info(sd, "Color space conversion: %s\n",
 			csc_coeff_sel_rb[cp_read(sd, info->cp_csc) >> 4]);
@@ -2651,9 +2650,9 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
 	v4l2_info(sd, "Digital video port selected: %c\n",
 			(hdmi_read(sd, 0x00) & 0x03) + 'A');
 	v4l2_info(sd, "HDCP encrypted content: %s\n",
-			(hdmi_read(sd, 0x05) & 0x40) ? "true" : "false");
+			str_true_false(hdmi_read(sd, 0x05) & 0x40));
 	v4l2_info(sd, "HDCP keys read: %s%s\n",
-			(hdmi_read(sd, 0x04) & 0x20) ? "yes" : "no",
+			str_yes_no(hdmi_read(sd, 0x04) & 0x20),
 			(hdmi_read(sd, 0x04) & 0x10) ? "ERROR" : "");
 	if (is_hdmi(sd)) {
 		bool audio_pll_locked = hdmi_read(sd, 0x04) & 0x01;
@@ -2674,7 +2673,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
 		v4l2_info(sd, "Audio N: %u\n", ((hdmi_read(sd, 0x5d) & 0x0f) << 16) +
 				(hdmi_read(sd, 0x5e) << 8) +
 				hdmi_read(sd, 0x5f));
-		v4l2_info(sd, "AV Mute: %s\n", (hdmi_read(sd, 0x04) & 0x40) ? "on" : "off");
+		v4l2_info(sd, "AV Mute: %s\n", str_on_off(hdmi_read(sd, 0x04) & 0x40));
 
 		v4l2_info(sd, "Deep color mode: %s\n", deep_color_mode_txt[(hdmi_read(sd, 0x0b) & 0x60) >> 5]);
 		v4l2_info(sd, "HDMI colorspace: %s\n", hdmi_color_space_txt[hdmi_read(sd, 0x53) & 0xf]);

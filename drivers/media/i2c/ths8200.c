@@ -20,6 +20,7 @@
 #include <linux/i2c.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/string_choices.h>
 #include <linux/v4l2-dv-timings.h>
 
 #include <media/v4l2-dv-timings.h>
@@ -127,10 +128,10 @@ static int ths8200_log_status(struct v4l2_subdev *sd)
 
 	v4l2_info(sd, "----- Chip status -----\n");
 	v4l2_info(sd, "version: %u\n", state->chip_version);
-	v4l2_info(sd, "power: %s\n", (reg_03 & 0x0c) ? "off" : "on");
-	v4l2_info(sd, "reset: %s\n", (reg_03 & 0x01) ? "off" : "on");
+	v4l2_info(sd, "power: %s\n", str_off_on(reg_03 & 0x0c));
+	v4l2_info(sd, "reset: %s\n", str_off_on(reg_03 & 0x01));
 	v4l2_info(sd, "test pattern: %s\n",
-		  (reg_03 & 0x20) ? "enabled" : "disabled");
+		  str_enabled_disabled(reg_03 & 0x20));
 	v4l2_info(sd, "format: %ux%u\n",
 		  ths8200_read(sd, THS8200_DTG2_PIXEL_CNT_MSB) * 256 +
 		  ths8200_read(sd, THS8200_DTG2_PIXEL_CNT_LSB),
@@ -146,7 +147,7 @@ static int ths8200_s_power(struct v4l2_subdev *sd, int on)
 {
 	struct ths8200_state *state = to_state(sd);
 
-	v4l2_dbg(1, debug, sd, "%s: power %s\n", __func__, on ? "on" : "off");
+	v4l2_dbg(1, debug, sd, "%s: power %s\n", __func__, str_on_off(on));
 
 	state->power_on = on;
 
