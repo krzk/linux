@@ -16,6 +16,7 @@
 #include <linux/ratelimit.h>
 #include <linux/reset.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 #include <linux/videodev2.h>
 
 #include <media/v4l2-common.h>
@@ -1881,7 +1882,7 @@ static int __coda_decoder_seq_init(struct coda_ctx *ctx)
 	lockdep_assert_held(&dev->coda_mutex);
 
 	coda_dbg(1, ctx, "Video Data Order Adapter: %s\n",
-		 ctx->use_vdoa ? "Enabled" : "Disabled");
+		 str_enabled_disabled(ctx->use_vdoa));
 
 	/* Start decoding */
 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
