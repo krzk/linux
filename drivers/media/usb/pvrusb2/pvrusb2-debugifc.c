@@ -5,6 +5,7 @@
  */
 
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include "pvrusb2-debugifc.h"
 #include "pvrusb2-hdw.h"
 #include "pvrusb2-debug.h"
@@ -148,7 +149,7 @@ int pvr2_debugifc_print_status(struct pvr2_hdw *hdw,
 	bcnt += ccnt; acnt -= ccnt; buf += ccnt;
 
 	ccnt = scnprintf(buf,acnt,"Streaming is %s\n",
-			 pvr2_hdw_get_streaming(hdw) ? "on" : "off");
+			 str_on_off(pvr2_hdw_get_streaming(hdw)));
 	bcnt += ccnt; acnt -= ccnt; buf += ccnt;
 
 

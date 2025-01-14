@@ -15,6 +15,7 @@
 
 #include "drxk.h"
 #include "mt2063.h"
+#include <linux/string_choices.h>
 #include <media/dvb_ca_en50221.h>
 #include "dvb_usb.h"
 #include "cypress_firmware.h"
@@ -79,7 +80,7 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
 	struct dvb_usb_adapter *adap = fe->sec_priv;
 	int status = 0;
 
-	pr_debug("%s: %s\n", __func__, enable ? "enable" : "disable");
+	pr_debug("%s: %s\n", __func__, str_enable_disable(enable));
 
 	if (!adap || !st)
 		return -EINVAL;
@@ -189,7 +190,7 @@ static int az6007_streaming_ctrl(struct dvb_frontend *fe, int onoff)
 {
 	struct dvb_usb_device *d = fe_to_d(fe);
 
-	pr_debug("%s: %s\n", __func__, onoff ? "enable" : "disable");
+	pr_debug("%s: %s\n", __func__, str_enable_disable(onoff));
 
 	return az6007_write(d, 0xbc, onoff, 0, NULL, 0);
 }

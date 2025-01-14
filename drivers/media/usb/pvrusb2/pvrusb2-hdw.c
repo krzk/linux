@@ -6,6 +6,7 @@
 
 #include <linux/errno.h>
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/firmware.h>
@@ -338,7 +339,7 @@ static void trace_stbit(const char *name,int val)
 {
 	pvr2_trace(PVR2_TRACE_STBITS,
 		   "State bit %s <-- %s",
-		   name,(val ? "true" : "false"));
+		   name, str_true_false(val));
 }
 
 static int ctrl_channelfreq_get(struct pvr2_ctrl *cptr,int *vp)
@@ -1660,7 +1661,7 @@ static int pvr2_decoder_enable(struct pvr2_hdw *hdw,int enablefl)
 	   anyway, just in case somebody else wants to hear the
 	   command... */
 	pvr2_trace(PVR2_TRACE_CHIPS, "subdev v4l2 stream=%s",
-		   (enablefl ? "on" : "off"));
+		   str_on_off(enablefl));
 	v4l2_device_call_all(&hdw->v4l2_dev, 0, video, s_stream, enablefl);
 	v4l2_device_call_all(&hdw->v4l2_dev, 0, audio, s_stream, enablefl);
 	if (hdw->decoder_client_id) {
@@ -1724,7 +1725,7 @@ int pvr2_hdw_set_streaming(struct pvr2_hdw *hdw,int enable_flag)
 		hdw->state_pipeline_req = enable_flag != 0;
 		pvr2_trace(PVR2_TRACE_START_STOP,
 			   "/*--TRACE_STREAM--*/ %s",
-			   enable_flag ? "enable" : "disable");
+			   str_enable_disable(enable_flag));
 	}
 	pvr2_hdw_state_sched(hdw);
 	LOCK_GIVE(hdw->big_lock);

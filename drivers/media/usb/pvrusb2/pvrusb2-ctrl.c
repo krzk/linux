@@ -8,6 +8,7 @@
 #include "pvrusb2-hdw-internal.h"
 #include <linux/errno.h>
 #include <linux/string.h>
+#include <linux/string_choices.h>
 #include <linux/mutex.h>
 
 
@@ -521,7 +522,7 @@ int pvr2_ctrl_value_to_sym_internal(struct pvr2_ctrl *cptr,
 		*len = scnprintf(buf,maxlen,"%d",val);
 		ret = 0;
 	} else if (cptr->info->type == pvr2_ctl_bool) {
-		*len = scnprintf(buf,maxlen,"%s",val ? "true" : "false");
+		*len = scnprintf(buf, maxlen, "%s", str_true_false(val));
 		ret = 0;
 	} else if (cptr->info->type == pvr2_ctl_enum) {
 		const char * const *names;

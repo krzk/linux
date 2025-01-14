@@ -7,6 +7,7 @@
 
 #include <linux/device.h>   // for linux/firmware.h
 #include <linux/firmware.h>
+#include <linux/string_choices.h>
 #include "pvrusb2-util.h"
 #include "pvrusb2-encoder.h"
 #include "pvrusb2-hdw-internal.h"
@@ -262,14 +263,13 @@ rdData[0]);
 			pvr2_trace(PVR2_TRACE_STBITS,
 				   "State bit %s <-- %s",
 				   "state_encoder_ok",
-				   (hdw->state_encoder_ok ? "true" : "false"));
+				   str_true_false(hdw->state_encoder_ok));
 			if (hdw->state_encoder_runok) {
 				hdw->state_encoder_runok = 0;
 				pvr2_trace(PVR2_TRACE_STBITS,
 				   "State bit %s <-- %s",
 					   "state_encoder_runok",
-					   (hdw->state_encoder_runok ?
-					    "true" : "false"));
+					   str_true_false(hdw->state_encoder_runok));
 			}
 			pvr2_trace(
 				PVR2_TRACE_ERROR_LEGS,
