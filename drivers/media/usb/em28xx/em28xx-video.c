@@ -24,6 +24,7 @@
 #include <linux/mm.h>
 #include <linux/mutex.h>
 #include <linux/slab.h>
+#include <linux/string_choices.h>
 
 #include "em28xx-v4l.h"
 #include <media/v4l2-common.h>
@@ -938,14 +939,14 @@ static int em28xx_enable_analog_tuner(struct em28xx *dev)
 			dev_err(&dev->intf->dev,
 				"Couldn't change link %s->%s to %s. Error %d\n",
 				source->name, sink->name,
-				flags ? "enabled" : "disabled",
+				str_enabled_disabled(flags),
 				ret);
 			return ret;
 		}
 
 		em28xx_videodbg("link %s->%s was %s\n",
 				source->name, sink->name,
-				flags ? "ENABLED" : "disabled");
+				str_enabled_disabled(flags));
 	}
 #endif
 	return 0;

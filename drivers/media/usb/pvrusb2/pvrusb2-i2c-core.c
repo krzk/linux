@@ -6,6 +6,7 @@
 
 #include <linux/i2c.h>
 #include <linux/module.h>
+#include <linux/string_choices.h>
 #include <media/i2c/ir-kbd-i2c.h>
 #include "pvrusb2-i2c-core.h"
 #include "pvrusb2-hdw-internal.h"
@@ -472,8 +473,7 @@ static int pvr2_i2c_xfer(struct i2c_adapter *i2c_adap,
 			       idx+1,num,
 			       msgs[idx].addr,
 			       cnt,
-			       (msgs[idx].flags & I2C_M_RD ?
-				"read" : "write"));
+			       str_read_write(msgs[idx].flags & I2C_M_RD));
 			if ((ret > 0) || !(msgs[idx].flags & I2C_M_RD)) {
 				if (cnt > 8) cnt = 8;
 				pr_cont(" [");
