@@ -137,8 +137,6 @@ enum {
  * @DPU_CTL_FETCH_ACTIVE:	Active CTL for fetch HW (SSPPs)
  * @DPU_CTL_VM_CFG:		CTL config to support multiple VMs
  * @DPU_CTL_HAS_LAYER_EXT4:	CTL has the CTL_LAYER_EXT4 register
- * @DPU_CTL_NO_LAYER_EXT:	CTL has no CTL_LAYER_EXT registers at all, but
- *                              has active bits for pipes and layer mixers
  * @DPU_CTL_DSPP_BLOCK_FLUSH:	CTL config to support dspp sub-block flush
  * @DPU_CTL_MAX
  */
@@ -148,7 +146,6 @@ enum {
 	DPU_CTL_FETCH_ACTIVE,
 	DPU_CTL_VM_CFG,
 	DPU_CTL_HAS_LAYER_EXT4,
-	DPU_CTL_NO_LAYER_EXT,
 	DPU_CTL_DSPP_SUB_BLOCK_FLUSH,
 	DPU_CTL_MAX
 };
