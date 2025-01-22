@@ -87,6 +87,7 @@ static const struct dpu_sspp_cfg sm8750_sspp[] = {
 		.xin_id = 12,
 		.type = SSPP_TYPE_VIG,
 	}, {
+		/* TODO: Indices/code for SSPP_VIG4 overlaps with SSPP_RGB0 */
 		.name = "sspp_8", .id = SSPP_DMA0,
 		.base = 0x24000, .len = 0x344,
 		.features = DMA_SDM845_MASK_SDMA,
@@ -467,7 +468,6 @@ const struct dpu_mdss_cfg dpu_sm8750_cfg = {
 	.mdss_ver = &sm8750_mdss_ver,
 	.caps = &sm8750_dpu_caps,
 	.mdp = &sm8750_mdp,
-	.cdm = &sc7280_cdm,
 	.ctl_count = ARRAY_SIZE(sm8750_ctl),
 	.ctl = sm8750_ctl,
 	.sspp_count = ARRAY_SIZE(sm8750_sspp),
