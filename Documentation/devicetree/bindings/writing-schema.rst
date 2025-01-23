@@ -222,6 +222,10 @@ separated by ':'.
     make dt_binding_check DT_SCHEMA_FILES=/gpio/
     make dtbs_check DT_SCHEMA_FILES=trivial-devices.yaml
 
+Validation of one DT source by providing Makefile target::
+
+    make CHECK_DTBS=y target.dtb
+    make DT_SCHEMA_FILES=xxx.yaml CHECK_DTBS=y target.dtb
 
 json-schema Resources
 ---------------------
