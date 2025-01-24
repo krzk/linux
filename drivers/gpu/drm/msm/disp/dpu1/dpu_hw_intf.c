@@ -134,21 +134,25 @@ static void dpu_hw_intf_setup_timing_engine(struct dpu_hw_intf *intf,
 	hsync_start_x = p->h_back_porch + p->hsync_pulse_width;
 	hsync_end_x = hsync_period - p->h_front_porch - 1;
 
-	if (p->width != p->xres) { /* border fill added */
+	// if (p->width != p->xres) { /* border fill added */
 		active_h_start = hsync_start_x;
 		active_h_end = active_h_start + p->xres - 1;
+	/*
 	} else {
 		active_h_start = 0;
 		active_h_end = 0;
 	}
+	*/
 
-	if (p->height != p->yres) { /* border fill added */
+	//if (p->height != p->yres) { /* border fill added */
 		active_v_start = display_v_start;
 		active_v_end = active_v_start + (p->yres * hsync_period) - 1;
+	/*
 	} else {
 		active_v_start = 0;
 		active_v_end = 0;
 	}
+	*/
 
 	if (active_h_end) {
 		active_hctl = (active_h_end << 16) | active_h_start;
@@ -159,6 +163,10 @@ static void dpu_hw_intf_setup_timing_engine(struct dpu_hw_intf *intf,
 
 	if (active_v_end)
 		intf_cfg |= INTF_CFG_ACTIVE_V_EN;
+
+	pr_err("AAA CCC %s:%d active_v_start=%u active_v_end=%u p->width=%u p->xres=%u p->height=%u p->yres=%u\n",
+	       __func__, __LINE__,
+	       active_v_start, active_v_end, p->width, p->xres, p->height, p->yres);
 
 	hsync_ctl = (hsync_period << 16) | p->hsync_pulse_width;
 	display_hctl = (hsync_end_x << 16) | hsync_start_x;
