@@ -2996,10 +2996,12 @@
 						required-opps = <&rpmhpd_opp_nom>;
 					};
 
+					/*
 					opp-575000000 {
 						opp-hz = /bits/ 64 <575000000>;
 						required-opps = <&rpmhpd_opp_nom_l1>;
 					};
+					*/
 				};
 			};
 
