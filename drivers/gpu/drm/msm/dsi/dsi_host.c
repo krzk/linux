@@ -383,8 +383,9 @@ int dsi_link_clk_set_rate_6g(struct msm_dsi_host *msm_host)
 {
 	int ret;
 
-	DBG("Set clk rates: pclk=%lu, byteclk=%lu",
-	    msm_host->pixel_clk_rate, msm_host->byte_clk_rate);
+	pr_err("%s:%d AAA Set 0/2 clk rates: pclk=%lu, byteclk=%lu BEGIN",
+	       __func__, __LINE__,
+	       msm_host->pixel_clk_rate, msm_host->byte_clk_rate);
 
 	ret = dev_pm_opp_set_rate(&msm_host->pdev->dev,
 				  msm_host->byte_clk_rate);
@@ -399,6 +400,10 @@ int dsi_link_clk_set_rate_6g(struct msm_dsi_host *msm_host)
 		return ret;
 	}
 
+	pr_err("%s:%d AAA Set 1/2 clk rates: pclk=%lu, byteclk=%lu END",
+	       __func__, __LINE__,
+	       msm_host->pixel_clk_rate, msm_host->byte_clk_rate);
+
 	if (msm_host->byte_intf_clk) {
 		ret = clk_set_rate(msm_host->byte_intf_clk, msm_host->byte_intf_clk_rate);
 		if (ret) {
@@ -408,6 +413,10 @@ int dsi_link_clk_set_rate_6g(struct msm_dsi_host *msm_host)
 		}
 	}
 
+	pr_err("%s:%d AAA Set 2/2 clk rates: pclk=%lu, byteclk=%lu END",
+	       __func__, __LINE__,
+	       msm_host->pixel_clk_rate, msm_host->byte_clk_rate);
+
 	return 0;
 }
 
@@ -415,6 +424,10 @@ int dsi_link_clk_set_rate_6g_v2_9(struct msm_dsi_host *msm_host)
 {
 	struct device *dev = &msm_host->pdev->dev;
 	int ret;
+
+	pr_err("%s:%d AAA Set clk rates: pclk=%lu, byteclk=%lu BEGIN",
+	       __func__, __LINE__,
+	       msm_host->pixel_clk_rate, msm_host->byte_clk_rate);
 
 	/*
 	 * DSI PHY PLLs have to be enabled to allow reparenting to them, so
