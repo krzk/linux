@@ -132,6 +132,8 @@ static void event_handler(uint32_t opcode, uint32_t token, void *payload, void *
 	case APM_CLIENT_EVENT_DATA_WRITE_DONE:
 		spin_lock_irqsave(&prtd->lock, flags);
 		prtd->pos += prtd->pcm_count;
+		if (prtd->pos == prtd->pcm_size)
+			prtd->pos = 0;
 		spin_unlock_irqrestore(&prtd->lock, flags);
 		snd_pcm_period_elapsed(substream);
 		if (prtd->state == Q6APM_STREAM_RUNNING)
@@ -141,6 +143,8 @@ static void event_handler(uint32_t opcode, uint32_t token, void *payload, void *
 	case APM_CLIENT_EVENT_DATA_READ_DONE:
 		spin_lock_irqsave(&prtd->lock, flags);
 		prtd->pos += prtd->pcm_count;
+		if (prtd->pos == prtd->pcm_size)
+			prtd->pos = 0;
 		spin_unlock_irqrestore(&prtd->lock, flags);
 		snd_pcm_period_elapsed(substream);
 		if (prtd->state == Q6APM_STREAM_RUNNING)
@@ -431,10 +435,9 @@ static snd_pcm_uframes_t q6apm_dai_pointer(struct snd_soc_component *component,
 	unsigned long flags;
 
 	spin_lock_irqsave(&prtd->lock, flags);
-	if (prtd->pos == prtd->pcm_size)
-		prtd->pos = 0;
 
-	ptr =  bytes_to_frames(runtime, prtd->pos);
+	ptr =  bytes_to_frames(runtime, prtd->pos ? prtd->pos - 1: 0 );
+
 	spin_unlock_irqrestore(&prtd->lock, flags);
 
 	return ptr;
