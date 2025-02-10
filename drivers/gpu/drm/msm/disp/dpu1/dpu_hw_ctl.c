@@ -182,6 +182,8 @@ static inline void dpu_hw_ctl_trigger_flush(struct dpu_hw_ctl *ctx)
 static void dpu_hw_ctl_update_pending_flush_sspp(struct dpu_hw_ctl *ctx,
 	enum dpu_sspp sspp)
 {
+	return;
+
 	switch (sspp) {
 	case SSPP_VIG0:
 		ctx->pending_flush_mask |=  BIT(0);
@@ -704,7 +706,7 @@ static void dpu_hw_ctl_set_active_fetch_pipes(struct dpu_hw_ctl *ctx,
 		}
 	}
 
-	DPU_REG_WRITE(&ctx->hw, CTL_FETCH_PIPE_ACTIVE, val);
+	// DPU_REG_WRITE(&ctx->hw, CTL_FETCH_PIPE_ACTIVE, val);
 }
 
 static void dpu_hw_ctl_set_active_pipes(struct dpu_hw_ctl *ctx,

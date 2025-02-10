@@ -325,6 +325,7 @@ static void _dpu_crtc_setup_blend_cfg(struct dpu_crtc_mixer *mixer,
 	struct dpu_hw_mixer *lm = mixer->hw_lm;
 	uint32_t blend_op;
 	uint32_t fg_alpha, bg_alpha;
+	struct dpu_mdss_color color = {0xff, 0x00, 0x00, 0xff};
 
 	fg_alpha = pstate->base.alpha >> 8;
 	bg_alpha = 0xff - fg_alpha;
@@ -362,6 +363,8 @@ static void _dpu_crtc_setup_blend_cfg(struct dpu_crtc_mixer *mixer,
 	lm->ops.setup_blend_config(lm, pstate->stage,
 				fg_alpha, bg_alpha, blend_op);
 
+	pr_err("%s:%d AAA DDD\n", __func__, __LINE__);
+	lm->ops.setup_border_color(lm, &color, true);
 	DRM_DEBUG_ATOMIC("format:%p4cc, alpha_en:%u blend_op:0x%x\n",
 		  &format->pixel_format, format->alpha_enable, blend_op);
 }
