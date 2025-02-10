@@ -283,7 +283,7 @@ static int dpu_hw_lm_setup_blendstage(struct dpu_hw_mixer *ctx, enum dpu_lm lm,
 		if (ret)
 			return ret;
 
-		DPU_REG_WRITE(c, LM_BLEND0_FG_SRC_SEL_V12 + stage_off, value);
+		// DPU_REG_WRITE(c, LM_BLEND0_FG_SRC_SEL_V12 + stage_off, value);
 	}
 
 	return 0;
@@ -305,8 +305,8 @@ static int dpu_hw_lm_clear_all_blendstages(struct dpu_hw_mixer *ctx)
 		if (stage_off < 0)
 			return stage_off;
 
-		DPU_REG_WRITE(c, LM_BLEND0_FG_SRC_SEL_V12 + stage_off,
-			      LM_BG_SRC_SEL_V12_RESET_VALUE);
+		//DPU_REG_WRITE(c, LM_BLEND0_FG_SRC_SEL_V12 + stage_off,
+		//	      LM_BG_SRC_SEL_V12_RESET_VALUE);
 	}
 
 	return 0;
