@@ -1250,11 +1250,65 @@ static int audioreach_gain_set(struct q6apm_graph *graph, struct audioreach_modu
 	return rc;
 }
 
+static int audioreach_speaker_protection(struct q6apm_graph *graph,
+					 struct audioreach_module *module,
+					 struct audioreach_module_config *mcfg)
+{
+	struct payload_pcm_output_format_cfg *media_cfg;
+	uint32_t num_channels = mcfg->num_channels;
+	struct apm_pcm_module_media_fmt_cmd *cfg;
+	struct apm_module_param_data *param_data;
+	int rc, payload_size;
+	struct gpr_pkt *pkt;
+
+	if (num_channels > 4) {
+		dev_err(graph->dev, "Error: Invalid channels (%d)!\n", num_channels);
+		return -EINVAL;
+	}
+
+	payload_size = APM_PCM_MODULE_FMT_CMD_PSIZE(num_channels);
+
+	pkt = audioreach_alloc_apm_cmd_pkt(payload_size, APM_CMD_SET_CFG, 0);
+	if (IS_ERR(pkt))
+		return PTR_ERR(pkt);
+
+	cfg = (void *)pkt + GPR_HDR_SIZE + APM_CMD_HDR_SIZE;
+
+	param_data = &cfg->param_data;
+	param_data->module_instance_id = module->instance_id;
+	param_data->error_code = 0;
+	param_data->param_id = PARAM_ID_PCM_OUTPUT_FORMAT_CFG;
+	param_data->param_size = payload_size - APM_MODULE_PARAM_DATA_SIZE;
+
+	cfg->header.data_format = DATA_FORMAT_FIXED_POINT;
+	cfg->header.fmt_id = MEDIA_FMT_ID_PCM;
+	cfg->header.payload_size = APM_PCM_OUT_FMT_CFG_PSIZE(media_cfg, num_channels);
+
+	media_cfg = &cfg->media_cfg;
+	media_cfg->alignment = PCM_LSB_ALIGNED;
+	media_cfg->bit_width = mcfg->bit_width;
+	media_cfg->endianness = PCM_LITTLE_ENDIAN;
+	media_cfg->interleaved = module->interleave_type;
+	media_cfg->num_channels = mcfg->num_channels;
+	media_cfg->q_factor = mcfg->bit_width - 1;
+	media_cfg->bits_per_sample = mcfg->bit_width;
+	memcpy(media_cfg->channel_mapping, mcfg->channel_map, mcfg->num_channels);
+
+	rc = q6apm_send_cmd_sync(graph->apm, pkt, 0);
+
+	kfree(pkt);
+
+	return rc;
+}
+
+
 int audioreach_set_media_format(struct q6apm_graph *graph, struct audioreach_module *module,
 				struct audioreach_module_config *cfg)
 {
 	int rc;
 
+	pr_err("%s:%d AAA module_id = 0x%x\n",
+	       __func__, __LINE__, module->module_id);
 	switch (module->module_id) {
 	case MODULE_ID_DATA_LOGGING:
 		rc = audioreach_module_enable(graph, module, true);
@@ -1298,6 +1352,11 @@ int audioreach_set_media_format(struct q6apm_graph *graph, struct audioreach_mod
 		break;
 	case MODULE_ID_GAPLESS:
 		rc = audioreach_gapless_set_media_format(graph, module, cfg);
+		break;
+	case MODULE_ID_SPEAKER_PROTECTION:
+		pr_err("%s:%d AAA module_id = MODULE_ID_SPEAKER_PROTECTION\n",
+			__func__, __LINE__);
+		rc = 0;
 		break;
 	default:
 		rc = 0;

@@ -246,6 +246,15 @@ static int q6apm_dai_prepare(struct snd_soc_component *component,
 		return ret;
 	}
 
+	{
+		struct snd_soc_pcm_runtime *soc_prtd = snd_soc_substream_to_rtd(substream);
+		struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(soc_prtd, 0);
+		int graph_id;
+
+		graph_id = cpu_dai->driver->id;
+		pr_err("%s:%d AAA DAI/graph_id = 0x%x\n",
+		       __func__, __LINE__, graph_id);
+	}
 	ret = q6apm_graph_media_format_pcm(prtd->graph, &cfg);
 	if (ret < 0)
 		dev_err(dev, "%s: CMD Format block failed\n", __func__);
@@ -355,6 +364,8 @@ static int q6apm_dai_open(struct snd_soc_component *component,
 	if (prtd == NULL)
 		return -ENOMEM;
 
+	pr_err("%s:%d AAA DAI/graph_id = 0x%x\n",
+	       __func__, __LINE__, graph_id);
 	spin_lock_init(&prtd->lock);
 	prtd->substream = substream;
 	prtd->graph = q6apm_graph_open(dev, event_handler, prtd, graph_id);

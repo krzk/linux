@@ -370,6 +370,8 @@ int q6apm_graph_media_format_pcm(struct q6apm_graph *graph, struct audioreach_mo
 	struct audioreach_container *container;
 	struct audioreach_module *module;
 
+	pr_err("%s:%d AAA graph_id = 0x%x\n",
+	       __func__, __LINE__, graph->id);
 	list_for_each_entry(sgs, &info->sg_list, node) {
 		list_for_each_entry(container, &sgs->container_list, node) {
 			list_for_each_entry(module, &container->modules_list, node) {
@@ -377,6 +379,8 @@ int q6apm_graph_media_format_pcm(struct q6apm_graph *graph, struct audioreach_mo
 					(module->module_id == MODULE_ID_RD_SHARED_MEM_EP))
 					continue;
 
+		pr_err("%s:%d AAA module_id = 0x%x, graph_id = 0x%x\n",
+		       __func__, __LINE__, module->module_id, graph->id);
 				audioreach_set_media_format(graph, module, cfg);
 			}
 		}
