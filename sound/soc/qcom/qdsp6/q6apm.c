@@ -256,8 +256,6 @@ int q6apm_map_memory_regions(struct q6apm_graph *graph, unsigned int dir, phys_a
 		}
 	}
 	data->num_periods = periods;
-	data->dsp_tail = 0;
-	data->dsp_buf = 0;
 
 	mutex_unlock(&graph->lock);
 
@@ -468,26 +466,6 @@ int q6apm_write_async(struct q6apm_graph *graph, uint32_t len, uint32_t msw_ts,
 }
 EXPORT_SYMBOL_GPL(q6apm_write_async);
 
-int q6apm_graph_reset_pointer(struct q6apm_graph *graph, unsigned int dir)
-{
-	struct audioreach_graph_data *data;
-
-	if (dir == SNDRV_PCM_STREAM_PLAYBACK)
-		data = &graph->rx_data;
-	else
-		data = &graph->tx_data;
-
-	mutex_lock(&graph->lock);
-
-	pr_err("DEBUG: %s: [%d, %d]\n",__func__, data->dsp_buf, data->dsp_tail);
-	data->dsp_tail = 0;
-	data->dsp_buf = 0;
-
-	mutex_unlock(&graph->lock);
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(q6apm_graph_reset_pointer);
 int q6apm_graph_get_pointer(struct q6apm_graph *graph, unsigned int dir)
 {
 	struct audioreach_graph_data *data;
