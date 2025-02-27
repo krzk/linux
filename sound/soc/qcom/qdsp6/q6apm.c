@@ -9,7 +9,6 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/sched.h>
-#include <linux/circ_buf.h>
 #include <linux/slab.h>
 #include <linux/soc/qcom/apr.h>
 #include <linux/wait.h>
@@ -423,14 +422,6 @@ int q6apm_write_async(struct q6apm_graph *graph, uint32_t len, uint32_t msw_ts,
 	struct gpr_pkt *pkt;
 	int rc, iid;
 
-	if (CIRC_SPACE(graph->rx_data.dsp_buf,
-		       graph->rx_data.dsp_tail,
-		       graph->rx_data.num_periods) <= 0) {
-		pr_err("RX-----------------NO Space %d %d \n", graph->rx_data.dsp_buf,  graph->rx_data.dsp_tail);
-//		return 0;
-	}
-
-
 	iid = q6apm_graph_get_rx_shmem_module_iid(graph);
 	pkt = audioreach_alloc_pkt(sizeof(*write_buffer), DATA_CMD_WR_SH_MEM_EP_DATA_BUFFER_V2,
 				   graph->rx_data.dsp_buf | (len << APM_WRITE_TOKEN_LEN_SHIFT),
@@ -494,12 +485,6 @@ int q6apm_read(struct q6apm_graph *graph)
 	struct gpr_pkt *pkt;
 	int rc, iid;
 
-	//Check if we have enough size
-	if (CIRC_SPACE(graph->tx_data.dsp_buf, graph->tx_data.dsp_tail,
-		       graph->tx_data.num_periods) <= 0)
-		return 0;
-
-
 	iid = q6apm_graph_get_tx_shmem_module_iid(graph);
 	pkt = audioreach_alloc_pkt(sizeof(*read_buffer), DATA_CMD_RD_SH_MEM_EP_DATA_BUFFER_V2,
 				   graph->tx_data.dsp_buf, graph->port->id, iid);
@@ -554,9 +539,6 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 		mutex_lock(&graph->lock);
 		token = hdr->token & APM_WRITE_TOKEN_MASK;
 		graph->rx_data.pointer = (token + 1) * graph->rx_data.period_sz;
-		graph->rx_data.dsp_tail = token + 1;
-		if (graph->rx_data.dsp_tail == graph->rx_data.num_periods)
-			graph->rx_data.dsp_tail = 0;
 		done = data->payload;
 		phys = graph->rx_data.buf[token].phys;
 		mutex_unlock(&graph->lock);
@@ -592,10 +574,6 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 		mutex_lock(&graph->lock);
 		rd_done = data->payload;
 		phys = graph->tx_data.buf[hdr->token].phys;
-		graph->tx_data.dsp_tail = hdr->token + 1;
-		if (graph->tx_data.dsp_tail == graph->tx_data.num_periods)
-			graph->tx_data.dsp_tail = 0;
-
 		graph->tx_data.pointer = (hdr->token + 1) * graph->tx_data.period_sz;
 		mutex_unlock(&graph->lock);
 

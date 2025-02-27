@@ -79,7 +79,6 @@ struct audioreach_graph_data {
 	uint32_t dsp_buf;
 	uint32_t mem_map_handle;
 	uint32_t pointer;
-	uint32_t dsp_tail;
 };
 
 struct audioreach_graph {
