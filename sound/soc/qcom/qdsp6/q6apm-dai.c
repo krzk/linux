@@ -302,7 +302,7 @@ static int q6apm_dai_ack(struct snd_soc_component *component,
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct q6apm_dai_rtd *prtd = runtime->private_data;
-	unsigned int tail, i;
+	unsigned int tail;
 	int i, ret = 0, avail_periods;
 
 	tail = frames_to_bytes(runtime, runtime->control->appl_ptr)/snd_pcm_lib_period_bytes(substream);
