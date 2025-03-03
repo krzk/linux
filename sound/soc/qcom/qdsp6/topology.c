@@ -305,35 +305,6 @@ static struct snd_soc_tplg_vendor_array *audioreach_get_module_array(
 	return NULL;
 }
 
-static struct audioreach_module_priv_data *audioreach_get_module_priv_data(struct snd_soc_tplg_private *private)
-{
-	int sz = 0;
-
-	for (sz = 0; sz < le32_to_cpu(private->size); ) {
-		struct snd_soc_tplg_vendor_array *mod_array;
-
-		mod_array = (struct snd_soc_tplg_vendor_array *)((u8 *)private->array + sz);
-		if(mod_array->type == SND_SOC_AR_TPLG_MODULE_CFG_TYPE) {
-			pr_err("DEBUG: Found Private data of type %x and size %x - %x\n",
-			       mod_array->type, mod_array->size, le32_to_cpu(mod_array->size));
-			struct audioreach_module_priv_data *pdata;
-			pdata = kzalloc(struct_size(pdata, data, le32_to_cpu(mod_array->size)),
-				       GFP_KERNEL);
-			if (!pdata)
-				return ERR_PTR(-ENOMEM);
-
-			memcpy(pdata, ((u8 *)private->data + sz),
-			       struct_size(pdata, data,
-					   le32_to_cpu(mod_array->size)));
-			return pdata;
-		}
-
-		sz = sz + le32_to_cpu(mod_array->size);
-	}
-
-	return NULL;
-}
-
 static struct audioreach_sub_graph *audioreach_parse_sg_tokens(struct q6apm *apm,
 						       struct snd_soc_tplg_private *private)
 {
@@ -618,8 +589,6 @@ static int audioreach_widget_load_module_common(struct snd_soc_component *compon
 	mod = audioreach_parse_common_tokens(apm, cont, &tplg_w->priv, w);
 	if (IS_ERR(mod))
 		return PTR_ERR(mod);
-
-	mod->data = audioreach_get_module_priv_data(&tplg_w->priv);
 
 	dobj = &w->dobj;
 	dobj->private = mod;

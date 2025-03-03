@@ -29,7 +29,6 @@ struct q6apm_graph;
 #define MODULE_ID_MP3_DECODE		0x0700103B
 #define MODULE_ID_GAPLESS		0x0700104D
 #define MODULE_ID_DISPLAY_PORT_SINK	0x07001069
-#define MODULE_ID_SMECNS_V2		0x07001031
 
 #define APM_CMD_GET_SPF_STATE		0x01001021
 #define APM_CMD_RSP_GET_SPF_STATE	0x02001007
@@ -701,15 +700,6 @@ struct audioreach_container {
 
 #define AR_MAX_MOD_LINKS	8
 
-#define SND_SOC_AR_TPLG_MODULE_CFG_TYPE 0x01001006
-struct audioreach_module_priv_data {
-	__le32 size;	/* size in bytes of the array, including all elements */
-	__le32 type;	/* SND_SOC_AR_TPLG_MODULE_CFG_TYPE */
-	__le32 priv[2];	/* Private data for future expansion */
-	__le32 data[0];	/* config data */
-};
-
-
 struct audioreach_module {
 	uint32_t module_id;
 	uint32_t instance_id;
@@ -755,7 +745,6 @@ struct audioreach_module {
 	struct list_head node;
 	struct audioreach_container *container;
 	struct snd_soc_dapm_widget *widget;
-	struct audioreach_module_priv_data *data;
 };
 
 struct audioreach_module_config {
