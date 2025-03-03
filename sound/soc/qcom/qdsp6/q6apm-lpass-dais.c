@@ -177,8 +177,6 @@ static int q6apm_lpass_dai_prepare(struct snd_pcm_substream *substream, struct s
 		}
 	}
 
-	pr_err("%s:%d AAA DAI/graph_id = 0x%x\n",
-	       __func__, __LINE__, graph_id);
 	/**
 	 * It is recommend to load DSP with source graph first and then sink
 	 * graph, so sequence for playback and capture will be different
