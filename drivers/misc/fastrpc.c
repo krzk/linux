@@ -1336,6 +1336,9 @@ static int fastrpc_init_create_static_process(struct fastrpc_user *fl,
 		goto err;
 	}
 
+	inbuf.client_id = fl->client_id;
+	inbuf.namelen = init.namelen;
+	inbuf.pageslen = 0;
 	if (!fl->cctx->staticpd_status) {
 		err = fastrpc_remote_heap_alloc(fl, fl->sctx->dev, init.memlen, &buf);
 		if (err)
@@ -1349,11 +1352,9 @@ static int fastrpc_init_create_static_process(struct fastrpc_user *fl,
 			goto err_map;
 		scm_done = true;
 		fl->cctx->staticpd_status = true;
+		inbuf.pageslen = 1;
 	}
 
-	inbuf.client_id = fl->client_id;
-	inbuf.namelen = init.namelen;
-	inbuf.pageslen = 0;
 	fl->pd = USER_PD;
 
 	args[0].ptr = (u64)(uintptr_t)&inbuf;
