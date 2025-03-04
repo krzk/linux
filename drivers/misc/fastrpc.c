@@ -197,6 +197,7 @@ struct fastrpc_buf {
 	struct dma_buf *dmabuf;
 	struct device *dev;
 	void *virt;
+	u32 flag;
 	u64 phys;
 	u64 size;
 	/* Lock for dma buf attachments */
@@ -1855,6 +1856,7 @@ static int fastrpc_req_munmap_impl(struct fastrpc_user *fl, struct fastrpc_buf *
 	struct device *dev = fl->sctx->dev;
 	int err;
 	u32 sc;
+	unsigned long flags;
 
 	req_msg.client_id = fl->client_id;
 	req_msg.size = buf->size;
@@ -1867,11 +1869,20 @@ static int fastrpc_req_munmap_impl(struct fastrpc_user *fl, struct fastrpc_buf *
 	err = fastrpc_internal_invoke(fl, true, FASTRPC_INIT_HANDLE, sc,
 				      &args[0]);
 	if (!err) {
-		dev_dbg(dev, "unmmap\tpt 0x%09lx OK\n", buf->raddr);
-		spin_lock(&fl->lock);
-		list_del(&buf->node);
-		spin_unlock(&fl->lock);
+		if (buf->flag == ADSP_MMAP_REMOTE_HEAP_ADDR) {
+			err = fastrpc_unlock_mem(fl->cctx, buf);
+			if (err)
+				return err;
+			spin_lock_irqsave(&fl->cctx->lock, flags);
+			list_del(&buf->node);
+			spin_unlock_irqrestore(&fl->cctx->lock, flags);
+		} else {
+			spin_lock(&fl->lock);
+			list_del(&buf->node);
+			spin_unlock(&fl->lock);
+		}
 		fastrpc_buf_free(buf);
+		dev_dbg(dev, "unmmap\tpt 0x%09lx OK\n", buf->raddr);
 	} else {
 		dev_err(dev, "unmmap\tpt 0x%09lx ERROR\n", buf->raddr);
 	}
@@ -1884,6 +1895,8 @@ static int fastrpc_req_munmap(struct fastrpc_user *fl, char __user *argp)
 	struct fastrpc_buf *buf = NULL, *iter, *b;
 	struct fastrpc_req_munmap req;
 	struct device *dev = fl->sctx->dev;
+	int err;
+	unsigned long flags;
 
 	if (copy_from_user(&req, argp, sizeof(req)))
 		return -EFAULT;
@@ -1897,13 +1910,27 @@ static int fastrpc_req_munmap(struct fastrpc_user *fl, char __user *argp)
 	}
 	spin_unlock(&fl->lock);
 
-	if (!buf) {
-		dev_err(dev, "mmap\t\tpt 0x%09llx [len 0x%08llx] not in list\n",
-			req.vaddrout, req.size);
-		return -EINVAL;
+	if (buf) {
+		err = fastrpc_req_munmap_impl(fl, buf);
+		return err;
 	}
 
-	return fastrpc_req_munmap_impl(fl, buf);
+	spin_lock_irqsave(&fl->cctx->lock, flags);
+	list_for_each_entry_safe(iter, b, &fl->cctx->rhmaps, node) {
+		if ((iter->raddr == req.vaddrout) && (iter->size == req.size)) {
+			buf = iter;
+			break;
+		}
+	}
+	spin_unlock_irqrestore(&fl->cctx->lock, flags);
+	if (buf) {
+		err = fastrpc_req_munmap_impl(fl, buf);
+		return err;
+	}
+	dev_err(dev, "mmap\t\tpt 0x%09llx [len 0x%08llx] not in list\n",
+		req.vaddrout, req.size);
+
+	return -EINVAL;
 }
 
 static int fastrpc_req_mmap(struct fastrpc_user *fl, char __user *argp)
@@ -1971,6 +1998,7 @@ static int fastrpc_req_mmap(struct fastrpc_user *fl, char __user *argp)
 
 	/* update the buffer to be able to deallocate the memory on the DSP */
 	buf->raddr = (uintptr_t) rsp_msg.vaddr;
+	buf->flag = req.flags;
 
 	/* let the client know the address to use */
 	req.vaddrout = rsp_msg.vaddr;
