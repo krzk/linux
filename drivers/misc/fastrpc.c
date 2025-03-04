@@ -1234,6 +1234,49 @@ static bool is_session_rejected(struct fastrpc_user *fl, bool unsigned_pd_reques
 	return false;
 }
 
+static int fastrpc_lock_mem(struct fastrpc_channel_ctx *cctx, struct fastrpc_buf *buf)
+{
+	u64 src_perms;
+	int err;
+
+	if (cctx->vmcount) {
+		src_perms = BIT(QCOM_SCM_VMID_HLOS);
+
+		err = qcom_scm_assign_mem(buf->phys, (u64)buf->size,
+					&src_perms, cctx->vmperms, cctx->vmcount);
+		if (err) {
+			dev_err(&cctx->rpdev->dev, "Failed to assign memory with phys 0x%llx size 0x%llx err %d\n",
+				buf->phys, buf->size, err);
+			return err;
+		}
+	}
+	return 0;
+}
+
+static int fastrpc_unlock_mem(struct fastrpc_channel_ctx *cctx, struct fastrpc_buf *buf)
+{
+	u64 src_perms;
+	struct qcom_scm_vmperm dst_perms;
+	u32 i;
+	int err;
+
+	if (cctx->vmcount) {
+		for (i = 0; i < cctx->vmcount; i++)
+			src_perms |= BIT(cctx->vmperms[i].vmid);
+
+		dst_perms.vmid = QCOM_SCM_VMID_HLOS;
+		dst_perms.perm = QCOM_SCM_PERM_RWX;
+		err = qcom_scm_assign_mem(buf->phys, (u64)buf->size,
+			&src_perms, &dst_perms, 1);
+		if (err) {
+			dev_err(&cctx->rpdev->dev, "Failed to unassign memory phys 0x%llx size 0x%llx err %d\n",
+				buf->phys, buf->size, err);
+			return err;
+		}
+	}
+	return 0;
+}
+
 static int fastrpc_init_create_static_process(struct fastrpc_user *fl,
 					      char __user *argp)
 {
@@ -1277,20 +1320,10 @@ static int fastrpc_init_create_static_process(struct fastrpc_user *fl,
 			goto err_name;
 
 		/* Map if we have any heap VMIDs associated with this ADSP Static Process. */
-		if (fl->cctx->vmcount) {
-			u64 src_perms = BIT(QCOM_SCM_VMID_HLOS);
-
-			err = qcom_scm_assign_mem(fl->cctx->remote_heap->phys,
-							(u64)fl->cctx->remote_heap->size,
-							&src_perms,
-							fl->cctx->vmperms, fl->cctx->vmcount);
-			if (err) {
-				dev_err(fl->sctx->dev, "Failed to assign memory with phys 0x%llx size 0x%llx err %d\n",
-					fl->cctx->remote_heap->phys, fl->cctx->remote_heap->size, err);
-				goto err_map;
-			}
-			scm_done = true;
-		}
+		err = fastrpc_lock_mem(fl->cctx, fl->cctx->remote_heap);
+		if (err)
+			goto err_map;
+		scm_done = true;
 	}
 
 	inbuf.client_id = fl->client_id;
@@ -1325,23 +1358,8 @@ static int fastrpc_init_create_static_process(struct fastrpc_user *fl,
 
 	return 0;
 err_invoke:
-	if (fl->cctx->vmcount && scm_done) {
-		u64 src_perms = 0;
-		struct qcom_scm_vmperm dst_perms;
-		u32 i;
-
-		for (i = 0; i < fl->cctx->vmcount; i++)
-			src_perms |= BIT(fl->cctx->vmperms[i].vmid);
-
-		dst_perms.vmid = QCOM_SCM_VMID_HLOS;
-		dst_perms.perm = QCOM_SCM_PERM_RWX;
-		err = qcom_scm_assign_mem(fl->cctx->remote_heap->phys,
-						(u64)fl->cctx->remote_heap->size,
-						&src_perms, &dst_perms, 1);
-		if (err)
-			dev_err(fl->sctx->dev, "Failed to assign memory phys 0x%llx size 0x%llx err %d\n",
-				fl->cctx->remote_heap->phys, fl->cctx->remote_heap->size, err);
-	}
+	if (scm_done)
+		fastrpc_unlock_mem(fl->cctx, fl->cctx->remote_heap);
 err_map:
 	fastrpc_buf_free(fl->cctx->remote_heap);
 err_name:
@@ -1924,16 +1942,10 @@ static int fastrpc_req_mmap(struct fastrpc_user *fl, char __user *argp)
 	req.vaddrout = rsp_msg.vaddr;
 
 	/* Add memory to static PD pool, protection thru hypervisor */
-	if (req.flags == ADSP_MMAP_REMOTE_HEAP_ADDR && fl->cctx->vmcount) {
-		u64 src_perms = BIT(QCOM_SCM_VMID_HLOS);
-
-		err = qcom_scm_assign_mem(buf->phys, (u64)buf->size,
-			&src_perms, fl->cctx->vmperms, fl->cctx->vmcount);
-		if (err) {
-			dev_err(fl->sctx->dev, "Failed to assign memory phys 0x%llx size 0x%llx err %d",
-					buf->phys, buf->size, err);
+	if (req.flags == ADSP_MMAP_REMOTE_HEAP_ADDR) {
+		err = fastrpc_lock_mem(fl->cctx, buf);
+		if (err)
 			goto err_assign;
-		}
 	}
 
 	spin_lock(&fl->lock);
