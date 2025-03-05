@@ -5555,18 +5555,17 @@ static const struct dev_pm_ops exynos5433_cmu_pm_ops = {
 				     pm_runtime_force_resume)
 };
 
-static struct platform_driver exynos5433_cmu_driver __refdata = {
+static struct platform_driver exynos5433_cmu_driver __initdata = {
 	.driver	= {
 		.name = "exynos5433-cmu",
 		.of_match_table = exynos5433_cmu_of_match,
 		.suppress_bind_attrs = true,
 		.pm = &exynos5433_cmu_pm_ops,
 	},
-	.probe = exynos5433_cmu_probe,
 };
 
 static int __init exynos5433_cmu_init(void)
 {
-	return platform_driver_register(&exynos5433_cmu_driver);
+	return platform_driver_probe(&exynos5433_cmu_driver, exynos5433_cmu_probe);
 }
-core_initcall(exynos5433_cmu_init);
+subsys_initcall(exynos5433_cmu_init);
