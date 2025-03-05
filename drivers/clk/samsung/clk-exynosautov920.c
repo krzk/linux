@@ -1447,17 +1447,16 @@ static const struct of_device_id exynosautov920_cmu_of_match[] = {
 	{ }
 };
 
-static struct platform_driver exynosautov920_cmu_driver __refdata = {
+static struct platform_driver exynosautov920_cmu_driver __initdata = {
 	.driver = {
 		.name = "exynosautov920-cmu",
 		.of_match_table = exynosautov920_cmu_of_match,
 		.suppress_bind_attrs = true,
 	},
-	.probe = exynosautov920_cmu_probe,
 };
 
 static int __init exynosautov920_cmu_init(void)
 {
-	return platform_driver_register(&exynosautov920_cmu_driver);
+	return platform_driver_probe(&exynosautov920_cmu_driver, exynosautov920_cmu_probe);
 }
-core_initcall(exynosautov920_cmu_init);
+subsys_initcall(exynosautov920_cmu_init);
