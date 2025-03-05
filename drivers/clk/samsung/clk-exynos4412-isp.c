@@ -155,18 +155,17 @@ static const struct dev_pm_ops exynos4x12_isp_pm_ops = {
 				     pm_runtime_force_resume)
 };
 
-static struct platform_driver exynos4x12_isp_clk_driver __refdata = {
+static struct platform_driver exynos4x12_isp_clk_driver __initdata = {
 	.driver	= {
 		.name = "exynos4x12-isp-clk",
 		.of_match_table = exynos4x12_isp_clk_of_match,
 		.suppress_bind_attrs = true,
 		.pm = &exynos4x12_isp_pm_ops,
 	},
-	.probe = exynos4x12_isp_clk_probe,
 };
 
 static int __init exynos4x12_isp_clk_init(void)
 {
-	return platform_driver_register(&exynos4x12_isp_clk_driver);
+	return platform_driver_probe(&exynos4x12_isp_clk_driver, exynos4x12_isp_clk_probe);
 }
-core_initcall(exynos4x12_isp_clk_init);
+subsys_initcall(exynos4x12_isp_clk_init);
