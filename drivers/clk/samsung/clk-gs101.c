@@ -4412,17 +4412,16 @@ static const struct of_device_id gs101_cmu_of_match[] = {
 	},
 };
 
-static struct platform_driver gs101_cmu_driver __refdata = {
+static struct platform_driver gs101_cmu_driver __initdata = {
 	.driver	= {
 		.name = "gs101-cmu",
 		.of_match_table = gs101_cmu_of_match,
 		.suppress_bind_attrs = true,
 	},
-	.probe = gs101_cmu_probe,
 };
 
 static int __init gs101_cmu_init(void)
 {
-	return platform_driver_register(&gs101_cmu_driver);
+	return platform_driver_probe(&gs101_cmu_driver, gs101_cmu_probe);
 }
-core_initcall(gs101_cmu_init);
+subsys_initcall(gs101_cmu_init);
