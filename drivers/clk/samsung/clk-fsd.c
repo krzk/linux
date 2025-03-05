@@ -1794,17 +1794,16 @@ static const struct of_device_id fsd_cmu_of_match[] = {
 	},
 };
 
-static struct platform_driver fsd_cmu_driver __refdata = {
+static struct platform_driver fsd_cmu_driver __initdata = {
 	.driver	= {
 		.name = "fsd-cmu",
 		.of_match_table = fsd_cmu_of_match,
 		.suppress_bind_attrs = true,
 	},
-	.probe = fsd_cmu_probe,
 };
 
 static int __init fsd_cmu_init(void)
 {
-	return platform_driver_register(&fsd_cmu_driver);
+	return platform_driver_probe(&fsd_cmu_driver, fsd_cmu_probe);
 }
-core_initcall(fsd_cmu_init);
+subsys_initcall(fsd_cmu_init);
