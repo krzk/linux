@@ -2190,17 +2190,16 @@ static const struct of_device_id exynosautov9_cmu_of_match[] = {
 	},
 };
 
-static struct platform_driver exynosautov9_cmu_driver __refdata = {
+static struct platform_driver exynosautov9_cmu_driver __initdata = {
 	.driver = {
 		.name = "exynosautov9-cmu",
 		.of_match_table = exynosautov9_cmu_of_match,
 		.suppress_bind_attrs = true,
 	},
-	.probe = exynosautov9_cmu_probe,
 };
 
 static int __init exynosautov9_cmu_init(void)
 {
-	return platform_driver_register(&exynosautov9_cmu_driver);
+	return platform_driver_probe(&exynosautov9_cmu_driver, exynosautov9_cmu_probe);
 }
 core_initcall(exynosautov9_cmu_init);
