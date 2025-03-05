@@ -2787,17 +2787,16 @@ static const struct of_device_id exynos8895_cmu_of_match[] = {
 	{ }
 };
 
-static struct platform_driver exynos8895_cmu_driver __refdata = {
+static struct platform_driver exynos8895_cmu_driver __initdata = {
 	.driver = {
 		.name = "exynos8895-cmu",
 		.of_match_table = exynos8895_cmu_of_match,
 		.suppress_bind_attrs = true,
 	},
-	.probe = exynos8895_cmu_probe,
 };
 
 static int __init exynos8895_cmu_init(void)
 {
-	return platform_driver_register(&exynos8895_cmu_driver);
+	return platform_driver_probe(&exynos8895_cmu_driver, exynos8895_cmu_probe);
 }
-core_initcall(exynos8895_cmu_init);
+subsys_initcall(exynos8895_cmu_init);
