@@ -2586,7 +2586,7 @@
 		};
 
 		cpu0_acc: power-manager@b088000 {
-			compatible = "qcom,msm8916-acc";
+			compatible = "qcom,msm8916-kpss-acc";
 			reg = <0x0b088000 0x1000>;
 			status = "reserved"; /* Controlled by PSCI firmware */
 		};
@@ -2598,7 +2598,7 @@
 		};
 
 		cpu1_acc: power-manager@b098000 {
-			compatible = "qcom,msm8916-acc";
+			compatible = "qcom,msm8916-kpss-acc";
 			reg = <0x0b098000 0x1000>;
 			status = "reserved"; /* Controlled by PSCI firmware */
 		};
@@ -2610,7 +2610,7 @@
 		};
 
 		cpu2_acc: power-manager@b0a8000 {
-			compatible = "qcom,msm8916-acc";
+			compatible = "qcom,msm8916-kpss-acc";
 			reg = <0x0b0a8000 0x1000>;
 			status = "reserved"; /* Controlled by PSCI firmware */
 		};
@@ -2622,7 +2622,7 @@
 		};
 
 		cpu3_acc: power-manager@b0b8000 {
-			compatible = "qcom,msm8916-acc";
+			compatible = "qcom,msm8916-kpss-acc";
 			reg = <0x0b0b8000 0x1000>;
 			status = "reserved"; /* Controlled by PSCI firmware */
 		};
