@@ -871,7 +871,7 @@
 			csiphy4_ep: endpoint@4 {
 				reg = <4>;
 				clock-lanes = <7>;
-				data-lanes = <0>;
+				data-lanes = <0 1>;
 				remote-endpoint = <&ov02c10_ep>;
 			};
 		};
@@ -903,7 +903,7 @@
 
 		port {
 			ov02c10_ep: endpoint {
-				data-lanes = <1>;
+				data-lanes = <2>;
 				link-frequencies = /bits/ 64 <400000000>;
 				remote-endpoint = <&csiphy4_ep>;
 			};
