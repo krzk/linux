@@ -547,7 +547,10 @@ static struct sdw_dpn_prop wsa_sink_dpn_prop[WSA883X_MAX_SWR_PORTS] = {
 		.simple_ch_prep_sm = true,
 		.read_only_wordlength = true,
 	},
-	[WSA883X_PORT_VISENSE] = {
+};
+
+static struct sdw_dpn_prop wsa_src_dpn_prop[WSA883X_MAX_SWR_PORTS] = {
+	{
 		.num = WSA883X_PORT_VISENSE + 1,
 		.type = SDW_DPN_SIMPLE,
 		.min_ch = 1,
@@ -1342,8 +1345,15 @@ static int wsa883x_vi_hw_params(struct snd_pcm_substream *substream,
 {
 	struct wsa883x_priv *wsa883x = dev_get_drvdata(dai->dev);
 
-	wsa883x->vi_port_config = wsa883x_pconfig[3];
+	wsa883x->vi_port_config = wsa883x_pconfig[WSA883X_PORT_VISENSE];
 	wsa883x->vi_sconfig.frame_rate = params_rate(params);
+	wsa883x->vi_sconfig.ch_count = 1;
+	wsa883x->vi_sconfig.bps = 1;
+	wsa883x->vi_sconfig.type = SDW_STREAM_PDM;
+	wsa883x->vi_sconfig.direction = SDW_DATA_DIR_TX;
+
+	dev_err(wsa883x->dev, "AAA add slave dai %d/%s VI SENSE\n",
+	       dai->id, dai->name);
 
 	return sdw_stream_add_slave(wsa883x->slave, &wsa883x->vi_sconfig,
 				    &wsa883x->vi_port_config, 1,
@@ -1643,9 +1653,12 @@ static int wsa883x_probe(struct sdw_slave *pdev,
 					WSA883X_MAX_SWR_PORTS))
 		dev_dbg(dev, "Static Port mapping not specified\n");
 
-	pdev->prop.sink_ports = GENMASK(WSA883X_MAX_SWR_PORTS - 1, 0);
+	//pdev->prop.sink_ports = GENMASK(WSA883X_MAX_SWR_PORTS - 1, 0);
+	pdev->prop.sink_ports = GENMASK(WSA883X_PORT_BOOST, 0);
+	pdev->prop.source_ports = GENMASK(WSA883X_PORT_VISENSE, WSA883X_PORT_VISENSE);
 	pdev->prop.simple_clk_stop_capable = true;
 	pdev->prop.sink_dpn_prop = wsa_sink_dpn_prop;
+	pdev->prop.src_dpn_prop = wsa_src_dpn_prop;
 	pdev->prop.scp_int1_mask = SDW_SCP_INT1_BUS_CLASH | SDW_SCP_INT1_PARITY;
 	gpiod_direction_output(wsa883x->sd_n, 0);
 
