@@ -171,7 +171,7 @@
 			link-name = "WSA Playback";
 
 			codec {
-				sound-dai = <&left_spkr>, <&right_spkr>, <&swr0 0>, <&lpass_wsamacro 0>;
+				sound-dai = <&left_spkr 0>, <&right_spkr 0>, <&swr0 0>, <&lpass_wsamacro 0>;
 			};
 
 			cpu {
@@ -198,6 +198,24 @@
 				sound-dai = <&q6apm>;
 			};
 		};
+
+#if 1
+		vi-feedback-dai-link {
+			link-name = "CODEC_DMA-LPAIF_WSA-TX-0";
+
+			cpu {
+				sound-dai = <&q6apmbedai WSA_CODEC_DMA_TX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6apm>;
+			};
+
+			codec {
+				sound-dai = <&left_spkr 1>, <&right_spkr 1>, <&swr0 10>, <&swr0 11>, <&lpass_wsamacro 2>;
+			};
+		};
+#endif
 	};
 
 	pmic-glink {
@@ -1191,7 +1209,7 @@
 		pinctrl-0 = <&spkr_0_sd_n_active>;
 		pinctrl-names = "default";
 		powerdown-gpios = <&lpass_tlmm 17 GPIO_ACTIVE_LOW>;
-		#sound-dai-cells = <0>;
+		#sound-dai-cells = <1>;
 		sound-name-prefix = "SpkrLeft";
 		#thermal-sensor-cells = <0>;
 		vdd-supply = <&vreg_l15b_1p8>;
@@ -1211,7 +1229,7 @@
 		pinctrl-0 = <&spkr_1_sd_n_active>;
 		pinctrl-names = "default";
 		powerdown-gpios = <&lpass_tlmm 18 GPIO_ACTIVE_LOW>;
-		#sound-dai-cells = <0>;
+		#sound-dai-cells = <1>;
 		sound-name-prefix = "SpkrRight";
 		#thermal-sensor-cells = <0>;
 		vdd-supply = <&vreg_l15b_1p8>;
