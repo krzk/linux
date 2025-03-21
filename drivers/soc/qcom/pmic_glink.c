@@ -285,6 +285,7 @@ static int pmic_glink_probe(struct platform_device *pdev)
 	struct pmic_glink *pg;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	pg = devm_kzalloc(&pdev->dev, sizeof(*pg), GFP_KERNEL);
 	if (!pg)
 		return -ENOMEM;
@@ -310,21 +311,25 @@ static int pmic_glink_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (pg->client_mask & BIT(PMIC_GLINK_CLIENT_UCSI)) {
 		ret = pmic_glink_add_aux_device(pg, &pg->ucsi_aux, "ucsi");
 		if (ret)
 			goto out_release_pdr_handle;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (pg->client_mask & BIT(PMIC_GLINK_CLIENT_ALTMODE)) {
 		ret = pmic_glink_add_aux_device(pg, &pg->altmode_aux, "altmode");
 		if (ret)
 			goto out_release_ucsi_aux;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (pg->client_mask & BIT(PMIC_GLINK_CLIENT_BATT)) {
 		ret = pmic_glink_add_aux_device(pg, &pg->ps_aux, "power-supply");
 		if (ret)
 			goto out_release_altmode_aux;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 	service = pdr_add_lookup(pg->pdr, "tms/servreg", "msm/adsp/charger_pd");
 	if (IS_ERR(service)) {
@@ -337,6 +342,7 @@ static int pmic_glink_probe(struct platform_device *pdev)
 	__pmic_glink = pg;
 	mutex_unlock(&__pmic_glink_lock);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return 0;
 
 out_release_aux_devices:
@@ -398,6 +404,7 @@ static int pmic_glink_init(void)
 {
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	ret = platform_driver_register(&pmic_glink_driver);
 	if (ret < 0)
 		return ret;
@@ -407,6 +414,7 @@ static int pmic_glink_init(void)
 		platform_driver_unregister(&pmic_glink_driver);
 		return ret;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 	return 0;
 }

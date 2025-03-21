@@ -135,6 +135,7 @@ static int pmic_glink_ucsi_locked_write(struct pmic_glink_ucsi *ucsi, unsigned i
 	unsigned long left;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	req.hdr.owner = PMIC_GLINK_OWNER_USBC;
 	req.hdr.type = MSG_TYPE_REQ_RESP;
 	req.hdr.opcode = UC_UCSI_WRITE_BUF_REQ;
@@ -153,6 +154,7 @@ static int pmic_glink_ucsi_locked_write(struct pmic_glink_ucsi *ucsi, unsigned i
 		dev_err(ucsi->dev, "timeout waiting for UCSI write response\n");
 		return -ETIMEDOUT;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 	return 0;
 }
@@ -162,6 +164,7 @@ static int pmic_glink_ucsi_async_control(struct ucsi *__ucsi, u64 command)
 	struct pmic_glink_ucsi *ucsi = ucsi_get_drvdata(__ucsi);
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	mutex_lock(&ucsi->lock);
 	ret = pmic_glink_ucsi_locked_write(ucsi, UCSI_CONTROL, &command, sizeof(command));
 	mutex_unlock(&ucsi->lock);
@@ -173,6 +176,7 @@ static void pmic_glink_ucsi_update_connector(struct ucsi_connector *con)
 {
 	struct pmic_glink_ucsi *ucsi = ucsi_get_drvdata(con->ucsi);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (con->num > PMIC_GLINK_MAX_PORTS ||
 	    !ucsi->port_orientation[con->num - 1])
 		return;
@@ -185,6 +189,7 @@ static void pmic_glink_ucsi_connector_status(struct ucsi_connector *con)
 	struct pmic_glink_ucsi *ucsi = ucsi_get_drvdata(con->ucsi);
 	int orientation;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (!UCSI_CONSTAT(con, CONNECTED)) {
 		typec_set_orientation(con->port, TYPEC_ORIENTATION_NONE);
 		return;
@@ -201,6 +206,7 @@ static void pmic_glink_ucsi_connector_status(struct ucsi_connector *con)
 				      TYPEC_ORIENTATION_REVERSE :
 				      TYPEC_ORIENTATION_NORMAL);
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 static const struct ucsi_operations pmic_glink_ucsi_ops = {
@@ -241,6 +247,7 @@ static void pmic_glink_ucsi_notify(struct work_struct *work)
 	u32 cci;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	ret = pmic_glink_ucsi_read(ucsi->ucsi, UCSI_CCI, &cci, sizeof(cci));
 	if (ret) {
 		dev_err(ucsi->dev, "failed to read CCI on notification\n");
@@ -248,6 +255,7 @@ static void pmic_glink_ucsi_notify(struct work_struct *work)
 	}
 
 	ucsi_notify_common(ucsi->ucsi, cci);
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 static void pmic_glink_ucsi_register(struct work_struct *work)
@@ -256,6 +264,7 @@ static void pmic_glink_ucsi_register(struct work_struct *work)
 	unsigned long flags;
 	bool pd_running;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	spin_lock_irqsave(&ucsi->state_lock, flags);
 	pd_running = ucsi->pd_running;
 	spin_unlock_irqrestore(&ucsi->state_lock, flags);
@@ -267,6 +276,7 @@ static void pmic_glink_ucsi_register(struct work_struct *work)
 		ucsi_unregister(ucsi->ucsi);
 		ucsi->ucsi_registered = false;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 static void pmic_glink_ucsi_callback(const void *data, size_t len, void *priv)
@@ -274,6 +284,7 @@ static void pmic_glink_ucsi_callback(const void *data, size_t len, void *priv)
 	struct pmic_glink_ucsi *ucsi = priv;
 	const struct pmic_glink_hdr *hdr = data;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	switch (le32_to_cpu(hdr->opcode)) {
 	case UC_UCSI_READ_BUF_REQ:
 		pmic_glink_ucsi_read_ack(ucsi, data, len);
@@ -285,6 +296,7 @@ static void pmic_glink_ucsi_callback(const void *data, size_t len, void *priv)
 		schedule_work(&ucsi->notify_work);
 		break;
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 static void pmic_glink_ucsi_pdr_notify(void *priv, int state)
@@ -292,10 +304,12 @@ static void pmic_glink_ucsi_pdr_notify(void *priv, int state)
 	struct pmic_glink_ucsi *ucsi = priv;
 	unsigned long flags;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	spin_lock_irqsave(&ucsi->state_lock, flags);
 	ucsi->pd_running = (state == SERVREG_SERVICE_STATE_UP);
 	spin_unlock_irqrestore(&ucsi->state_lock, flags);
 	schedule_work(&ucsi->register_work);
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 static void pmic_glink_ucsi_destroy(void *data)
@@ -330,6 +344,7 @@ static int pmic_glink_ucsi_probe(struct auxiliary_device *adev,
 	const struct of_device_id *match;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	ucsi = devm_kzalloc(dev, sizeof(*ucsi), GFP_KERNEL);
 	if (!ucsi)
 		return -ENOMEM;
@@ -359,6 +374,7 @@ static int pmic_glink_ucsi_probe(struct auxiliary_device *adev,
 
 	ucsi_set_drvdata(ucsi->ucsi, ucsi);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	device_for_each_child_node_scoped(dev, fwnode) {
 		struct gpio_desc *desc;
 		u32 port;
@@ -396,6 +412,7 @@ static int pmic_glink_ucsi_probe(struct auxiliary_device *adev,
 
 	pmic_glink_client_register(ucsi->client);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return 0;
 }
 

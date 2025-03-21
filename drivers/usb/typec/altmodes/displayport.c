@@ -94,6 +94,7 @@ static int dp_altmode_configure(struct dp_altmode *dp, u8 con)
 	u8 pin_assign = 0;
 	u32 conf;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	/* DP Signalling */
 	conf = (dp->data.conf & DP_CONF_SIGNALLING_MASK) >> DP_CONF_SIGNALLING_SHIFT;
 
@@ -144,6 +145,7 @@ static int dp_altmode_configure(struct dp_altmode *dp, u8 con)
 	if (dp->plug_prime)
 		dp->data_prime.conf = conf;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return 0;
 }
 
@@ -154,6 +156,7 @@ static int dp_altmode_status_update(struct dp_altmode *dp)
 	u8 con = DP_STATUS_CONNECTION(dp->data.status);
 	int ret = 0;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (configured && (dp->data.status & DP_STATUS_SWITCH_TO_USB)) {
 		dp->data.conf = 0;
 		dp->data_prime.conf = 0;
@@ -178,6 +181,7 @@ static int dp_altmode_status_update(struct dp_altmode *dp)
 		dp->hpd = hpd;
 		sysfs_notify(&dp->alt->dev.kobj, "displayport", "hpd");
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 	return ret;
 }
@@ -246,6 +250,7 @@ static void dp_altmode_work(struct work_struct *work)
 	u32 vdo;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	mutex_lock(&dp->lock);
 
 	switch (dp->state) {
@@ -310,6 +315,7 @@ static void dp_altmode_work(struct work_struct *work)
 	dp->state = DP_STATE_IDLE;
 
 	mutex_unlock(&dp->lock);
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return;
 
 disable_prime:
@@ -421,6 +427,7 @@ static int dp_cable_altmode_vdm(struct typec_altmode *alt, enum typec_plug_index
 	int cmd = PD_VDO_CMD(hdr);
 	int ret = 0;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	mutex_lock(&dp->lock);
 
 	if (dp->state != DP_STATE_IDLE) {
@@ -467,6 +474,7 @@ static int dp_cable_altmode_vdm(struct typec_altmode *alt, enum typec_plug_index
 	if (dp->state != DP_STATE_IDLE)
 		schedule_work(&dp->work);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 err_unlock:
 	mutex_unlock(&dp->lock);
 	return ret;
@@ -477,6 +485,7 @@ static int dp_altmode_activate(struct typec_altmode *alt, int activate)
 	struct dp_altmode *dp = typec_altmode_get_drvdata(alt);
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (activate) {
 		if (dp->plug_prime) {
 			ret = typec_cable_altmode_enter(alt, TYPEC_PLUG_SOP_P, NULL);
@@ -491,6 +500,7 @@ static int dp_altmode_activate(struct typec_altmode *alt, int activate)
 	} else {
 		return typec_altmode_exit(alt);
 	}
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 static const struct typec_altmode_ops dp_altmode_ops = {
@@ -729,6 +739,7 @@ int dp_altmode_probe(struct typec_altmode *alt)
 
 	/* FIXME: Port can only be DFP_U. */
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	/* Make sure we have compatible pin configurations */
 	if (!(DP_CAP_PIN_ASSIGN_DFP_D(port->vdo) &
 	      DP_CAP_PIN_ASSIGN_UFP_D(alt->vdo)) &&
@@ -769,6 +780,7 @@ int dp_altmode_probe(struct typec_altmode *alt)
 
 	dp->state = plug ? DP_STATE_ENTER_PRIME : DP_STATE_ENTER;
 	schedule_work(&dp->work);
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 	return 0;
 }
