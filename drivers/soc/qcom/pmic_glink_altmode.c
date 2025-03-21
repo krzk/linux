@@ -494,6 +494,8 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 					     "failed to acquire mode-switch for port: %d\n",
 					     port);
 		}
+		if (!alt_port->typec_mux)
+			pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		ret = devm_add_action_or_reset(dev, pmic_glink_altmode_put_mux,
@@ -512,6 +514,8 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 					     "failed to acquire retimer-switch for port: %d\n",
 					     port);
 		}
+		if (!alt_port->typec_retimer)
+			pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		ret = devm_add_action_or_reset(dev, pmic_glink_altmode_put_retimer,
@@ -530,6 +534,8 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 					     "failed to acquire orientation-switch for port: %d\n",
 					     port);
 		}
+		if (!alt_port->typec_switch)
+			pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		ret = devm_add_action_or_reset(dev, pmic_glink_altmode_put_switch,

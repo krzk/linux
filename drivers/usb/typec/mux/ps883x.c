@@ -91,6 +91,7 @@ static int ps883x_set(struct ps883x_retimer *retimer)
 	int cfg1 = 0x00;
 	int cfg2 = 0x00;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (retimer->orientation == TYPEC_ORIENTATION_NONE ||
 	    retimer->mode == TYPEC_STATE_SAFE) {
 		return ps883x_configure(retimer, cfg0, cfg1, cfg2);
@@ -131,6 +132,7 @@ static int ps883x_set(struct ps883x_retimer *retimer)
 		return -EOPNOTSUPP;
 	}
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return ps883x_configure(retimer, cfg0, cfg1, cfg2);
 }
 
@@ -140,6 +142,7 @@ static int ps883x_sw_set(struct typec_switch_dev *sw,
 	struct ps883x_retimer *retimer = typec_switch_get_drvdata(sw);
 	int ret = 0;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	ret = typec_switch_set(retimer->typec_switch, orientation);
 	if (ret)
 		return ret;
@@ -154,6 +157,7 @@ static int ps883x_sw_set(struct typec_switch_dev *sw,
 
 	mutex_unlock(&retimer->lock);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return ret;
 }
 
@@ -164,6 +168,7 @@ static int ps883x_retimer_set(struct typec_retimer *rtmr,
 	struct typec_mux_state mux_state;
 	int ret = 0;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	mutex_lock(&retimer->lock);
 
 	if (state->mode != retimer->mode) {
@@ -186,6 +191,7 @@ static int ps883x_retimer_set(struct typec_retimer *rtmr,
 	mux_state.data = state->data;
 	mux_state.mode = state->mode;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return typec_mux_set(retimer->typec_mux, &mux_state);
 }
 
@@ -310,6 +316,7 @@ static int ps883x_retimer_probe(struct i2c_client *client)
 	unsigned int val;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	retimer = devm_kzalloc(dev, sizeof(*retimer), GFP_KERNEL);
 	if (!retimer)
 		return -ENOMEM;
@@ -393,6 +400,7 @@ static int ps883x_retimer_probe(struct i2c_client *client)
 	sw_desc.fwnode = dev_fwnode(dev);
 	sw_desc.set = ps883x_sw_set;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	retimer->sw = typec_switch_register(dev, &sw_desc);
 	if (IS_ERR(retimer->sw)) {
 		ret = PTR_ERR(retimer->sw);
@@ -411,6 +419,7 @@ static int ps883x_retimer_probe(struct i2c_client *client)
 		goto err_switch_unregister;
 	}
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return 0;
 
 err_switch_unregister:
@@ -425,6 +434,7 @@ err_mux_put:
 err_switch_put:
 	typec_switch_put(retimer->typec_switch);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	return ret;
 }
 
