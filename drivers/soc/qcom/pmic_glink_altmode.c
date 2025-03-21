@@ -447,31 +447,37 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 
 	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	device_for_each_child_node(dev, fwnode) {
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 		ret = fwnode_property_read_u32(fwnode, "reg", &port);
 		if (ret < 0) {
 			dev_err(dev, "missing reg property of %pOFn\n", fwnode);
 			fwnode_handle_put(fwnode);
 			return ret;
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		if (port >= ARRAY_SIZE(altmode->ports)) {
 			dev_warn(dev, "invalid connector number, ignoring\n");
 			continue;
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		if (altmode->ports[port].altmode) {
 			dev_err(dev, "multiple connector definition for port %u\n", port);
 			fwnode_handle_put(fwnode);
 			return -EINVAL;
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		alt_port = &altmode->ports[port];
 		alt_port->altmode = altmode;
 		alt_port->index = port;
 		INIT_WORK(&alt_port->work, pmic_glink_altmode_worker);
 
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 		alt_port->bridge = devm_drm_dp_hpd_bridge_alloc(dev, to_of_node(fwnode));
 		if (IS_ERR(alt_port->bridge)) {
+			pr_err("%s:%d AAA\n", __func__, __LINE__);
 			fwnode_handle_put(fwnode);
 			return PTR_ERR(alt_port->bridge);
 		}
@@ -479,6 +485,7 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 		alt_port->dp_alt.svid = USB_TYPEC_DP_SID;
 		alt_port->dp_alt.mode = USB_TYPEC_DP_MODE;
 		alt_port->dp_alt.active = 1;
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		alt_port->typec_mux = fwnode_typec_mux_get(fwnode);
 		if (IS_ERR(alt_port->typec_mux)) {
@@ -487,13 +494,16 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 					     "failed to acquire mode-switch for port: %d\n",
 					     port);
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		ret = devm_add_action_or_reset(dev, pmic_glink_altmode_put_mux,
 					       alt_port->typec_mux);
 		if (ret) {
 			fwnode_handle_put(fwnode);
+			pr_err("%s:%d AAA\n", __func__, __LINE__);
 			return ret;
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		alt_port->typec_retimer = fwnode_typec_retimer_get(fwnode);
 		if (IS_ERR(alt_port->typec_retimer)) {
@@ -502,13 +512,16 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 					     "failed to acquire retimer-switch for port: %d\n",
 					     port);
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		ret = devm_add_action_or_reset(dev, pmic_glink_altmode_put_retimer,
 					       alt_port->typec_retimer);
 		if (ret) {
 			fwnode_handle_put(fwnode);
+			pr_err("%s:%d AAA\n", __func__, __LINE__);
 			return ret;
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		alt_port->typec_switch = fwnode_typec_switch_get(fwnode);
 		if (IS_ERR(alt_port->typec_switch)) {
@@ -517,13 +530,16 @@ static int pmic_glink_altmode_probe(struct auxiliary_device *adev,
 					     "failed to acquire orientation-switch for port: %d\n",
 					     port);
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 		ret = devm_add_action_or_reset(dev, pmic_glink_altmode_put_switch,
 					       alt_port->typec_switch);
 		if (ret) {
 			fwnode_handle_put(fwnode);
+			pr_err("%s:%d AAA\n", __func__, __LINE__);
 			return ret;
 		}
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
 	}
 
 	pr_err("%s:%d AAA\n", __func__, __LINE__);
