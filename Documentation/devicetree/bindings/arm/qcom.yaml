@@ -1131,7 +1131,8 @@ properties:
 
       - items:
           - enum:
-              - asus,vivobook-s15
+              - asus,vivobook-s15x
+              - dell,inspiron-14-plus-7441
               - dell,xps13-9345
               - hp,omnibook-x14
               - lenovo,yoga-slim7x
