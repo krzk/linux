@@ -1331,6 +1331,7 @@ static struct rpmsg_endpoint *qcom_glink_create_ept(struct rpmsg_device *rpdev,
 	int ret;
 	unsigned long flags;
 
+	pr_err("%s:%d AAA CCC name=%s\n", __func__, __LINE__, name);
 	spin_lock_irqsave(&glink->idr_lock, flags);
 	idr_for_each_entry(&glink->rcids, channel, cid) {
 		if (!strcmp(channel->name, name))
@@ -1339,10 +1340,12 @@ static struct rpmsg_endpoint *qcom_glink_create_ept(struct rpmsg_device *rpdev,
 	spin_unlock_irqrestore(&glink->idr_lock, flags);
 
 	if (!channel) {
+		pr_err("%s:%d AAA CCC\n", __func__, __LINE__);
 		channel = qcom_glink_create_local(glink, name);
 		if (IS_ERR(channel))
 			return NULL;
 	} else {
+		pr_err("%s:%d AAA CCC channel=%s\n", __func__, __LINE__, channel->name);
 		ret = qcom_glink_create_remote(glink, channel);
 		if (ret)
 			return NULL;
@@ -1625,6 +1628,7 @@ static int qcom_glink_rx_open(struct qcom_glink *glink, unsigned int rcid,
 	int ret;
 	unsigned long flags;
 
+	pr_err("%s:%d AAA CCC name=%s\n", __func__, __LINE__, name);
 	spin_lock_irqsave(&glink->idr_lock, flags);
 	idr_for_each_entry(&glink->lcids, channel, lcid) {
 		if (!strcmp(channel->name, name))
