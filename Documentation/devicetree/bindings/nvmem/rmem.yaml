@@ -38,17 +38,17 @@ unevaluatedProperties: false
 
 examples:
   - |
-        reserved-memory {
-                #address-cells = <1>;
-                #size-cells = <1>;
+    reserved-memory {
+        #address-cells = <1>;
+        #size-cells = <1>;
 
-                blconfig: nvram@10000000 {
-                        compatible = "raspberrypi,bootloader-config", "nvmem-rmem";
-                        #address-cells = <1>;
-                        #size-cells = <1>;
-                        reg = <0x10000000 0x1000>;
-                        no-map;
-                };
+        nvram@10000000 {
+            compatible = "raspberrypi,bootloader-config", "nvmem-rmem";
+            #address-cells = <1>;
+            #size-cells = <1>;
+            reg = <0x10000000 0x1000>;
+            no-map;
         };
+    };
 
 ...
