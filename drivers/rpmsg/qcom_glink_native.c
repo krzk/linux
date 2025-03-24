@@ -870,8 +870,9 @@ static int qcom_glink_rx_defer(struct qcom_glink *glink, size_t extra)
 
 	extra = ALIGN(extra, 8);
 
+	pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 	if (qcom_glink_rx_avail(glink) < sizeof(struct glink_msg) + extra) {
-		dev_dbg(glink->dev, "Insufficient data in rx fifo");
+		dev_err(glink->dev, "AAA CCC Insufficient data in rx fifo");
 		return -ENXIO;
 	}
 
@@ -1182,6 +1183,7 @@ void qcom_glink_native_rx(struct qcom_glink *glink)
 	wake_up_all(&glink->tx_avail_notify);
 
 	for (;;) {
+		pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 		avail = qcom_glink_rx_avail(glink);
 		if (avail < sizeof(msg))
 			break;
