@@ -207,11 +207,17 @@ static void pmic_glink_state_notify_clients(struct pmic_glink *pg)
 
 	pr_err("%s:%d AAA client_state=0x%x\n", __func__, __LINE__, pg->client_state);
 	if (pg->client_state != SERVREG_SERVICE_STATE_UP) {
-		if (pg->pdr_state == SERVREG_SERVICE_STATE_UP && pg->ept)
+		pr_err("%s:%d AAA BBB client_state=0x%x\n", __func__, __LINE__, pg->client_state);
+		if (pg->pdr_state == SERVREG_SERVICE_STATE_UP && pg->ept) {
+			pr_err("%s:%d AAA BBB client_state=0x%x\n", __func__, __LINE__, pg->client_state);
 			new_state = SERVREG_SERVICE_STATE_UP;
+		}
 	} else {
-		if (pg->pdr_state == SERVREG_SERVICE_STATE_DOWN || !pg->ept)
+		pr_err("%s:%d AAA BBB client_state=0x%x\n", __func__, __LINE__, pg->client_state);
+		if (pg->pdr_state == SERVREG_SERVICE_STATE_DOWN || !pg->ept) {
+			pr_err("%s:%d AAA BBB client_state=0x%x\n", __func__, __LINE__, pg->client_state);
 			new_state = SERVREG_SERVICE_STATE_DOWN;
+		}
 	}
 	pr_err("%s:%d AAA client_state=0x%x, new_state=0x%x\n", __func__, __LINE__, pg->client_state,
 	       new_state);
@@ -243,11 +249,13 @@ static int pmic_glink_rpmsg_probe(struct rpmsg_device *rpdev)
 {
 	struct pmic_glink *pg = __pmic_glink;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	guard(mutex)(&__pmic_glink_lock);
 	pg = __pmic_glink;
 	if (!pg)
 		return dev_err_probe(&rpdev->dev, -ENODEV, "no pmic_glink device to attach to\n");
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	dev_set_drvdata(&rpdev->dev, pg);
 
 	guard(mutex)(&pg->state_lock);
@@ -261,11 +269,13 @@ static void pmic_glink_rpmsg_remove(struct rpmsg_device *rpdev)
 {
 	struct pmic_glink *pg;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	guard(mutex)(&__pmic_glink_lock);
 	pg = __pmic_glink;
 	if (!pg)
 		return;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	guard(mutex)(&pg->state_lock);
 	pg->ept = NULL;
 	pmic_glink_state_notify_clients(pg);
