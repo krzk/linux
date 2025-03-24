@@ -1183,7 +1183,6 @@ void qcom_glink_native_rx(struct qcom_glink *glink)
 	wake_up_all(&glink->tx_avail_notify);
 
 	for (;;) {
-		pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 		avail = qcom_glink_rx_avail(glink);
 		if (avail < sizeof(msg))
 			break;
@@ -1193,6 +1192,8 @@ void qcom_glink_native_rx(struct qcom_glink *glink)
 		cmd = le16_to_cpu(msg.cmd);
 		param1 = le16_to_cpu(msg.param1);
 		param2 = le32_to_cpu(msg.param2);
+
+		pr_err("%s:%d AAA BBB cmd:%u\n", __func__, __LINE__, cmd);
 
 		switch (cmd) {
 		case GLINK_CMD_VERSION:

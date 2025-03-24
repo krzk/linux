@@ -205,7 +205,6 @@ static irqreturn_t qcom_glink_smem_intr(int irq, void *data)
 {
 	struct qcom_glink_smem *smem = data;
 
-	pr_err("%s:%d AAA BBB\n", __func__, __LINE__);
 	qcom_glink_native_rx(smem->glink);
 
 	return IRQ_HANDLED;
