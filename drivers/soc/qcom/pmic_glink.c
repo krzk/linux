@@ -101,6 +101,7 @@ void pmic_glink_client_register(struct pmic_glink_client *client)
 	struct pmic_glink *pg = client->pg;
 	unsigned long flags;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	guard(mutex)(&pg->state_lock);
 	spin_lock_irqsave(&pg->client_lock, flags);
 
@@ -204,6 +205,7 @@ static void pmic_glink_state_notify_clients(struct pmic_glink *pg)
 	unsigned int new_state = pg->client_state;
 	unsigned long flags;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (pg->client_state != SERVREG_SERVICE_STATE_UP) {
 		if (pg->pdr_state == SERVREG_SERVICE_STATE_UP && pg->ept)
 			new_state = SERVREG_SERVICE_STATE_UP;
@@ -212,6 +214,7 @@ static void pmic_glink_state_notify_clients(struct pmic_glink *pg)
 			new_state = SERVREG_SERVICE_STATE_DOWN;
 	}
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (new_state != pg->client_state) {
 		spin_lock_irqsave(&pg->client_lock, flags);
 		list_for_each_entry(client, &pg->clients, node)
@@ -225,6 +228,7 @@ static void pmic_glink_pdr_callback(int state, char *svc_path, void *priv)
 {
 	struct pmic_glink *pg = priv;
 
+	pr_err("%s:%d AAA BBB state=%d\n", __func__, __LINE__, state);
 	guard(mutex)(&pg->state_lock);
 	pg->pdr_state = state;
 

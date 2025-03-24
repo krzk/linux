@@ -398,6 +398,7 @@ static void pmic_glink_altmode_enable_worker(struct work_struct *work)
 	struct pmic_glink_altmode *altmode = work_to_altmode(work);
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	ret = pmic_glink_altmode_request(altmode, ALTMODE_PAN_EN, 0);
 	if (ret)
 		dev_err(altmode->dev, "failed to request altmode notifications: %d\n", ret);
@@ -407,7 +408,7 @@ static void pmic_glink_altmode_pdr_notify(void *priv, int state)
 {
 	struct pmic_glink_altmode *altmode = priv;
 
-	pr_err("%s:%d AAA\n", __func__, __LINE__);
+	pr_err("%s:%d AAA BBB state=%d\n", __func__, __LINE__, state);
 	if (state == SERVREG_SERVICE_STATE_UP)
 		schedule_work(&altmode->enable_work);
 }
