@@ -408,7 +408,7 @@ static void pmic_glink_altmode_pdr_notify(void *priv, int state)
 {
 	struct pmic_glink_altmode *altmode = priv;
 
-	pr_err("%s:%d AAA BBB state=%d\n", __func__, __LINE__, state);
+	pr_err("%s:%d AAA BBB state=0x%x\n", __func__, __LINE__, state);
 	if (state == SERVREG_SERVICE_STATE_UP)
 		schedule_work(&altmode->enable_work);
 }
