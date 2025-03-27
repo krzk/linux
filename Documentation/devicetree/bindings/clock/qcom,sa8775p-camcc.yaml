@@ -17,12 +17,14 @@ description: |
   See also:
     include/dt-bindings/clock/qcom,qcs8300-camcc.h
     include/dt-bindings/clock/qcom,sa8775p-camcc.h
+    include/dt-bindings/clock/qcom,sc8280xp-camcc.h
 
 properties:
   compatible:
     enum:
       - qcom,qcs8300-camcc
       - qcom,sa8775p-camcc
+      - qcom,sc8280xp-camcc
 
   clocks:
     items:
