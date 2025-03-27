@@ -14,6 +14,8 @@
 #include <linux/of.h>
 
 #include "common.h"
+#include "clk-alpha-pll.h"
+#include "clk-branch.h"
 #include "clk-rcg.h"
 #include "clk-regmap.h"
 #include "reset.h"
@@ -285,6 +287,29 @@ static int qcom_cc_icc_register(struct device *dev,
 						     desc->num_icc_hws, icd);
 }
 
+static void qcom_cc_clk_pll_configure(const struct qcom_cc_desc *desc,
+				      struct regmap *regmap)
+{
+	int i;
+
+	for (i = 0; i < desc->num_alpha_plls; i++)
+		qcom_clk_alpha_pll_configure(desc->alpha_plls[i], regmap);
+}
+
+static void qcom_cc_clk_regs_configure(const struct qcom_cc_desc *desc,
+				       struct regmap *regmap)
+{
+	struct qcom_clk_reg_setting *clk_regs = desc->clk_regs;
+	int i;
+
+	for (i = 0; i < desc->num_clk_cbcrs; i++)
+		qcom_branch_set_clk_en(regmap, desc->clk_cbcrs[i]);
+
+	for (i = 0 ; i < desc->num_clk_regs; i++)
+		regmap_update_bits(regmap, clk_regs[i].offset,
+				   clk_regs[i].mask, clk_regs[i].val);
+}
+
 int qcom_cc_really_probe(struct device *dev,
 			 const struct qcom_cc_desc *desc, struct regmap *regmap)
 {
@@ -314,6 +339,9 @@ int qcom_cc_really_probe(struct device *dev,
 		if (ret)
 			return ret;
 	}
+
+	qcom_cc_clk_pll_configure(desc, regmap);
+	qcom_cc_clk_regs_configure(desc, regmap);
 
 	reset = &cc->reset;
 	reset->rcdev.of_node = dev->of_node;

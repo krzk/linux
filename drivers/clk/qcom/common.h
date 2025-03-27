@@ -25,6 +25,19 @@ struct qcom_icc_hws_data {
 	int clk_id;
 };
 
+/**
+ * struct qcom_clk_reg_setting - Represents miscellaneous clock register settings
+ * @offset: address offset for the clock register
+ * @mask: bit mask indicating the bits to be updated
+ * @val: Encoded value to be set within the specified bit mask
+ *       (e.g., if writing 7 to bits 4-7, mask = 0xF0 and val = 0x70)
+ */
+struct qcom_clk_reg_setting {
+	u32 offset;
+	u32 mask;
+	u32 val;
+};
+
 struct qcom_cc_desc {
 	const struct regmap_config *config;
 	struct clk_regmap **clks;
@@ -38,6 +51,12 @@ struct qcom_cc_desc {
 	const struct qcom_icc_hws_data *icc_hws;
 	size_t num_icc_hws;
 	unsigned int icc_first_node_id;
+	u32 *clk_cbcrs;
+	size_t num_clk_cbcrs;
+	struct clk_alpha_pll **alpha_plls;
+	size_t num_alpha_plls;
+	struct qcom_clk_reg_setting *clk_regs;
+	size_t num_clk_regs;
 	bool use_rpm;
 };
 
