@@ -81,7 +81,7 @@ config MTK_SVS
 
 config MTK_SOCINFO
 	tristate "MediaTek SoC Information"
-	default y
+	default ARCH_MEDIATEK
 	depends on NVMEM_MTK_EFUSE
 	select SOC_BUS
 	help
