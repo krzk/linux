@@ -89,7 +89,7 @@ config ARM_U8500_CPUIDLE
 
 config ARM_AT91_CPUIDLE
 	bool "Cpu Idle Driver for the AT91 processors"
-	default y
+	default ARCH_AT91
 	depends on (ARCH_AT91 || COMPILE_TEST) && !ARM64
 	help
 	  Select this to enable cpuidle for AT91 processors.
