@@ -983,6 +983,10 @@
 	status = "okay";
 };
 
+&mdss_dp0 {
+	status = "okay";
+};
+
 &mdss_dsi0 {
 	vdda-supply = <&vreg_l3g_1p2>;
 
