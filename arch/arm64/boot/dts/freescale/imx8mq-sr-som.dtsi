@@ -6,6 +6,10 @@
 #include "imx8mq.dtsi"
 
 / {
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	reg_vdd_3v3: regulator-vdd-3v3 {
 		compatible = "regulator-fixed";
 		regulator-always-on;

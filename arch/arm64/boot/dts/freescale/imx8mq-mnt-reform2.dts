@@ -14,6 +14,10 @@
 	compatible = "mntre,reform2", "boundary,imx8mq-nitrogen8m-som", "fsl,imx8mq";
 	chassis-type = "laptop";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pinctrl-names = "default";

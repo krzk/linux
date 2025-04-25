@@ -12,6 +12,10 @@
 	model = "Boundary Devices i.MX8MQ Nitrogen8M";
 	compatible = "boundary,imx8mq-nitrogen8m", "fsl,imx8mq";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	chosen {
 		stdout-path = "serial0:115200n8";
 	};

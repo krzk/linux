@@ -16,6 +16,10 @@
 	model = "Purism Librem 5 devkit";
 	compatible = "purism,librem5-devkit", "fsl,imx8mq";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	backlight_dsi: backlight-dsi {
 		compatible = "pwm-backlight";
 		/* 200 Hz for the PAM2841 */

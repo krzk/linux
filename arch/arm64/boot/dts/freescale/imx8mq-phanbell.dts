@@ -12,6 +12,10 @@
 	model = "Google i.MX8MQ Phanbell";
 	compatible = "google,imx8mq-phanbell", "fsl,imx8mq";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	chosen {
 		stdout-path = &uart1;
 	};

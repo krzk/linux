@@ -15,6 +15,10 @@
 	model = "TechNexion PICO-PI-8M";
 	compatible = "technexion,pico-pi-imx8m", "fsl,imx8mq";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	chosen {
 		stdout-path = &uart1;
 	};

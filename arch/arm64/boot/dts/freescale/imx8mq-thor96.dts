@@ -12,6 +12,10 @@
 	model = "Einfochips i.MX8MQ Thor96";
 	compatible = "einfochips,imx8mq-thor96", "fsl,imx8mq";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	chosen {
 		stdout-path = &uart1;
 	};

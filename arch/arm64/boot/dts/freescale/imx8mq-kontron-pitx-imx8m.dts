@@ -15,6 +15,7 @@
 	compatible = "kontron,pitx-imx8m", "fsl,imx8mq";
 
 	aliases {
+		ethernet0 = &fec1;
 		i2c0 = &i2c1;
 		i2c1 = &i2c2;
 		i2c2 = &i2c3;
