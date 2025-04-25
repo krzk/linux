@@ -3,6 +3,12 @@
  * Copyright 2018-2021 Toradex
  */
 
+/ {
+	aliases {
+		ethernet0 = &fec1;
+	};
+};
+
 /* Colibri Analogue Inputs */
 &adc0 {
 	status = "okay";

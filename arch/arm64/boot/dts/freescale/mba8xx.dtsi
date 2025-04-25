@@ -16,6 +16,8 @@
 	};
 
 	aliases {
+		ethernet0 = &fec1;
+		ethernet1 = &fec2;
 		rtc0 = &pcf85063;
 		rtc1 = &rtc;
 	};
