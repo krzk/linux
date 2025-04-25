@@ -12,6 +12,7 @@
 	compatible = "fsl,imx8dxl-evk", "fsl,imx8dxl";
 
 	aliases {
+		ethernet0 = &fec1;
 		i2c2 = &i2c2;
 		mmc0 = &usdhc1;
 		mmc1 = &usdhc2;
