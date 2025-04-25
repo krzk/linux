@@ -12,6 +12,7 @@
 	compatible = "kontron,imx8mm-bl-osm-s", "kontron,imx8mm-osm-s", "fsl,imx8mm";
 
 	aliases {
+		ethernet0 = &fec1;
 		ethernet1 = &usbnet;
 	};
 

@@ -12,6 +12,7 @@
 	compatible = "phytec,imx8mm-phycore-som", "fsl,imx8mm";
 
 	aliases {
+		ethernet0 = &fec1;
 		rtc0 = &rv3028;
 		rtc1 = &snvs_rtc;
 	};

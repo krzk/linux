@@ -14,6 +14,7 @@
 	compatible = "dmo,imx8mm-data-modul-edm-sbc", "fsl,imx8mm";
 
 	aliases {
+		ethernet0 = &fec1;
 		rtc0 = &rtc;
 		rtc1 = &snvs_rtc;
 	};

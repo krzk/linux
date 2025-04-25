@@ -12,6 +12,10 @@
 	model = "InnoComm WB15-EVK";
 	compatible = "innocomm,wb15-evk", "fsl,imx8mm";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	chosen {
 		stdout-path = &uart2;
 	};

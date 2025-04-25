@@ -9,6 +9,10 @@
 / {
 	model = "Variscite VAR-SOM-MX8MM module";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	chosen {
 		stdout-path = &uart4;
 	};

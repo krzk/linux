@@ -12,6 +12,7 @@
 	compatible = "kontron,imx8mm-bl", "kontron,imx8mm-sl", "fsl,imx8mm";
 
 	aliases {
+		ethernet0 = &fec1;
 		ethernet1 = &usbnet;
 		rtc0 = &rx8900;
 		rtc1 = &snvs_rtc;

@@ -15,6 +15,10 @@
 	compatible = "ees,imx8mm-emtop-baseboard", "ees,imx8mm-emtop-som",
 		"fsl,imx8mm";
 
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	connector {
 		compatible = "usb-c-connector";
 		label = "USB-C";

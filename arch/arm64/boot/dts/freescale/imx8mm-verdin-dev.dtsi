@@ -4,6 +4,10 @@
  */
 
 / {
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	sound_card: sound-card {
 		compatible = "simple-audio-card";
 		simple-audio-card,bitclock-master = <&dailink_master>;

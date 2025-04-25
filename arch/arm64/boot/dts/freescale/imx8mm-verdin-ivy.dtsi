@@ -12,6 +12,10 @@
 #include <dt-bindings/leds/common.h>
 
 / {
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	/* AIN1 Voltage w/o AIN1_MODE gpio control */
 	ain1_voltage_unmanaged: voltage-divider-ain1 {
 		compatible = "voltage-divider";

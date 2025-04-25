@@ -8,6 +8,10 @@
 /* TQ-Systems GmbH MBa8Mx baseboard */
 
 / {
+	aliases {
+		ethernet0 = &fec1;
+	};
+
 	backlight_lvds: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm3 0 5000000 0>;

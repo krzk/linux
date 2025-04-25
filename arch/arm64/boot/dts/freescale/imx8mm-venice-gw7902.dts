@@ -18,6 +18,7 @@
 	compatible = "gw,imx8mm-gw7902", "fsl,imx8mm";
 
 	aliases {
+		ethernet0 = &fec1;
 		ethernet1 = &eth1;
 		rtc0 = &gsc_rtc;
 		rtc1 = &snvs_rtc;

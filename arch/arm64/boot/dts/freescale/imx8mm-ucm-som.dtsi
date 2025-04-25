@@ -9,6 +9,7 @@
 
 / {
 	aliases {
+		ethernet0 = &fec1;
 		rtc0 = &rtc_i2c;
 		rtc1 = &snvs_rtc;
 		mmc0 = &usdhc3;

@@ -12,6 +12,7 @@
 	compatible = "cloos,imx8mm-phg", "tq,imx8mm-tqma8mqml", "fsl,imx8mm";
 
 	aliases {
+		ethernet0 = &fec1;
 		mmc0 = &usdhc3;
 		mmc1 = &usdhc2;
 	};
