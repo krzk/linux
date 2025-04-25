@@ -5,6 +5,8 @@
 
 / {
 	aliases {
+		ethernet0 = &fec1;
+		ethernet1 = &fec2;
 		rtc0 = &rtc_i2c;
 		rtc1 = &rtc;
 	};

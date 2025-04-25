@@ -13,6 +13,11 @@
 	model = "Freescale i.MX8QM MEK";
 	compatible = "fsl,imx8qm-mek", "fsl,imx8qm";
 
+	aliases {
+		ethernet0 = &fec1;
+		ethernet1 = &fec2;
+	};
+
 	chosen {
 		stdout-path = &lpuart0;
 	};
