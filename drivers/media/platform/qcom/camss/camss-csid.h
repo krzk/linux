@@ -89,12 +89,6 @@ struct csid_hw_ops {
 	int (*configure_testgen_pattern)(struct csid_device *csid, s32 val);
 
 	/*
-	 * hw_version - Read hardware version register from hardware
-	 * @csid: CSID device
-	 */
-	u32 (*hw_version)(struct csid_device *csid);
-
-	/*
 	 * isr - CSID module interrupt service routine
 	 * @irq: Interrupt line
 	 * @dev: CSID device
@@ -224,14 +218,6 @@ extern const struct csid_hw_ops csid_ops_780;
  * Return whether CSID is CSID lite
  */
 bool csid_is_lite(struct csid_device *csid);
-
-/*
- * csid_hw_version - CSID hardware version query
- * @csid: CSID device
- *
- * Return HW version or error
- */
-u32 csid_hw_version(struct csid_device *csid);
 
 /*
  * csid_src_pad_code - Pick an output/src format based on the input/sink format
