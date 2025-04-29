@@ -416,26 +416,6 @@ static u32 vfe_src_pad_code(struct vfe_line *line, u32 sink_code,
 }
 
 /*
- * vfe_hw_version - Process write master done interrupt
- * @vfe: VFE Device
- *
- * Return vfe hw version
- */
-u32 vfe_hw_version(struct vfe_device *vfe)
-{
-	u32 hw_version = readl_relaxed(vfe->base + VFE_HW_VERSION);
-
-	u32 gen = (hw_version >> HW_VERSION_GENERATION) & 0xF;
-	u32 rev = (hw_version >> HW_VERSION_REVISION) & 0xFFF;
-	u32 step = (hw_version >> HW_VERSION_STEPPING) & 0xFFFF;
-
-	dev_dbg(vfe->camss->dev, "VFE:%d HW Version = %u.%u.%u\n",
-		vfe->id, gen, rev, step);
-
-	return hw_version;
-}
-
-/*
  * vfe_buf_done - Process write master done interrupt
  * @vfe: VFE Device
  * @wm: Write master id
@@ -1088,8 +1068,6 @@ int vfe_get(struct vfe_device *vfe)
 		vfe_reset_output_maps(vfe);
 
 		vfe_init_outputs(vfe);
-
-		vfe->res->hw_ops->hw_version(vfe);
 	} else {
 		ret = vfe_check_clock_rates(vfe);
 		if (ret < 0)

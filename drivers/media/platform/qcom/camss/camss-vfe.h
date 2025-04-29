@@ -101,7 +101,6 @@ struct vfe_device;
 struct vfe_hw_ops {
 	void (*enable_irq)(struct vfe_device *vfe);
 	void (*global_reset)(struct vfe_device *vfe);
-	u32 (*hw_version)(struct vfe_device *vfe);
 	irqreturn_t (*isr)(int irq, void *dev);
 	void (*isr_read)(struct vfe_device *vfe, u32 *value0, u32 *value1);
 	void (*pm_domain_off)(struct vfe_device *vfe);
@@ -259,13 +258,6 @@ void vfe_put(struct vfe_device *vfe);
  */
 bool vfe_is_lite(struct vfe_device *vfe);
 
-/*
- * vfe_hw_version - Process write master done interrupt
- * @vfe: VFE Device
- *
- * Return vfe hw version
- */
-u32 vfe_hw_version(struct vfe_device *vfe);
 /*
  * vfe_enable - Enable streaming on VFE line
  * @line: VFE line
