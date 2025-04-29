@@ -227,7 +227,6 @@ static inline void vfe_reg_update_clear(struct vfe_device *vfe,
 
 const struct vfe_hw_ops vfe_ops_680 = {
 	.global_reset = vfe_global_reset,
-	.hw_version = vfe_hw_version,
 	.isr = vfe_isr,
 	.pm_domain_off = vfe_pm_domain_off,
 	.pm_domain_on = vfe_pm_domain_on,

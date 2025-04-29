@@ -278,7 +278,6 @@ static void vfe_buf_done_480(struct vfe_device *vfe, int port_id)
 const struct vfe_hw_ops vfe_ops_480 = {
 	.enable_irq = vfe_enable_irq,
 	.global_reset = vfe_global_reset,
-	.hw_version = vfe_hw_version,
 	.isr = vfe_isr,
 	.isr_read = vfe_isr_read,
 	.reg_update = vfe_reg_update,
