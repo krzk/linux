@@ -597,29 +597,6 @@ static int csid_set_clock_rates(struct csid_device *csid)
 }
 
 /*
- * csid_hw_version - CSID hardware version query
- * @csid: CSID device
- *
- * Return HW version or error
- */
-u32 csid_hw_version(struct csid_device *csid)
-{
-	u32 hw_version;
-	u32 hw_gen;
-	u32 hw_rev;
-	u32 hw_step;
-
-	hw_version = readl_relaxed(csid->base + CSID_HW_VERSION);
-	hw_gen = (hw_version >> HW_VERSION_GENERATION) & 0xF;
-	hw_rev = (hw_version >> HW_VERSION_REVISION) & 0xFFF;
-	hw_step = (hw_version >> HW_VERSION_STEPPING) & 0xFFFF;
-	dev_dbg(csid->camss->dev, "CSID:%d HW Version = %u.%u.%u\n",
-		csid->id, hw_gen, hw_rev, hw_step);
-
-	return hw_version;
-}
-
-/*
  * csid_src_pad_code - Pick an output/src format based on the input/sink format
  * @csid: CSID device
  * @sink_code: The sink format of the input
@@ -732,8 +709,6 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
 			pm_runtime_put_sync(dev);
 			return ret;
 		}
-
-		csid->res->hw_ops->hw_version(csid);
 	} else {
 		disable_irq(csid->irq);
 		camss_disable_clocks(csid->nclocks, csid->clock);

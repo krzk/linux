@@ -204,7 +204,6 @@ static void csid_subdev_init(struct csid_device *csid)
 const struct csid_hw_ops csid_ops_4_7 = {
 	.configure_stream = csid_configure_stream,
 	.configure_testgen_pattern = csid_configure_testgen_pattern,
-	.hw_version = csid_hw_version,
 	.isr = csid_isr,
 	.reset = csid_reset,
 	.src_pad_code = csid_src_pad_code,
