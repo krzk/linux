@@ -91,7 +91,7 @@ static int sc8280xp_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 	case WSA_CODEC_DMA_TX_1:
 	case WSA_CODEC_DMA_TX_2:
 		channels->min = 1;
-		channels->max = 1;
+		//channels->max = 2;
 		// FIXME: temporary for 1 ch testing
 		break;
 	case TX_CODEC_DMA_TX_0:
