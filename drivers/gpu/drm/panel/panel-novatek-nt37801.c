@@ -249,7 +249,9 @@ static int novatek_nt37801_probe(struct mipi_dsi_device *dsi)
 	struct novatek_nt37801 *ctx;
 	int ret;
 
-	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
+	ctx = devm_drm_panel_alloc(dev, struct novatek_nt37801, panel,
+				   &novatek_nt37801_panel_funcs,
+				   DRM_MODE_CONNECTOR_DSI);
 	if (!ctx)
 		return -ENOMEM;
 
@@ -272,10 +274,7 @@ static int novatek_nt37801_probe(struct mipi_dsi_device *dsi)
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->mode_flags = MIPI_DSI_MODE_NO_EOT_PACKET | MIPI_DSI_CLOCK_NON_CONTINUOUS;
 
-	drm_panel_init(&ctx->panel, dev, &novatek_nt37801_panel_funcs,
-		       DRM_MODE_CONNECTOR_DSI);
 	ctx->panel.prepare_prev_first = true;
-
 	ctx->panel.backlight = novatek_nt37801_create_backlight(dsi);
 	if (IS_ERR(ctx->panel.backlight))
 		return dev_err_probe(dev, PTR_ERR(ctx->panel.backlight),
