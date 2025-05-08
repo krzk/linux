@@ -17,6 +17,8 @@
 
 #include <video/mipi_display.h>
 
+#define NT37801_DCS_SWITCH_PAGE			0xf0
+
 struct novatek_nt37801 {
 	struct drm_panel panel;
 	struct mipi_dsi_device *dsi;
@@ -46,6 +48,13 @@ static void novatek_nt37801_reset(struct novatek_nt37801 *ctx)
 	usleep_range(10000, 21000);
 }
 
+static inline void novatek_nt37801_switch_page(struct mipi_dsi_multi_context *dsi_ctx,
+					       u8 page)
+{
+	mipi_dsi_dcs_write_seq_multi(dsi_ctx, NT37801_DCS_SWITCH_PAGE,
+				     0x55, 0xaa, 0x52, 0x08, page);
+}
+
 static int novatek_nt37801_on(struct novatek_nt37801 *ctx)
 {
 	struct mipi_dsi_device *dsi = ctx->dsi;
@@ -53,8 +62,7 @@ static int novatek_nt37801_on(struct novatek_nt37801 *ctx)
 
 	dsi->mode_flags |= MIPI_DSI_MODE_LPM;
 
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
-				     0x55, 0xaa, 0x52, 0x08, 0x01);
+	novatek_nt37801_switch_page(&dsi_ctx, 0x01);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x01);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc5, 0x0b, 0x0b, 0x0b);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xff, 0xaa, 0x55, 0xa5, 0x80);
@@ -93,8 +101,8 @@ static int novatek_nt37801_on(struct novatek_nt37801 *ctx)
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x9c, 0x01);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, MIPI_DCS_WRITE_MEMORY_START);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x2f, 0x00);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
-				     0x55, 0xaa, 0x52, 0x08, 0x01);
+
+	novatek_nt37801_switch_page(&dsi_ctx, 0x01);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb2, 0x55, 0x01, 0xff, 0x03);
 	mipi_dsi_dcs_exit_sleep_mode_multi(&dsi_ctx);
 	mipi_dsi_msleep(&dsi_ctx, 120);
