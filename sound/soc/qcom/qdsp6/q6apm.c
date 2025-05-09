@@ -599,6 +599,7 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 			wake_up(&graph->cmd_wait);
 			break;
 		case APM_CMD_SHARED_MEM_MAP_REGIONS:
+		case APM_CMD_REGISTER_MODULE_EVENTS:
 		case DATA_CMD_WR_SH_MEM_EP_MEDIA_FORMAT:
 		case APM_CMD_SET_CFG:
 			graph->result.opcode = result->opcode;
