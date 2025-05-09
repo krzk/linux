@@ -63,6 +63,7 @@ struct q6apm_graph;
 #define APM_CMD_RSP_GET_CFG			0x02001000
 #define APM_CMD_CLOSE_ALL			0x01001013
 #define APM_CMD_REGISTER_SHARED_CFG		0x0100100A
+#define APM_CMD_REGISTER_MODULE_EVENTS		0x0100100E
 
 #define APM_MEMORY_MAP_SHMEM8_4K_POOL		3
 
@@ -369,6 +370,17 @@ struct apm_prop_data {
 	uint32_t prop_id;
 	uint32_t prop_size;
 } __packed;
+
+struct apm_module_register_events {
+	uint32_t module_instance_id;
+	uint32_t event_id;
+	uint32_t is_register; /* 1: register, 0: de-regesiter */
+	uint32_t error_code;
+	uint32_t event_config_payload_size;
+	uint32_t reserved;
+} __packed;
+
+#define APM_MODULE_REGISTER_EVENTS_SIZE		sizeof(struct apm_module_register_events)
 
 /* Sub-Graph Properties */
 #define APM_PARAM_ID_SUB_GRAPH_CONFIG	0x08001001
@@ -833,6 +845,8 @@ int audioreach_graph_send_cmd_sync(struct q6apm_graph *graph, struct gpr_pkt *pk
 int audioreach_set_media_format(struct q6apm_graph *graph,
 				struct audioreach_module *module,
 				struct audioreach_module_config *cfg);
+int audioreach_register_events(struct q6apm_graph *graph,
+			       struct audioreach_module *module);
 int audioreach_shared_memory_send_eos(struct q6apm_graph *graph);
 int audioreach_gain_set_vol_ctrl(struct q6apm *apm,
 				 struct audioreach_module *module, int vol);

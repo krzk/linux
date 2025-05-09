@@ -1432,6 +1432,45 @@ int audioreach_set_media_format(struct q6apm_graph *graph, struct audioreach_mod
 }
 EXPORT_SYMBOL_GPL(audioreach_set_media_format);
 
+int audioreach_register_events(struct q6apm_graph *graph,
+			       struct audioreach_module *module)
+{
+	struct apm_module_register_events *payload;
+	struct gpr_pkt *pkt;
+	int rc, payload_size;
+	void *p;
+
+	payload_size = ALIGN(APM_MODULE_REGISTER_EVENTS_SIZE + 0, 8); // FIXME: event_config_payload_size
+	pkt = audioreach_alloc_cmd_pkt(payload_size, APM_CMD_REGISTER_MODULE_EVENTS,
+				       0, graph->port->id, module->instance_id);
+	if (IS_ERR(pkt))
+		return -ENOMEM;
+
+	p = (void *)pkt + GPR_HDR_SIZE + APM_CMD_HDR_SIZE;
+
+	payload = p;
+	payload->module_instance_id = module->instance_id;
+	payload->event_id = 0x0800119f; // FIXME
+	payload->error_code = 0;
+	payload->is_register = 1;
+
+	// TODO event_config_payload_size
+	/*
+	p = p + APM_MODULE_PARAM_DATA_SIZE;
+	param = p;
+	*param = param_val;
+	*/
+
+	pr_err("EEE %s:%d\n", __func__, __LINE__);
+	rc = audioreach_graph_send_cmd_sync(graph, pkt, 0);
+	pr_err("EEE %s:%d rc=%d\n", __func__, __LINE__, rc);
+
+	kfree(pkt);
+
+	return rc;
+}
+EXPORT_SYMBOL_GPL(audioreach_register_events);
+
 void audioreach_graph_free_buf(struct q6apm_graph *graph)
 {
 	struct audioreach_graph_data *port;
