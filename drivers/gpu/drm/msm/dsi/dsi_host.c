@@ -420,6 +420,7 @@ int dsi_link_clk_set_rate_6g_v2_9(struct msm_dsi_host *msm_host)
 	 * DSI PHY PLLs have to be enabled to allow reparenting to them and
 	 * setting the rates of pixel/byte clocks.
 	 */
+#if 0
 	ret = clk_prepare_enable(msm_host->dsi_pll_byte_clk);
 	if (ret) {
 		dev_err(dev, "Failed to enable dsi_pll_byte: %d\n", ret);
@@ -432,6 +433,7 @@ int dsi_link_clk_set_rate_6g_v2_9(struct msm_dsi_host *msm_host)
 		goto out_disable_byte_clk;
 	}
 
+#endif
 	ret = clk_set_parent(msm_host->byte_src_clk, msm_host->dsi_pll_byte_clk);
 	if (ret)
 		dev_err(dev, "Failed to parent byte_src -> dsi_pll_byte: %d\n", ret);
@@ -440,15 +442,18 @@ int dsi_link_clk_set_rate_6g_v2_9(struct msm_dsi_host *msm_host)
 	if (ret)
 		dev_err(dev, "Failed to parent pixel_src -> dsi_pll_pixel: %d\n", ret);
 
+#if 0
 	clk_disable_unprepare(msm_host->dsi_pll_pixel_clk);
 	clk_disable_unprepare(msm_host->dsi_pll_byte_clk);
+#endif
 
 	return dsi_link_clk_set_rate_6g(msm_host);
-
+#if 0
 out_disable_byte_clk:
 	clk_disable_unprepare(msm_host->dsi_pll_byte_clk);
 
 	return ret;
+#endif
 }
 
 int dsi_link_clk_enable_6g(struct msm_dsi_host *msm_host)
