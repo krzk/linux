@@ -328,11 +328,13 @@ static void _dpu_crtc_setup_blend_cfg(struct dpu_crtc_mixer *mixer,
 	uint32_t blend_op;
 	uint32_t fg_alpha, bg_alpha, max_alpha;
 
-	fg_alpha = pstate->base.alpha >> 8;
-	if (mdss_ver->core_major_ver < 12)
+	if (mdss_ver->core_major_ver < 12) {
 		max_alpha = 0xff;
-	else
+		fg_alpha = pstate->base.alpha >> 8;
+	} else {
 		max_alpha = 0x3ff;
+		fg_alpha = pstate->base.alpha >> 6;
+	}
 	bg_alpha = max_alpha - fg_alpha;
 
 	/* default to opaque blending */
