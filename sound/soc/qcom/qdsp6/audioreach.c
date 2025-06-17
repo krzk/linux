@@ -1450,10 +1450,11 @@ static int audioreach_speaker_protection_vi(struct q6apm_graph *graph,
 	if (rc)
 		return rc;
 
-	pr_err("EEE %s:%d\n", __func__, __LINE__);
+	//pr_err("EEE %s:%d\n", __func__, __LINE__);
 
-	//num_channels = 1; // TODO: understand why - this makes all payloads pass
-	//		  // and VI setup succeeds.
+	// Not needed anymore with changes in topology and machine driver:
+	// num_channels = 1; // TODO: understand why - this makes all payloads pass
+			  // and VI setup succeeds.
 	op_sz = APM_SP_VI_OP_MODE_CFG_PSIZE(num_channels);
 	/* Channel mapping for Isense and Vsense, thus twice number of speakers. */
 	cm_sz = APM_SP_VI_CH_MAP_CFG_PSIZE(num_channels * 2);
