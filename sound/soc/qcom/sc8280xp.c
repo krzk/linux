@@ -136,8 +136,20 @@ static int sc8280xp_snd_hw_free(struct snd_pcm_substream *substream)
 	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
 	struct sdw_stream_runtime *sruntime = data->sruntime[cpu_dai->id];
 
+	pr_err("EEE %s:%d DAI=%d\n", __func__, __LINE__, cpu_dai->id);
 	return qcom_snd_sdw_hw_free(substream, sruntime,
 				    &data->stream_prepared[cpu_dai->id]);
+}
+
+static int sc8280xp_snd_trigger(struct snd_pcm_substream *substream, int cmd)
+{
+	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
+	struct sc8280xp_snd_data *data = snd_soc_card_get_drvdata(rtd->card);
+	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
+	struct sdw_stream_runtime *sruntime = data->sruntime[cpu_dai->id];
+
+	pr_err("EEE %s:%d DAI=%d, cmd=%d\n", __func__, __LINE__, cpu_dai->id, cmd);
+	return 0;
 }
 
 static const struct snd_soc_ops sc8280xp_be_ops = {
@@ -146,6 +158,7 @@ static const struct snd_soc_ops sc8280xp_be_ops = {
 	.hw_params = sc8280xp_snd_hw_params,
 	.hw_free = sc8280xp_snd_hw_free,
 	.prepare = sc8280xp_snd_prepare,
+	.trigger = sc8280xp_snd_trigger,
 };
 
 static void sc8280xp_add_be_ops(struct snd_soc_card *card)
