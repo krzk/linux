@@ -1061,8 +1061,11 @@ static int audioreach_pga_event(struct snd_soc_dapm_widget *w,
 	struct audioreach_module *mod = w->dobj.private;
 	struct q6apm *apm = dev_get_drvdata(c->dev);
 
+	pr_err("EEE %s:%d\n", __func__, __LINE__);
+
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
+		//pr_err("EEE %s:%d\n", __func__, __LINE__);
 		/* apply gain after power up of widget */
 		audioreach_gain_set_vol_ctrl(apm, mod, mod->gain);
 		break;

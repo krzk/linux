@@ -522,6 +522,7 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 
 	result = data->payload;
 
+	//pr_err("EEE %s:%d = 0x%x\n", __func__, __LINE__, hdr->opcode);
 	switch (hdr->opcode) {
 	case DATA_CMD_RSP_WR_SH_MEM_EP_DATA_BUFFER_DONE_V2:
 		if (!graph->ar_graph)
@@ -587,6 +588,8 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 			graph->cb(client_event, hdr->token, data->payload, graph->priv);
 		break;
 	case GPR_BASIC_RSP_RESULT:
+		//pr_err("EEE %s:%d = 0x%x / 0x%x, 0x%x\n", __func__, __LINE__, hdr->opcode, result->opcode,
+		//       result->status);
 		switch (result->opcode) {
 		case APM_CMD_SHARED_MEM_UNMAP_REGIONS:
 			graph->result.opcode = result->opcode;
@@ -610,10 +613,14 @@ static int graph_callback(struct gpr_resp_pkt *data, void *priv, int op)
 			wake_up(&graph->cmd_wait);
 			break;
 		default:
+			pr_err("EEE %s:%d = 0x%x FAIL %u\n", __func__, __LINE__,
+			       result->opcode, result->status);
 			break;
 		}
 		break;
 	default:
+		pr_err("EEE %s:%d = 0x%x FAIL2 0x%x\n", __func__, __LINE__,
+		       hdr->opcode, result->opcode);
 		break;
 	}
 	return 0;
@@ -793,6 +800,7 @@ static int apm_callback(struct gpr_resp_pkt *data, void *priv, int op)
 
 	result = data->payload;
 
+	//pr_err("EEE %s:%d = 0x%x\n", __func__, __LINE__, hdr->opcode);
 	switch (hdr->opcode) {
 	case APM_CMD_RSP_GET_SPF_STATE:
 		apm->result.opcode = hdr->opcode;
@@ -818,10 +826,14 @@ static int apm_callback(struct gpr_resp_pkt *data, void *priv, int op)
 			wake_up(&apm->wait);
 			break;
 		default:
+			pr_err("EEE %s:%d = 0x%x FAIL %u\n", __func__, __LINE__,
+			       result->opcode, result->status);
 			break;
 		}
 		break;
 	default:
+		pr_err("EEE %s:%d = 0x%x FAIL2 0x%x\n", __func__, __LINE__,
+		       hdr->opcode, result->opcode);
 		break;
 	}
 
