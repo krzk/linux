@@ -1031,8 +1031,8 @@
 };
 
 &pcie0 {
-	wake-gpios = <&tlmm 102 GPIO_ACTIVE_HIGH>;
-	perst-gpios = <&tlmm 104 GPIO_ACTIVE_LOW>;
+	wake-gpios = <&tlmm 104 GPIO_ACTIVE_HIGH>;
+	perst-gpios = <&tlmm 102 GPIO_ACTIVE_LOW>;
 
 	pinctrl-0 = <&pcie0_default_state>;
 	pinctrl-names = "default";
