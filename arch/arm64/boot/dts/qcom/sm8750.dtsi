@@ -2833,6 +2833,12 @@
 							<&rpmhpd_opp_nom>;
 				};
 
+				opp-570000000 {
+					opp-hz = /bits/ 64 <570000000>;
+					required-opps = <&rpmhpd_opp_nom_l1>,
+							<&rpmhpd_opp_nom_l1>;
+				};
+
 				opp-630000000 {
 					opp-hz = /bits/ 64 <630000000>;
 					required-opps = <&rpmhpd_opp_turbo>,
