@@ -443,8 +443,15 @@ static void audioreach_parse_cl_tokens(struct q6apm *apm, struct audioreach_sub_
        for (sz = 0; sz < le32_to_cpu(private->size);) {
                tkn_count = 0;
                sg_array = (struct snd_soc_tplg_vendor_array *)((u8 *)private->array + sz);
+
+	       pr_err("AAA sz %d / %u\n", sz, le32_to_cpu(private->size));
+	       pr_err("AAA size=%u, type=%u, elems=%u\n", sg_array->size, sg_array->type, sg_array->num_elems);
+
                sg_elem = sg_array->value;
                sz = sz + le32_to_cpu(sg_array->size);
+		if (sg_array->type == SND_SOC_AR_TPLG_MODULE_CFG_TYPE)
+			break;
+	       pr_err("AAA sz %d / %u\n", sz, le32_to_cpu(private->size));
                while (tkn_count <= (le32_to_cpu(sg_array->num_elems) - 1)) {
                        switch (le32_to_cpu(sg_elem->token)) {
                        case AR_TKN_U32_CONTROL_LINK_IID:
