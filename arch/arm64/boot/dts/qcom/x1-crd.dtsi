@@ -285,6 +285,23 @@
 				sound-dai = <&q6apm>;
 			};
 		};
+
+		vi-feedback-dai-link {
+			link-name = "CODEC_DMA-LPAIF_WSA-TX-0";
+
+			cpu {
+				sound-dai = <&q6apmbedai WSA_CODEC_DMA_TX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6apm>;
+			};
+
+			codec {
+				sound-dai = <&left_woofer 1>, <&left_tweeter 1>,
+					    <&swr0 10>, <&swr0 11>, <&lpass_wsamacro 2>;
+			};
+		};
 	};
 
 	vreg_edp_3p3: regulator-edp-3p3 {
