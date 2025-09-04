@@ -1496,7 +1496,7 @@ static int audioreach_speaker_protection_vi(struct q6apm_graph *graph,
 		/*
 		 * Map speakers into Vsense and then Isense of each channel.
 		 * E.g. for PCM_CHANNEL_FL and PCM_CHANNEL_FR to:
-		 * [ 1, 2, 3, 4]
+		 * [1, 2, 3, 4]
 		 */
 		cm_cfg->cfg.channel_mapping[2 * i] = (mcfg->channel_map[i] - 1) * 2 + 1;
 		cm_cfg->cfg.channel_mapping[2 * i + 1] = (mcfg->channel_map[i] - 1) * 2 + 2;
