@@ -1476,8 +1476,8 @@ static int audioreach_speaker_protection_vi(struct q6apm_graph *graph,
 	param_data->param_size = op_sz - APM_MODULE_PARAM_DATA_SIZE;
 
 	op_cfg->cfg.num_channels = num_channels;
-	op_cfg->cfg.operation_mode = PARAM_ID_SP_VI_OP_MODE_NORMAL;
-	op_cfg->cfg.quick_calibration = 1;
+	op_cfg->cfg.operation_mode = PARAM_ID_SP_VI_OP_MODE_CALIBRATION;
+	op_cfg->cfg.quick_calibration = 1; // TODO
 	/*
 	 * op_cfg->cfg.r0_t0_selection should be set only for normal mode, keep
 	 * as 0 for calibration
@@ -1574,11 +1574,19 @@ int audioreach_set_media_format(struct q6apm_graph *graph, struct audioreach_mod
 		rc = audioreach_gapless_set_media_format(graph, module, cfg);
 		break;
 	case MODULE_ID_SPEAKER_PROTECTION:
+		pr_err("%s:%d AAA module_id = MODULE_ID_SPEAKER_PROTECTION\n",
+			__func__, __LINE__);
 		rc = audioreach_speaker_protection(graph, module,
-						   PARAM_ID_SP_OP_MODE_NORMAL);
+						   PARAM_ID_SP_OP_MODE_CALIBRATION);
+		pr_err("%s:%d AAA module_id = MODULE_ID_SPEAKER_PROTECTION rc=%d\n",
+			__func__, __LINE__, rc);
 		break;
 	case MODULE_ID_SPEAKER_PROTECTION_VI:
+		pr_err("%s:%d AAA module_id = MODULE_ID_SPEAKER_PROTECTION_VI\n",
+			__func__, __LINE__);
 		rc = audioreach_speaker_protection_vi(graph, module, cfg);
+		pr_err("%s:%d AAA module_id = MODULE_ID_SPEAKER_PROTECTION_VI rc=%d\n",
+			__func__, __LINE__, rc);
 		break;
 
 	default:
