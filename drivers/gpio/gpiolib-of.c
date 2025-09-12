@@ -160,14 +160,12 @@ static void of_gpio_quirk_polarity(const struct device_node *np,
 {
 	if (active_high) {
 		if (*flags & OF_GPIO_ACTIVE_LOW) {
-			pr_warn("%s GPIO handle specifies active low - ignored\n",
-				of_node_full_name(np));
+			pr_warn("%pOF GPIO handle specifies active low - ignored\n", np);
 			*flags &= ~OF_GPIO_ACTIVE_LOW;
 		}
 	} else {
 		if (!(*flags & OF_GPIO_ACTIVE_LOW))
-			pr_info("%s enforce active low on GPIO handle\n",
-				of_node_full_name(np));
+			pr_info("%pOF enforce active low on GPIO handle\n", np);
 		*flags |= OF_GPIO_ACTIVE_LOW;
 	}
 }
@@ -347,8 +345,8 @@ static void of_gpio_flags_quirks(const struct device_node *np,
 	    of_device_is_compatible(np, "reg-fixed-voltage") &&
 	    of_property_read_bool(np, "gpio-open-drain")) {
 		*flags |= (OF_GPIO_SINGLE_ENDED | OF_GPIO_OPEN_DRAIN);
-		pr_info("%s uses legacy open drain flag - update the DTS if you can\n",
-			of_node_full_name(np));
+		pr_info("%pOF uses legacy open drain flag - update the DTS if you can\n",
+			np);
 	}
 
 	/*
@@ -625,8 +623,8 @@ static struct gpio_desc *of_find_gpio_rename(struct device_node *np,
 		legacy_id = gpios[i].legacy_id ?: gpios[i].con_id;
 		desc = of_get_named_gpiod_flags(np, legacy_id, idx, of_flags);
 		if (!gpiod_not_found(desc)) {
-			pr_info("%s uses legacy gpio name '%s' instead of '%s-gpios'\n",
-				of_node_full_name(np), legacy_id, con_id);
+			pr_info("%pOF uses legacy gpio name '%s' instead of '%s-gpios'\n",
+				np, legacy_id, con_id);
 			return desc;
 		}
 	}
@@ -660,8 +658,8 @@ static struct gpio_desc *of_find_mt2701_gpio(struct device_node *np,
 
 	desc = of_get_named_gpiod_flags(np, legacy_id, 0, of_flags);
 	if (!gpiod_not_found(desc))
-		pr_info("%s is using legacy gpio name '%s' instead of '%s-gpios'\n",
-			of_node_full_name(np), legacy_id, con_id);
+		pr_info("%pOF is using legacy gpio name '%s' instead of '%s-gpios'\n",
+			np, legacy_id, con_id);
 
 	return desc;
 }
@@ -687,7 +685,7 @@ static struct gpio_desc *of_find_trigger_gpio(struct device_node *np,
 
 	desc = of_get_named_gpiod_flags(np, con_id, idx, of_flags);
 	if (!gpiod_not_found(desc))
-		pr_debug("%s is used as a trigger\n", of_node_full_name(np));
+		pr_debug("%pOF is used as a trigger\n", np);
 
 	return desc;
 }
