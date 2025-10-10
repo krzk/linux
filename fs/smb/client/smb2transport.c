@@ -50,7 +50,7 @@ int
 smb311_crypto_shash_allocate(struct TCP_Server_Info *server)
 {
 	struct cifs_secmech *p = &server->secmech;
-	int rc = 0;
+	int rc;
 
 	rc = cifs_alloc_hash("hmac(sha256)", &p->hmacsha256);
 	if (rc)
