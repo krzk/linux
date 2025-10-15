@@ -543,10 +543,6 @@ static inline void btrfs_set_inode_mapping_order(struct btrfs_inode *inode)
 #endif
 }
 
-/* Array of bytes with variable length, hexadecimal format 0x1234 */
-#define CSUM_FMT				"0x%*phN"
-#define CSUM_FMT_VALUE(size, bytes)		size, bytes
-
 void btrfs_calculate_block_csum_folio(struct btrfs_fs_info *fs_info,
 				      const phys_addr_t paddr, u8 *dest);
 void btrfs_calculate_block_csum_pages(struct btrfs_fs_info *fs_info,
