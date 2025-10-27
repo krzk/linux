@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause-Clear */
 /*
  * Copyright (c) 2018-2021 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef ATH12K_WMI_H
@@ -3609,20 +3609,6 @@ struct ath12k_wmi_scan_cancel_arg {
 	u32 pdev_id;
 };
 
-struct wmi_bcn_send_from_host_cmd {
-	__le32 tlv_header;
-	__le32 vdev_id;
-	__le32 data_len;
-	union {
-		__le32 frag_ptr;
-		__le32 frag_ptr_lo;
-	};
-	__le32 frame_ctrl;
-	__le32 dtim_flag;
-	__le32 bcn_antenna;
-	__le32 frag_ptr_hi;
-};
-
 #define WMI_CHAN_INFO_MODE		GENMASK(5, 0)
 #define WMI_CHAN_INFO_HT40_PLUS		BIT(6)
 #define WMI_CHAN_INFO_PASSIVE		BIT(7)
@@ -4218,8 +4204,10 @@ struct wmi_unit_test_cmd {
 struct ath12k_wmi_vht_rate_set_params {
 	__le32 tlv_header;
 	__le32 rx_max_rate;
+	/* MCS at which the peer can transmit */
 	__le32 rx_mcs_set;
 	__le32 tx_max_rate;
+	/* MCS at which the peer can receive */
 	__le32 tx_mcs_set;
 	__le32 tx_max_mcs_nss;
 } __packed;
@@ -4940,6 +4928,24 @@ struct wmi_obss_spatial_reuse_params_cmd {
 #define ATH12K_BSS_COLOR_STA_PERIODS				10000
 #define ATH12K_BSS_COLOR_AP_PERIODS				5000
 
+/**
+ * enum wmi_bss_color_collision - Event types for BSS color collision handling
+ * @WMI_BSS_COLOR_COLLISION_DISABLE: Indicates that BSS color collision detection
+ *                                   is disabled.
+ * @WMI_BSS_COLOR_COLLISION_DETECTION: Event triggered when a BSS color collision
+ *                                     is detected.
+ * @WMI_BSS_COLOR_FREE_SLOT_TIMER_EXPIRY: Event indicating that the timer for waiting
+ *                                        on a free BSS color slot has expired.
+ * @WMI_BSS_COLOR_FREE_SLOT_AVAILABLE: Event indicating that a free BSS color slot
+ *                                     has become available.
+ */
+enum wmi_bss_color_collision {
+	WMI_BSS_COLOR_COLLISION_DISABLE = 0,
+	WMI_BSS_COLOR_COLLISION_DETECTION,
+	WMI_BSS_COLOR_FREE_SLOT_TIMER_EXPIRY,
+	WMI_BSS_COLOR_FREE_SLOT_AVAILABLE,
+};
+
 struct wmi_obss_color_collision_cfg_params_cmd {
 	__le32 tlv_header;
 	__le32 vdev_id;
@@ -4955,6 +4961,12 @@ struct wmi_bss_color_change_enable_params_cmd {
 	__le32 tlv_header;
 	__le32 vdev_id;
 	__le32 enable;
+} __packed;
+
+struct wmi_obss_color_collision_event {
+	__le32 vdev_id;
+	__le32 evt_type;
+	__le64 obss_color_bitmap;
 } __packed;
 
 #define ATH12K_IPV4_TH_SEED_SIZE 5
