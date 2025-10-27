@@ -721,6 +721,7 @@ static void power_down(void)
 		kernel_restart(NULL);
 		break;
 	case HIBERNATION_PLATFORM:
+		pm_restore_gfp_mask();
 		error = hibernation_platform_enter();
 		if (error == -EAGAIN || error == -EBUSY) {
 			events_check_enabled = false;
