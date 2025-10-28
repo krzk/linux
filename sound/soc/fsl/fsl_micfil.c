@@ -131,7 +131,7 @@ static struct fsl_micfil_soc_data fsl_micfil_imx943 = {
 	.fifos = 8,
 	.fifo_depth = 32,
 	.dataline =  0xf,
-	.formats = SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_DSD_U32_BE,
+	.formats = SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_DSD_U32_LE,
 	.use_edma = true,
 	.use_verid = true,
 	.volume_sx = false,
@@ -197,7 +197,7 @@ static int micfil_set_quality(struct fsl_micfil *micfil)
 static int micfil_quality_get(struct snd_kcontrol *kcontrol,
 			      struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct snd_soc_component *cmpnt = snd_kcontrol_chip(kcontrol);
 	struct fsl_micfil *micfil = snd_soc_component_get_drvdata(cmpnt);
 
 	ucontrol->value.integer.value[0] = micfil->quality;
@@ -208,7 +208,7 @@ static int micfil_quality_get(struct snd_kcontrol *kcontrol,
 static int micfil_quality_set(struct snd_kcontrol *kcontrol,
 			      struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct snd_soc_component *cmpnt = snd_kcontrol_chip(kcontrol);
 	struct fsl_micfil *micfil = snd_soc_component_get_drvdata(cmpnt);
 
 	micfil->quality = ucontrol->value.integer.value[0];
@@ -823,7 +823,7 @@ static int fsl_micfil_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	if (format == SNDRV_PCM_FORMAT_DSD_U32_BE) {
+	if (format == SNDRV_PCM_FORMAT_DSD_U32_LE) {
 		micfil->dec_bypass = true;
 		/*
 		 * According to equation 29 in RM:
