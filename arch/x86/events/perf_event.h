@@ -304,8 +304,6 @@ struct cpu_hw_events {
 	/* Intel ACR configuration */
 	u64			acr_cfg_b[X86_PMC_IDX_MAX];
 	u64			acr_cfg_c[X86_PMC_IDX_MAX];
-	/* Cached CFG_C values */
-	u64			cfg_c_val[X86_PMC_IDX_MAX];
 
 	/*
 	 * Intel LBR bits
@@ -1783,8 +1781,6 @@ void intel_pmu_pebs_data_source_arl_h(void);
 void intel_pmu_pebs_data_source_cmt(void);
 
 void intel_pmu_pebs_data_source_lnl(void);
-
-u64 intel_get_arch_pebs_data_config(struct perf_event *event);
 
 int intel_pmu_setup_lbr_filter(struct perf_event *event);
 
