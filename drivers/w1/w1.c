@@ -575,11 +575,11 @@ static int w1_uevent(const struct device *dev, struct kobj_uevent_env *env)
 	int err = 0;
 
 	if (dev->driver == &w1_master_driver) {
-		md = container_of(dev, struct w1_master, dev);
+		md = container_of_const(dev, struct w1_master, dev);
 		event_owner = "master";
 		name = md->name;
 	} else if (dev->driver == &w1_slave_driver) {
-		sl = container_of(dev, struct w1_slave, dev);
+		sl = container_of_const(dev, struct w1_slave, dev);
 		event_owner = "slave";
 		name = sl->name;
 	} else {
