@@ -350,13 +350,13 @@ typedef int (*ptp_gettimex_fn)(struct ptp_clock_info *,
 static long ptp_sys_offset_extended(struct ptp_clock *ptp, void __user *arg,
 				    ptp_gettimex_fn gettimex_fn)
 {
-	struct ptp_sys_offset_extended *extoff __free(kfree) = NULL;
 	struct ptp_system_timestamp sts;
 
 	if (!gettimex_fn)
 		return -EOPNOTSUPP;
 
-	extoff = memdup_user(arg, sizeof(*extoff));
+	struct ptp_sys_offset_extended *extoff __free(kfree) =
+		memdup_user(arg, sizeof(*extoff));
 	if (IS_ERR(extoff))
 		return PTR_ERR(extoff);
 
@@ -402,11 +402,11 @@ static long ptp_sys_offset_extended(struct ptp_clock *ptp, void __user *arg,
 
 static long ptp_sys_offset(struct ptp_clock *ptp, void __user *arg)
 {
-	struct ptp_sys_offset *sysoff __free(kfree) = NULL;
 	struct ptp_clock_time *pct;
 	struct timespec64 ts;
 
-	sysoff = memdup_user(arg, sizeof(*sysoff));
+	struct ptp_sys_offset *sysoff __free(kfree) =
+		memdup_user(arg, sizeof(*sysoff));
 	if (IS_ERR(sysoff))
 		return PTR_ERR(sysoff);
 
