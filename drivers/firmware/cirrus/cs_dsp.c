@@ -375,13 +375,11 @@ static ssize_t cs_dsp_debugfs_string_read(struct cs_dsp *dsp,
 					  size_t count, loff_t *ppos,
 					  const char **pstr)
 {
-	const char *str __free(kfree) = NULL;
-
 	scoped_guard(mutex, &dsp->pwr_lock) {
 		if (!*pstr)
 			return 0;
 
-		str = kasprintf(GFP_KERNEL, "%s\n", *pstr);
+		const char *str __free(kfree) = kasprintf(GFP_KERNEL, "%s\n", *pstr);
 		if (!str)
 			return -ENOMEM;
 
