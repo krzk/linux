@@ -218,7 +218,7 @@ static unsigned int scmi_quirk_signature(const char *vend, const char *sub_vend)
 
 static int scmi_quirk_range_parse(struct scmi_quirk *quirk)
 {
-	const char *last, *first __free(kfree) = NULL;
+	const char *last;
 	size_t len;
 	char *sep;
 	int ret;
@@ -229,7 +229,8 @@ static int scmi_quirk_range_parse(struct scmi_quirk *quirk)
 	if (!len)
 		return 0;
 
-	first = kmemdup(quirk->impl_ver_range, len + 1, GFP_KERNEL);
+	const char *first __free(kfree) = kmemdup(quirk->impl_ver_range, len + 1,
+						  GFP_KERNEL);
 	if (!first)
 		return -ENOMEM;
 
