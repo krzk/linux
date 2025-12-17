@@ -5579,6 +5579,7 @@
 				phy-names = "dp";
 
 				#sound-dai-cells = <0>;
+				sound-name-prefix = "DisplayPort0";
 
 				status = "disabled";
 
@@ -5667,6 +5668,7 @@
 				phy-names = "dp";
 
 				#sound-dai-cells = <0>;
+				sound-name-prefix = "DisplayPort1";
 
 				status = "disabled";
 
@@ -5755,6 +5757,7 @@
 				phy-names = "dp";
 
 				#sound-dai-cells = <0>;
+				sound-name-prefix = "DisplayPort2";
 
 				status = "disabled";
 
@@ -5838,6 +5841,7 @@
 				phy-names = "dp";
 
 				#sound-dai-cells = <0>;
+				sound-name-prefix = "DisplayPort3";
 
 				status = "disabled";
 
