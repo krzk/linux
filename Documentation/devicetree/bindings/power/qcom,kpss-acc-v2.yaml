@@ -21,6 +21,7 @@ properties:
     enum:
       - qcom,kpss-acc-v2
       - qcom,msm8916-acc
+      - qcom,msm8916-kpss-acc
 
   reg:
     items:
