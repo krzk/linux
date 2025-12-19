@@ -64,6 +64,7 @@ properties:
     patternProperties:
       "^sys|sm[0-2]|ldo[0-9]|ldo_rtc$":
         $ref: regulator.yaml
+        unevaluatedProperties: false
 
 allOf:
   - $ref: /schemas/gpio/gpio.yaml
