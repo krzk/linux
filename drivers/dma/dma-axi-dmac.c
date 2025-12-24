@@ -925,24 +925,21 @@ static int axi_dmac_parse_chan_dt(struct device_node *of_chan,
 
 static int axi_dmac_parse_dt(struct device *dev, struct axi_dmac *dmac)
 {
-	struct device_node *of_channels, *of_chan;
-	int ret;
+	struct device_node *of_channels;
+	int ret = 0;
 
 	of_channels = of_get_child_by_name(dev->of_node, "adi,channels");
 	if (of_channels == NULL)
 		return -ENODEV;
 
-	for_each_child_of_node(of_channels, of_chan) {
+	for_each_child_of_node_scoped(of_channels, of_chan) {
 		ret = axi_dmac_parse_chan_dt(of_chan, &dmac->chan);
-		if (ret) {
-			of_node_put(of_chan);
-			of_node_put(of_channels);
-			return -EINVAL;
-		}
+		if (ret)
+			break;
 	}
 	of_node_put(of_channels);
 
-	return 0;
+	return ret;
 }
 
 static int axi_dmac_read_chan_config(struct device *dev, struct axi_dmac *dmac)
