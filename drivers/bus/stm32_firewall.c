@@ -240,7 +240,6 @@ EXPORT_SYMBOL_GPL(stm32_firewall_controller_unregister);
 
 int stm32_firewall_populate_bus(struct stm32_firewall_controller *firewall_controller)
 {
-	struct stm32_firewall *firewalls;
 	struct device *parent;
 	unsigned int i;
 	int len;
@@ -257,15 +256,14 @@ int stm32_firewall_populate_bus(struct stm32_firewall_controller *firewall_contr
 		if (len <= 0)
 			return -EINVAL;
 
-		firewalls = kcalloc(len, sizeof(*firewalls), GFP_KERNEL);
+		struct stm32_firewall *firewalls __free(kfree) =
+			kcalloc(len, sizeof(*firewalls), GFP_KERNEL);
 		if (!firewalls)
 			return -ENOMEM;
 
 		err = stm32_firewall_get_firewall(child, firewalls, (unsigned int)len);
-		if (err) {
-			kfree(firewalls);
+		if (err)
 			return err;
-		}
 
 		for (i = 0; i < len; i++) {
 			if (firewall_controller->grant_access(firewall_controller,
@@ -279,8 +277,6 @@ int stm32_firewall_populate_bus(struct stm32_firewall_controller *firewall_contr
 					child->full_name);
 			}
 		}
-
-		kfree(firewalls);
 	}
 
 	return 0;
