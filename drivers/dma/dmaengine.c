@@ -943,12 +943,14 @@ static void dmaenginem_release_channel(void *chan)
 
 struct dma_chan *devm_dma_request_chan(struct device *dev, const char *name)
 {
-	struct dma_chan *chan = dma_request_chan(dev, name);
-	int ret = 0;
+	struct dma_chan *chan;
+	int ret;
 
-	if (!IS_ERR(chan))
-		ret = devm_add_action_or_reset(dev, dmaenginem_release_channel, chan);
+	chan = dma_request_chan(dev, name);
+	if (IS_ERR(chan))
+		return chan;
 
+	ret = devm_add_action_or_reset(dev, dmaenginem_release_channel, chan);
 	if (ret)
 		return ERR_PTR(ret);
 
