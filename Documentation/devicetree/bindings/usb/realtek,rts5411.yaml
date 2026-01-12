@@ -19,6 +19,10 @@ properties:
           - usbbda,5411
           - usbbda,411
 
+  reg:
+    minimum: 1
+    maximum: 4
+
   vdd-supply:
     description:
       phandle to the regulator that provides power to the hub.
@@ -37,16 +41,12 @@ properties:
             minimum: 1
             maximum: 4
 
-additionalProperties:
-  properties:
-    reg:
-      minimum: 1
-      maximum: 4
-
 required:
   - peer-hub
   - compatible
   - reg
+
+unevaluatedProperties: false
 
 examples:
   - |
