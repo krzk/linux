@@ -42,6 +42,7 @@ properties:
             maximum: 5
 
 additionalProperties:
+  type: object
   properties:
     reg:
       minimum: 1
@@ -49,6 +50,8 @@ additionalProperties:
 
 required:
   - peer-hub
+
+unevaluatedProperties: false
 
 allOf:
   - $ref: usb-hub.yaml#
