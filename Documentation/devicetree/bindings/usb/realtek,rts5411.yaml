@@ -38,6 +38,7 @@ properties:
             maximum: 4
 
 additionalProperties:
+  type: object
   properties:
     reg:
       minimum: 1
@@ -47,6 +48,8 @@ required:
   - peer-hub
   - compatible
   - reg
+
+unevaluatedProperties: false
 
 examples:
   - |
