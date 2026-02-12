@@ -2071,6 +2071,64 @@ void rapl_package_remove_pmu(struct rapl_package *rp)
 EXPORT_SYMBOL_NS_GPL(rapl_package_remove_pmu, "INTEL_RAPL");
 #endif
 
+/* pm notifier for saving/restoring Power Limit settings */
+static void power_limit_state_save(void)
+{
+	struct rapl_package *rp;
+	struct rapl_domain *rd;
+	int ret;
+
+	cpus_read_lock();
+	list_for_each_entry(rp, &rapl_packages, plist) {
+		if (!rp->power_zone)
+			continue;
+		rd = power_zone_to_rapl_domain(rp->power_zone);
+		for (int i = POWER_LIMIT1; i < NR_POWER_LIMITS; i++) {
+			ret = rapl_read_pl_data(rd, i, PL_LIMIT, true,
+						&rd->rpl[i].last_power_limit);
+			if (ret)
+				rd->rpl[i].last_power_limit = 0;
+		}
+	}
+	cpus_read_unlock();
+}
+
+static void power_limit_state_restore(void)
+{
+	struct rapl_package *rp;
+	struct rapl_domain *rd;
+
+	cpus_read_lock();
+	list_for_each_entry(rp, &rapl_packages, plist) {
+		if (!rp->power_zone)
+			continue;
+		rd = power_zone_to_rapl_domain(rp->power_zone);
+		for (int i = POWER_LIMIT1; i < NR_POWER_LIMITS; i++)
+			if (rd->rpl[i].last_power_limit)
+				rapl_write_pl_data(rd, i, PL_LIMIT,
+						   rd->rpl[i].last_power_limit);
+	}
+	cpus_read_unlock();
+}
+
+static int rapl_pm_callback(struct notifier_block *nb,
+			    unsigned long mode, void *_unused)
+{
+	switch (mode) {
+	case PM_SUSPEND_PREPARE:
+		power_limit_state_save();
+		break;
+	case PM_POST_SUSPEND:
+		power_limit_state_restore();
+		break;
+	}
+	return NOTIFY_OK;
+}
+
+static struct notifier_block rapl_pm_notifier = {
+	.notifier_call = rapl_pm_callback,
+};
+
 /* called from CPU hotplug notifier, hotplug lock held */
 void rapl_remove_package_cpuslocked(struct rapl_package *rp)
 {
@@ -2100,6 +2158,9 @@ void rapl_remove_package_cpuslocked(struct rapl_package *rp)
 				 &rd_package->power_zone);
 	list_del(&rp->plist);
 	kfree(rp);
+
+	if (list_empty(&rapl_packages))
+		unregister_pm_notifier(&rapl_pm_notifier);
 }
 EXPORT_SYMBOL_NS_GPL(rapl_remove_package_cpuslocked, "INTEL_RAPL");
 
@@ -2202,6 +2263,8 @@ struct rapl_package *rapl_add_package_cpuslocked(int id, struct rapl_if_priv *pr
 	}
 	ret = rapl_package_register_powercap(rp);
 	if (!ret) {
+		if (list_empty(&rapl_packages))
+			register_pm_notifier(&rapl_pm_notifier);
 		INIT_LIST_HEAD(&rp->plist);
 		list_add(&rp->plist, &rapl_packages);
 		return rp;
@@ -2220,64 +2283,6 @@ struct rapl_package *rapl_add_package(int id, struct rapl_if_priv *priv, bool id
 	return rapl_add_package_cpuslocked(id, priv, id_is_cpu);
 }
 EXPORT_SYMBOL_NS_GPL(rapl_add_package, "INTEL_RAPL");
-
-static void power_limit_state_save(void)
-{
-	struct rapl_package *rp;
-	struct rapl_domain *rd;
-	int ret, i;
-
-	cpus_read_lock();
-	list_for_each_entry(rp, &rapl_packages, plist) {
-		if (!rp->power_zone)
-			continue;
-		rd = power_zone_to_rapl_domain(rp->power_zone);
-		for (i = POWER_LIMIT1; i < NR_POWER_LIMITS; i++) {
-			ret = rapl_read_pl_data(rd, i, PL_LIMIT, true,
-						 &rd->rpl[i].last_power_limit);
-			if (ret)
-				rd->rpl[i].last_power_limit = 0;
-		}
-	}
-	cpus_read_unlock();
-}
-
-static void power_limit_state_restore(void)
-{
-	struct rapl_package *rp;
-	struct rapl_domain *rd;
-	int i;
-
-	cpus_read_lock();
-	list_for_each_entry(rp, &rapl_packages, plist) {
-		if (!rp->power_zone)
-			continue;
-		rd = power_zone_to_rapl_domain(rp->power_zone);
-		for (i = POWER_LIMIT1; i < NR_POWER_LIMITS; i++)
-			if (rd->rpl[i].last_power_limit)
-				rapl_write_pl_data(rd, i, PL_LIMIT,
-					       rd->rpl[i].last_power_limit);
-	}
-	cpus_read_unlock();
-}
-
-static int rapl_pm_callback(struct notifier_block *nb,
-			    unsigned long mode, void *_unused)
-{
-	switch (mode) {
-	case PM_SUSPEND_PREPARE:
-		power_limit_state_save();
-		break;
-	case PM_POST_SUSPEND:
-		power_limit_state_restore();
-		break;
-	}
-	return NOTIFY_OK;
-}
-
-static struct notifier_block rapl_pm_notifier = {
-	.notifier_call = rapl_pm_callback,
-};
 
 static struct platform_device *rapl_msr_platdev;
 
@@ -2301,19 +2306,12 @@ static int __init rapl_init(void)
 		}
 	}
 
-	ret = register_pm_notifier(&rapl_pm_notifier);
-	if (ret && rapl_msr_platdev) {
-		platform_device_del(rapl_msr_platdev);
-		platform_device_put(rapl_msr_platdev);
-	}
-
-	return ret;
+	return 0;
 }
 
 static void __exit rapl_exit(void)
 {
 	platform_device_unregister(rapl_msr_platdev);
-	unregister_pm_notifier(&rapl_pm_notifier);
 }
 
 fs_initcall(rapl_init);
