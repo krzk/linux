@@ -1656,7 +1656,7 @@ static int stm32_spi_transfer_one_dma(struct stm32_spi *spi,
 			ret = stm32_spi_prepare_rx_dma_mdma_chaining(spi, xfer, &rx_dma_conf,
 								     &rx_dma_desc, &rx_mdma_desc);
 			if (ret) { /* RX DMA MDMA chaining not possible, fallback to DMA only */
-				rx_dma_conf.peripheral_config = 0;
+				rx_dma_conf.peripheral_config = NULL;
 				rx_dma_desc = NULL;
 			}
 		}
