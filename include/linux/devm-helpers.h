@@ -53,9 +53,7 @@ static inline int devm_delayed_work_autocancel(struct device *dev,
 
 static inline void devm_work_drop(void *res)
 {
-	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	cancel_work_sync(res);
-	pr_err("%s:%d AAA\n", __func__, __LINE__);
 }
 
 /**
