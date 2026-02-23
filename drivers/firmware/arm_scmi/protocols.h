@@ -183,7 +183,7 @@ struct scmi_protocol_handle {
 	unsigned int version;
 	const struct scmi_xfer_ops *xops;
 	const struct scmi_proto_helpers_ops *hops;
-	int (*set_priv)(const struct scmi_protocol_handle *ph, void *priv);
+	int (*set_priv)(struct scmi_protocol_handle *ph, void *priv);
 	void *(*get_priv)(const struct scmi_protocol_handle *ph);
 };
 
@@ -315,7 +315,7 @@ struct scmi_xfer_ops {
 			 struct scmi_xfer *xfer);
 };
 
-typedef int (*scmi_prot_init_ph_fn_t)(const struct scmi_protocol_handle *);
+typedef int (*scmi_prot_init_ph_fn_t)(struct scmi_protocol_handle *);
 
 /**
  * struct scmi_protocol  - Protocol descriptor

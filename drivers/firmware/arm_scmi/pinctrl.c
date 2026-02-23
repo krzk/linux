@@ -827,7 +827,7 @@ static const struct scmi_pinctrl_proto_ops pinctrl_proto_ops = {
 	.pin_free = scmi_pinctrl_pin_free,
 };
 
-static int scmi_pinctrl_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_pinctrl_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int ret;
 	struct scmi_pinctrl_info *pinfo;
@@ -861,7 +861,7 @@ static int scmi_pinctrl_protocol_init(const struct scmi_protocol_handle *ph)
 	return ph->set_priv(ph, pinfo);
 }
 
-static int scmi_pinctrl_protocol_deinit(const struct scmi_protocol_handle *ph)
+static int scmi_pinctrl_protocol_deinit(struct scmi_protocol_handle *ph)
 {
 	int i;
 	struct scmi_pinctrl_info *pi = ph->get_priv(ph);

@@ -459,7 +459,7 @@ static const struct scmi_imx_misc_proto_ops scmi_imx_misc_proto_ops = {
 	.misc_syslog = scmi_imx_misc_syslog_get,
 };
 
-static int scmi_imx_misc_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_imx_misc_protocol_init(struct scmi_protocol_handle *ph)
 {
 	struct scmi_imx_misc_info *minfo;
 	int ret;

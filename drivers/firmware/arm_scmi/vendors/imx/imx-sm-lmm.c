@@ -223,7 +223,7 @@ static int scmi_imx_lmm_protocol_attributes_get(const struct scmi_protocol_handl
 	return ret;
 }
 
-static int scmi_imx_lmm_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_imx_lmm_protocol_init(struct scmi_protocol_handle *ph)
 {
 	struct scmi_imx_lmm_priv *info;
 	int ret;

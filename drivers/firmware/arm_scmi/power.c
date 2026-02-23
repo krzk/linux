@@ -319,7 +319,7 @@ static const struct scmi_protocol_events power_protocol_events = {
 	.num_events = ARRAY_SIZE(power_events),
 };
 
-static int scmi_power_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_power_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int domain, ret;
 	struct scmi_power_info *pinfo;

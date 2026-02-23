@@ -401,7 +401,7 @@ static const struct scmi_voltage_proto_ops voltage_proto_ops = {
 	.level_get = scmi_voltage_level_get,
 };
 
-static int scmi_voltage_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_voltage_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int ret;
 	struct voltage_info *vinfo;

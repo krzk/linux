@@ -342,7 +342,7 @@ static const struct scmi_imx_bbm_proto_ops scmi_imx_bbm_proto_ops = {
 	.button_get = scmi_imx_bbm_button_get,
 };
 
-static int scmi_imx_bbm_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_imx_bbm_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int ret;
 	struct scmi_imx_bbm_info *binfo;

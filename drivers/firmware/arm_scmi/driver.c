@@ -1630,7 +1630,7 @@ static int version_get(const struct scmi_protocol_handle *ph, u32 *version)
  *
  * Return: 0 on Success
  */
-static int scmi_set_protocol_priv(const struct scmi_protocol_handle *ph,
+static int scmi_set_protocol_priv(struct scmi_protocol_handle *ph,
 				  void *priv)
 {
 	struct scmi_protocol_instance *pi = ph_to_pi(ph);

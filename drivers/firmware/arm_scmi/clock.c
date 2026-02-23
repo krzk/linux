@@ -1064,7 +1064,7 @@ static const struct scmi_protocol_events clk_protocol_events = {
 	.num_events = ARRAY_SIZE(clk_events),
 };
 
-static int scmi_clock_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_clock_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int clkid, ret;
 	struct clock_info *cinfo;

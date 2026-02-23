@@ -230,7 +230,7 @@ static int scmi_imx_cpu_attributes_get(const struct scmi_protocol_handle *ph,
 	return ret;
 }
 
-static int scmi_imx_cpu_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_imx_cpu_protocol_init(struct scmi_protocol_handle *ph)
 {
 	struct scmi_imx_cpu_info *info;
 	int ret, i;

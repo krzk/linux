@@ -1144,7 +1144,7 @@ static const struct scmi_protocol_events sensor_protocol_events = {
 	.num_events = ARRAY_SIZE(sensor_events),
 };
 
-static int scmi_sensors_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_sensors_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int ret;
 	struct sensors_info *sinfo;

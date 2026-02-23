@@ -371,7 +371,7 @@ static const struct scmi_protocol_events base_protocol_events = {
 	.num_sources = SCMI_BASE_NUM_SOURCES,
 };
 
-static int scmi_base_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_base_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int id, ret;
 	u8 *prot_imp;

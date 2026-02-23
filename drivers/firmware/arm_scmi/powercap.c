@@ -957,7 +957,7 @@ static const struct scmi_protocol_events powercap_protocol_events = {
 };
 
 static int
-scmi_powercap_protocol_init(const struct scmi_protocol_handle *ph)
+scmi_powercap_protocol_init(struct scmi_protocol_handle *ph)
 {
 	int domain, ret;
 	struct powercap_info *pinfo;

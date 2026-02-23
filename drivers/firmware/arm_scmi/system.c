@@ -138,7 +138,7 @@ static const struct scmi_protocol_events system_protocol_events = {
 	.num_sources = SCMI_SYSTEM_NUM_SOURCES,
 };
 
-static int scmi_system_protocol_init(const struct scmi_protocol_handle *ph)
+static int scmi_system_protocol_init(struct scmi_protocol_handle *ph)
 {
 	struct scmi_system_info *pinfo;
 
