@@ -29,7 +29,7 @@
  * @num_clocks: Total number of clocks for this provider
  */
 struct sci_clk_provider {
-	const struct ti_sci_handle *sci;
+	struct ti_sci_handle *sci;
 	const struct ti_sci_clk_ops *ops;
 	struct device *dev;
 	struct sci_clk **clocks;
@@ -651,7 +651,7 @@ static int ti_sci_clk_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct device_node *np = dev->of_node;
 	struct sci_clk_provider *provider;
-	const struct ti_sci_handle *handle;
+	struct ti_sci_handle *handle;
 	int ret;
 
 	handle = devm_ti_sci_get_handle(dev);

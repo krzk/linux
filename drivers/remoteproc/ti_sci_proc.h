@@ -21,7 +21,7 @@
  *	     device
  */
 struct ti_sci_proc {
-	const struct ti_sci_handle *sci;
+	struct ti_sci_handle *sci;
 	const struct ti_sci_proc_ops *ops;
 	struct device *dev;
 	u8 proc_id;
@@ -30,7 +30,7 @@ struct ti_sci_proc {
 
 static inline
 struct ti_sci_proc *ti_sci_proc_of_get_tsp(struct device *dev,
-					   const struct ti_sci_handle *sci)
+					   struct ti_sci_handle *sci)
 {
 	struct ti_sci_proc *tsp;
 	u32 temp[2];

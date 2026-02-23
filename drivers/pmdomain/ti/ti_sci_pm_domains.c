@@ -27,7 +27,7 @@
  * @data: onecell data for genpd core
  */
 struct ti_sci_genpd_provider {
-	const struct ti_sci_handle *ti_sci;
+	struct ti_sci_handle *ti_sci;
 	struct device *dev;
 	struct list_head pd_list;
 	struct genpd_onecell_data data;
@@ -63,7 +63,7 @@ static void ti_sci_pd_set_lat_constraint(struct device *dev, s32 val)
 {
 	struct generic_pm_domain *genpd = pd_to_genpd(dev->pm_domain);
 	struct ti_sci_pm_domain *pd = genpd_to_ti_sci_pd(genpd);
-	const struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
+	struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
 	u16 val_ms;
 	int ret;
 
@@ -83,7 +83,7 @@ static inline void ti_sci_pd_set_wkup_constraint(struct device *dev)
 {
 	struct generic_pm_domain *genpd = pd_to_genpd(dev->pm_domain);
 	struct ti_sci_pm_domain *pd = genpd_to_ti_sci_pd(genpd);
-	const struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
+	struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
 	int ret;
 
 	if (device_may_wakeup(dev)) {
@@ -111,7 +111,7 @@ static inline void ti_sci_pd_set_wkup_constraint(struct device *dev)
 static int ti_sci_pd_power_off(struct generic_pm_domain *domain)
 {
 	struct ti_sci_pm_domain *pd = genpd_to_ti_sci_pd(domain);
-	const struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
+	struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
 
 	return ti_sci->ops.dev_ops.put_device(ti_sci, pd->idx);
 }
@@ -123,7 +123,7 @@ static int ti_sci_pd_power_off(struct generic_pm_domain *domain)
 static int ti_sci_pd_power_on(struct generic_pm_domain *domain)
 {
 	struct ti_sci_pm_domain *pd = genpd_to_ti_sci_pd(domain);
-	const struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
+	struct ti_sci_handle *ti_sci = pd->parent->ti_sci;
 
 	if (pd->exclusive)
 		return ti_sci->ops.dev_ops.get_device_exclusive(ti_sci,

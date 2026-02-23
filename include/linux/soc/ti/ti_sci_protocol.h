@@ -34,7 +34,7 @@ struct ti_sci_handle;
  *		else returns corresponding error value.
  */
 struct ti_sci_core_ops {
-	int (*reboot_device)(const struct ti_sci_handle *handle);
+	int (*reboot_device)(struct ti_sci_handle *handle);
 };
 
 /**
@@ -96,26 +96,25 @@ struct ti_sci_core_ops {
  * managed by driver for that purpose.
  */
 struct ti_sci_dev_ops {
-	int (*get_device)(const struct ti_sci_handle *handle, u32 id);
-	int (*get_device_exclusive)(const struct ti_sci_handle *handle, u32 id);
-	int (*idle_device)(const struct ti_sci_handle *handle, u32 id);
-	int (*idle_device_exclusive)(const struct ti_sci_handle *handle,
-				     u32 id);
-	int (*put_device)(const struct ti_sci_handle *handle, u32 id);
-	int (*is_valid)(const struct ti_sci_handle *handle, u32 id);
-	int (*get_context_loss_count)(const struct ti_sci_handle *handle,
+	int (*get_device)(struct ti_sci_handle *handle, u32 id);
+	int (*get_device_exclusive)(struct ti_sci_handle *handle, u32 id);
+	int (*idle_device)(struct ti_sci_handle *handle, u32 id);
+	int (*idle_device_exclusive)(struct ti_sci_handle *handle, u32 id);
+	int (*put_device)(struct ti_sci_handle *handle, u32 id);
+	int (*is_valid)(struct ti_sci_handle *handle, u32 id);
+	int (*get_context_loss_count)(struct ti_sci_handle *handle,
 				      u32 id, u32 *count);
-	int (*is_idle)(const struct ti_sci_handle *handle, u32 id,
+	int (*is_idle)(struct ti_sci_handle *handle, u32 id,
 		       bool *requested_state);
-	int (*is_stop)(const struct ti_sci_handle *handle, u32 id,
+	int (*is_stop)(struct ti_sci_handle *handle, u32 id,
 		       bool *req_state, bool *current_state);
-	int (*is_on)(const struct ti_sci_handle *handle, u32 id,
+	int (*is_on)(struct ti_sci_handle *handle, u32 id,
 		     bool *req_state, bool *current_state);
-	int (*is_transitioning)(const struct ti_sci_handle *handle, u32 id,
+	int (*is_transitioning)(struct ti_sci_handle *handle, u32 id,
 				bool *current_state);
-	int (*set_device_resets)(const struct ti_sci_handle *handle, u32 id,
+	int (*set_device_resets)(struct ti_sci_handle *handle, u32 id,
 				 u32 reset_state);
-	int (*get_device_resets)(const struct ti_sci_handle *handle, u32 id,
+	int (*get_device_resets)(struct ti_sci_handle *handle, u32 id,
 				 u32 *reset_state);
 };
 
@@ -169,29 +168,29 @@ struct ti_sci_dev_ops {
  * managed by driver for that purpose.
  */
 struct ti_sci_clk_ops {
-	int (*get_clock)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*get_clock)(struct ti_sci_handle *handle, u32 did, u32 cid,
 			 bool needs_ssc, bool can_change_freq,
 			 bool enable_input_term);
-	int (*idle_clock)(const struct ti_sci_handle *handle, u32 did, u32 cid);
-	int (*put_clock)(const struct ti_sci_handle *handle, u32 did, u32 cid);
-	int (*is_auto)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*idle_clock)(struct ti_sci_handle *handle, u32 did, u32 cid);
+	int (*put_clock)(struct ti_sci_handle *handle, u32 did, u32 cid);
+	int (*is_auto)(struct ti_sci_handle *handle, u32 did, u32 cid,
 		       bool *req_state);
-	int (*is_on)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*is_on)(struct ti_sci_handle *handle, u32 did, u32 cid,
 		     bool *req_state, bool *current_state);
-	int (*is_off)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*is_off)(struct ti_sci_handle *handle, u32 did, u32 cid,
 		      bool *req_state, bool *current_state);
-	int (*set_parent)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*set_parent)(struct ti_sci_handle *handle, u32 did, u32 cid,
 			  u32 parent_id);
-	int (*get_parent)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*get_parent)(struct ti_sci_handle *handle, u32 did, u32 cid,
 			  u32 *parent_id);
-	int (*get_num_parents)(const struct ti_sci_handle *handle, u32 did,
+	int (*get_num_parents)(struct ti_sci_handle *handle, u32 did,
 			       u32 cid, u32 *num_parents);
-	int (*get_best_match_freq)(const struct ti_sci_handle *handle, u32 did,
+	int (*get_best_match_freq)(struct ti_sci_handle *handle, u32 did,
 				   u32 cid, u64 min_freq, u64 target_freq,
 				   u64 max_freq, u64 *match_freq);
-	int (*set_freq)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*set_freq)(struct ti_sci_handle *handle, u32 did, u32 cid,
 			u64 min_freq, u64 target_freq, u64 max_freq);
-	int (*get_freq)(const struct ti_sci_handle *handle, u32 did, u32 cid,
+	int (*get_freq)(struct ti_sci_handle *handle, u32 did, u32 cid,
 			u64 *current_freq);
 };
 
@@ -216,11 +215,11 @@ struct ti_sci_clk_ops {
  *		- state: The desired state of latency constraint: set or clear.
  */
 struct ti_sci_pm_ops {
-	int (*lpm_wake_reason)(const struct ti_sci_handle *handle,
+	int (*lpm_wake_reason)(struct ti_sci_handle *handle,
 			       u32 *source, u64 *timestamp, u8 *pin, u8 *mode);
-	int (*set_device_constraint)(const struct ti_sci_handle *handle,
+	int (*set_device_constraint)(struct ti_sci_handle *handle,
 				     u32 id, u8 state);
-	int (*set_latency_constraint)(const struct ti_sci_handle *handle,
+	int (*set_latency_constraint)(struct ti_sci_handle *handle,
 				      u16 latency, u8 state);
 };
 
@@ -258,9 +257,9 @@ struct ti_sci_resource_desc {
  *		range start index and number of resources
  */
 struct ti_sci_rm_core_ops {
-	int (*get_range)(const struct ti_sci_handle *handle, u32 dev_id,
+	int (*get_range)(struct ti_sci_handle *handle, u32 dev_id,
 			 u8 subtype, struct ti_sci_resource_desc *desc);
-	int (*get_range_from_shost)(const struct ti_sci_handle *handle,
+	int (*get_range_from_shost)(struct ti_sci_handle *handle,
 				    u32 dev_id, u8 subtype, u8 s_host,
 				    struct ti_sci_resource_desc *desc);
 };
@@ -280,14 +279,14 @@ struct ti_sci_rm_core_ops {
  *			Aggregator.
  */
 struct ti_sci_rm_irq_ops {
-	int (*set_irq)(const struct ti_sci_handle *handle, u16 src_id,
+	int (*set_irq)(struct ti_sci_handle *handle, u16 src_id,
 		       u16 src_index, u16 dst_id, u16 dst_host_irq);
-	int (*set_event_map)(const struct ti_sci_handle *handle, u16 src_id,
+	int (*set_event_map)(struct ti_sci_handle *handle, u16 src_id,
 			     u16 src_index, u16 ia_id, u16 vint,
 			     u16 global_event, u8 vint_status_bit);
-	int (*free_irq)(const struct ti_sci_handle *handle, u16 src_id,
+	int (*free_irq)(struct ti_sci_handle *handle, u16 src_id,
 			u16 src_index, u16 dst_id, u16 dst_host_irq);
-	int (*free_event_map)(const struct ti_sci_handle *handle, u16 src_id,
+	int (*free_event_map)(struct ti_sci_handle *handle, u16 src_id,
 			      u16 src_index, u16 ia_id, u16 vint,
 			      u16 global_event, u8 vint_status_bit);
 };
@@ -342,7 +341,7 @@ struct ti_sci_msg_rm_ring_cfg {
  * @set_cfg: configure the SoC Navigator Subsystem Ring Accelerator ring
  */
 struct ti_sci_rm_ringacc_ops {
-	int (*set_cfg)(const struct ti_sci_handle *handle,
+	int (*set_cfg)(struct ti_sci_handle *handle,
 		       const struct ti_sci_msg_rm_ring_cfg *params);
 };
 
@@ -360,9 +359,9 @@ struct ti_sci_rm_ringacc_ops {
  *	RCHAN_THRD_ID register is cleared.
  */
 struct ti_sci_rm_psil_ops {
-	int (*pair)(const struct ti_sci_handle *handle, u32 nav_id,
+	int (*pair)(struct ti_sci_handle *handle, u32 nav_id,
 		    u32 src_thread, u32 dst_thread);
-	int (*unpair)(const struct ti_sci_handle *handle, u32 nav_id,
+	int (*unpair)(struct ti_sci_handle *handle, u32 nav_id,
 		      u32 src_thread, u32 dst_thread);
 };
 
@@ -519,11 +518,11 @@ struct ti_sci_msg_rm_udmap_flow_cfg {
  * @rx_flow_cfg1: configure SoC Navigator Subsystem UDMA receive flow.
  */
 struct ti_sci_rm_udmap_ops {
-	int (*tx_ch_cfg)(const struct ti_sci_handle *handle,
+	int (*tx_ch_cfg)(struct ti_sci_handle *handle,
 			 const struct ti_sci_msg_rm_udmap_tx_ch_cfg *params);
-	int (*rx_ch_cfg)(const struct ti_sci_handle *handle,
+	int (*rx_ch_cfg)(struct ti_sci_handle *handle,
 			 const struct ti_sci_msg_rm_udmap_rx_ch_cfg *params);
-	int (*rx_flow_cfg)(const struct ti_sci_handle *handle,
+	int (*rx_flow_cfg)(struct ti_sci_handle *handle,
 			   const struct ti_sci_msg_rm_udmap_flow_cfg *params);
 };
 
@@ -544,14 +543,14 @@ struct ti_sci_rm_udmap_ops {
  * -hid:	Host ID
  */
 struct ti_sci_proc_ops {
-	int (*request)(const struct ti_sci_handle *handle, u8 pid);
-	int (*release)(const struct ti_sci_handle *handle, u8 pid);
-	int (*handover)(const struct ti_sci_handle *handle, u8 pid, u8 hid);
-	int (*set_config)(const struct ti_sci_handle *handle, u8 pid,
+	int (*request)(struct ti_sci_handle *handle, u8 pid);
+	int (*release)(struct ti_sci_handle *handle, u8 pid);
+	int (*handover)(struct ti_sci_handle *handle, u8 pid, u8 hid);
+	int (*set_config)(struct ti_sci_handle *handle, u8 pid,
 			  u64 boot_vector, u32 cfg_set, u32 cfg_clr);
-	int (*set_control)(const struct ti_sci_handle *handle, u8 pid,
+	int (*set_control)(struct ti_sci_handle *handle, u8 pid,
 			   u32 ctrl_set, u32 ctrl_clr);
-	int (*get_status)(const struct ti_sci_handle *handle, u8 pid,
+	int (*get_status)(struct ti_sci_handle *handle, u8 pid,
 			  u64 *boot_vector, u32 *cfg_flags, u32 *ctrl_flags,
 			  u32 *status_flags);
 };
@@ -603,51 +602,51 @@ struct ti_sci_resource {
 };
 
 #if IS_ENABLED(CONFIG_TI_SCI_PROTOCOL)
-const struct ti_sci_handle *ti_sci_get_handle(struct device *dev);
-int ti_sci_put_handle(const struct ti_sci_handle *handle);
-const struct ti_sci_handle *devm_ti_sci_get_handle(struct device *dev);
-const struct ti_sci_handle *ti_sci_get_by_phandle(struct device_node *np,
-						  const char *property);
-const struct ti_sci_handle *devm_ti_sci_get_by_phandle(struct device *dev,
-						       const char *property);
+struct ti_sci_handle *ti_sci_get_handle(struct device *dev);
+int ti_sci_put_handle(struct ti_sci_handle *handle);
+struct ti_sci_handle *devm_ti_sci_get_handle(struct device *dev);
+struct ti_sci_handle *ti_sci_get_by_phandle(struct device_node *np,
+					    const char *property);
+struct ti_sci_handle *devm_ti_sci_get_by_phandle(struct device *dev,
+						 const char *property);
 u16 ti_sci_get_free_resource(struct ti_sci_resource *res);
 void ti_sci_release_resource(struct ti_sci_resource *res, u16 id);
 u32 ti_sci_get_num_resources(struct ti_sci_resource *res);
 struct ti_sci_resource *
-devm_ti_sci_get_of_resource(const struct ti_sci_handle *handle,
+devm_ti_sci_get_of_resource(struct ti_sci_handle *handle,
 			    struct device *dev, u32 dev_id, char *of_prop);
 struct ti_sci_resource *
-devm_ti_sci_get_resource(const struct ti_sci_handle *handle, struct device *dev,
+devm_ti_sci_get_resource(struct ti_sci_handle *handle, struct device *dev,
 			 u32 dev_id, u32 sub_type);
 
 #else	/* CONFIG_TI_SCI_PROTOCOL */
 
-static inline const struct ti_sci_handle *ti_sci_get_handle(struct device *dev)
+static inline struct ti_sci_handle *ti_sci_get_handle(struct device *dev)
 {
 	return ERR_PTR(-EINVAL);
 }
 
-static inline int ti_sci_put_handle(const struct ti_sci_handle *handle)
+static inline int ti_sci_put_handle(struct ti_sci_handle *handle)
 {
 	return -EINVAL;
 }
 
 static inline
-const struct ti_sci_handle *devm_ti_sci_get_handle(struct device *dev)
+struct ti_sci_handle *devm_ti_sci_get_handle(struct device *dev)
 {
 	return ERR_PTR(-EINVAL);
 }
 
 static inline
-const struct ti_sci_handle *ti_sci_get_by_phandle(struct device_node *np,
-						  const char *property)
+struct ti_sci_handle *ti_sci_get_by_phandle(struct device_node *np,
+					    const char *property)
 {
 	return ERR_PTR(-EINVAL);
 }
 
 static inline
-const struct ti_sci_handle *devm_ti_sci_get_by_phandle(struct device *dev,
-						       const char *property)
+struct ti_sci_handle *devm_ti_sci_get_by_phandle(struct device *dev,
+						 const char *property)
 {
 	return ERR_PTR(-EINVAL);
 }
@@ -667,14 +666,14 @@ static inline u32 ti_sci_get_num_resources(struct ti_sci_resource *res)
 }
 
 static inline struct ti_sci_resource *
-devm_ti_sci_get_of_resource(const struct ti_sci_handle *handle,
+devm_ti_sci_get_of_resource(struct ti_sci_handle *handle,
 			    struct device *dev, u32 dev_id, char *of_prop)
 {
 	return ERR_PTR(-EINVAL);
 }
 
 static inline struct ti_sci_resource *
-devm_ti_sci_get_resource(const struct ti_sci_handle *handle, struct device *dev,
+devm_ti_sci_get_resource(struct ti_sci_handle *handle, struct device *dev,
 			 u32 dev_id, u32 sub_type)
 {
 	return ERR_PTR(-EINVAL);

@@ -220,7 +220,7 @@ struct k3_ringacc {
 	struct list_head list;
 	struct mutex req_lock; /* protect rings allocation */
 
-	const struct ti_sci_handle *tisci;
+	struct ti_sci_handle *tisci;
 	const struct ti_sci_rm_ringacc_ops *tisci_ring_ops;
 	u32 tisci_dev_id;
 

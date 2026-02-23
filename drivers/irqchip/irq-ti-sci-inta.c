@@ -98,7 +98,7 @@ struct ti_sci_inta_vint_desc {
  *			Global Event number.
  */
 struct ti_sci_inta_irq_domain {
-	const struct ti_sci_handle *sci;
+	struct ti_sci_handle *sci;
 	struct ti_sci_resource *vint;
 	struct ti_sci_resource *global_event;
 	struct list_head vint_list;

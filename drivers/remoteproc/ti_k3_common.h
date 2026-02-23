@@ -88,7 +88,7 @@ struct k3_rproc {
 	struct reset_control *reset;
 	const struct k3_rproc_dev_data *data;
 	struct ti_sci_proc *tsp;
-	const struct ti_sci_handle *ti_sci;
+	struct ti_sci_handle *ti_sci;
 	u32 ti_sci_id;
 	struct mbox_chan *mbox;
 	struct mbox_client client;

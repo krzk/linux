@@ -27,7 +27,7 @@
  * @type:	Specifies the trigger type supported by this Interrupt Router
  */
 struct ti_sci_intr_irq_domain {
-	const struct ti_sci_handle *sci;
+	struct ti_sci_handle *sci;
 	struct ti_sci_resource *out_irqs;
 	struct device *dev;
 	u32 ti_sci_id;

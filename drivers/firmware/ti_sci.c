@@ -511,7 +511,7 @@ static inline bool ti_sci_is_response_ack(void *r)
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_set_device_state(const struct ti_sci_handle *handle,
+static int ti_sci_set_device_state(struct ti_sci_handle *handle,
 				   u32 id, u32 flags, u8 state)
 {
 	struct ti_sci_info *info;
@@ -568,7 +568,7 @@ fail:
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_get_device_state(const struct ti_sci_handle *handle,
+static int ti_sci_get_device_state(struct ti_sci_handle *handle,
 				   u32 id,  u32 *clcnt,  u32 *resets,
 				    u8 *p_state,  u8 *c_state)
 {
@@ -639,7 +639,7 @@ fail:
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_get_device(const struct ti_sci_handle *handle, u32 id)
+static int ti_sci_cmd_get_device(struct ti_sci_handle *handle, u32 id)
 {
 	return ti_sci_set_device_state(handle, id, 0,
 				       MSG_DEVICE_SW_STATE_ON);
@@ -658,7 +658,7 @@ static int ti_sci_cmd_get_device(const struct ti_sci_handle *handle, u32 id)
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_get_device_exclusive(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_get_device_exclusive(struct ti_sci_handle *handle,
 					   u32 id)
 {
 	return ti_sci_set_device_state(handle, id,
@@ -677,7 +677,7 @@ static int ti_sci_cmd_get_device_exclusive(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_idle_device(const struct ti_sci_handle *handle, u32 id)
+static int ti_sci_cmd_idle_device(struct ti_sci_handle *handle, u32 id)
 {
 	return ti_sci_set_device_state(handle, id, 0,
 				       MSG_DEVICE_SW_STATE_RETENTION);
@@ -696,7 +696,7 @@ static int ti_sci_cmd_idle_device(const struct ti_sci_handle *handle, u32 id)
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_idle_device_exclusive(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_idle_device_exclusive(struct ti_sci_handle *handle,
 					    u32 id)
 {
 	return ti_sci_set_device_state(handle, id,
@@ -715,7 +715,7 @@ static int ti_sci_cmd_idle_device_exclusive(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_put_device(const struct ti_sci_handle *handle, u32 id)
+static int ti_sci_cmd_put_device(struct ti_sci_handle *handle, u32 id)
 {
 	return ti_sci_set_device_state(handle, id,
 				       0, MSG_DEVICE_SW_STATE_AUTO_OFF);
@@ -729,7 +729,7 @@ static int ti_sci_cmd_put_device(const struct ti_sci_handle *handle, u32 id)
  * Return: 0 if all went fine and the device ID is valid, else return
  * appropriate error.
  */
-static int ti_sci_cmd_dev_is_valid(const struct ti_sci_handle *handle, u32 id)
+static int ti_sci_cmd_dev_is_valid(struct ti_sci_handle *handle, u32 id)
 {
 	u8 unused;
 
@@ -745,7 +745,7 @@ static int ti_sci_cmd_dev_is_valid(const struct ti_sci_handle *handle, u32 id)
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_dev_get_clcnt(const struct ti_sci_handle *handle, u32 id,
+static int ti_sci_cmd_dev_get_clcnt(struct ti_sci_handle *handle, u32 id,
 				    u32 *count)
 {
 	return ti_sci_get_device_state(handle, id, count, NULL, NULL, NULL);
@@ -759,7 +759,7 @@ static int ti_sci_cmd_dev_get_clcnt(const struct ti_sci_handle *handle, u32 id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_dev_is_idle(const struct ti_sci_handle *handle, u32 id,
+static int ti_sci_cmd_dev_is_idle(struct ti_sci_handle *handle, u32 id,
 				  bool *r_state)
 {
 	int ret;
@@ -786,7 +786,7 @@ static int ti_sci_cmd_dev_is_idle(const struct ti_sci_handle *handle, u32 id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_dev_is_stop(const struct ti_sci_handle *handle, u32 id,
+static int ti_sci_cmd_dev_is_stop(struct ti_sci_handle *handle, u32 id,
 				  bool *r_state,  bool *curr_state)
 {
 	int ret;
@@ -817,7 +817,7 @@ static int ti_sci_cmd_dev_is_stop(const struct ti_sci_handle *handle, u32 id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_dev_is_on(const struct ti_sci_handle *handle, u32 id,
+static int ti_sci_cmd_dev_is_on(struct ti_sci_handle *handle, u32 id,
 				bool *r_state,  bool *curr_state)
 {
 	int ret;
@@ -847,7 +847,7 @@ static int ti_sci_cmd_dev_is_on(const struct ti_sci_handle *handle, u32 id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_dev_is_trans(const struct ti_sci_handle *handle, u32 id,
+static int ti_sci_cmd_dev_is_trans(struct ti_sci_handle *handle, u32 id,
 				   bool *curr_state)
 {
 	int ret;
@@ -874,7 +874,7 @@ static int ti_sci_cmd_dev_is_trans(const struct ti_sci_handle *handle, u32 id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_set_device_resets(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_set_device_resets(struct ti_sci_handle *handle,
 					u32 id, u32 reset_state)
 {
 	struct ti_sci_info *info;
@@ -929,7 +929,7 @@ fail:
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_get_device_resets(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_get_device_resets(struct ti_sci_handle *handle,
 					u32 id, u32 *reset_state)
 {
 	return ti_sci_get_device_state(handle, id, NULL, reset_state, NULL,
@@ -948,7 +948,7 @@ static int ti_sci_cmd_get_device_resets(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_set_clock_state(const struct ti_sci_handle *handle,
+static int ti_sci_set_clock_state(struct ti_sci_handle *handle,
 				  u32 dev_id, u32 clk_id,
 				  u32 flags, u8 state)
 {
@@ -1013,7 +1013,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_get_clock_state(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_get_clock_state(struct ti_sci_handle *handle,
 				      u32 dev_id, u32 clk_id,
 				      u8 *programmed_state, u8 *current_state)
 {
@@ -1089,7 +1089,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_get_clock(const struct ti_sci_handle *handle, u32 dev_id,
+static int ti_sci_cmd_get_clock(struct ti_sci_handle *handle, u32 dev_id,
 				u32 clk_id, bool needs_ssc,
 				bool can_change_freq, bool enable_input_term)
 {
@@ -1115,7 +1115,7 @@ static int ti_sci_cmd_get_clock(const struct ti_sci_handle *handle, u32 dev_id,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_idle_clock(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_idle_clock(struct ti_sci_handle *handle,
 				 u32 dev_id, u32 clk_id)
 {
 	return ti_sci_set_clock_state(handle, dev_id, clk_id,
@@ -1135,8 +1135,8 @@ static int ti_sci_cmd_idle_clock(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_put_clock(const struct ti_sci_handle *handle,
-				u32 dev_id, u32 clk_id)
+static int ti_sci_cmd_put_clock(struct ti_sci_handle *handle, u32 dev_id,
+				u32 clk_id)
 {
 	return ti_sci_set_clock_state(handle, dev_id, clk_id,
 				      MSG_FLAG_CLOCK_ALLOW_FREQ_CHANGE,
@@ -1154,8 +1154,8 @@ static int ti_sci_cmd_put_clock(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_is_auto(const struct ti_sci_handle *handle,
-				  u32 dev_id, u32 clk_id, bool *req_state)
+static int ti_sci_cmd_clk_is_auto(struct ti_sci_handle *handle, u32 dev_id,
+				  u32 clk_id, bool *req_state)
 {
 	u8 state = 0;
 	int ret;
@@ -1183,7 +1183,7 @@ static int ti_sci_cmd_clk_is_auto(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_is_on(const struct ti_sci_handle *handle, u32 dev_id,
+static int ti_sci_cmd_clk_is_on(struct ti_sci_handle *handle, u32 dev_id,
 				u32 clk_id, bool *req_state, bool *curr_state)
 {
 	u8 c_state = 0, r_state = 0;
@@ -1216,7 +1216,7 @@ static int ti_sci_cmd_clk_is_on(const struct ti_sci_handle *handle, u32 dev_id,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_is_off(const struct ti_sci_handle *handle, u32 dev_id,
+static int ti_sci_cmd_clk_is_off(struct ti_sci_handle *handle, u32 dev_id,
 				 u32 clk_id, bool *req_state, bool *curr_state)
 {
 	u8 c_state = 0, r_state = 0;
@@ -1248,7 +1248,7 @@ static int ti_sci_cmd_clk_is_off(const struct ti_sci_handle *handle, u32 dev_id,
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_set_parent(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_clk_set_parent(struct ti_sci_handle *handle,
 				     u32 dev_id, u32 clk_id, u32 parent_id)
 {
 	struct ti_sci_info *info;
@@ -1316,7 +1316,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_get_parent(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_clk_get_parent(struct ti_sci_handle *handle,
 				     u32 dev_id, u32 clk_id, u32 *parent_id)
 {
 	struct ti_sci_info *info;
@@ -1385,7 +1385,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_get_num_parents(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_clk_get_num_parents(struct ti_sci_handle *handle,
 					  u32 dev_id, u32 clk_id,
 					  u32 *num_parents)
 {
@@ -1463,7 +1463,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_get_match_freq(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_clk_get_match_freq(struct ti_sci_handle *handle,
 					 u32 dev_id, u32 clk_id, u64 min_freq,
 					 u64 target_freq, u64 max_freq,
 					 u64 *match_freq)
@@ -1540,7 +1540,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_set_freq(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_clk_set_freq(struct ti_sci_handle *handle,
 				   u32 dev_id, u32 clk_id, u64 min_freq,
 				   u64 target_freq, u64 max_freq)
 {
@@ -1606,7 +1606,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_clk_get_freq(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_clk_get_freq(struct ti_sci_handle *handle,
 				   u32 dev_id, u32 clk_id, u64 *freq)
 {
 	struct ti_sci_info *info;
@@ -1670,7 +1670,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_prepare_sleep(const struct ti_sci_handle *handle, u8 mode,
+static int ti_sci_cmd_prepare_sleep(struct ti_sci_handle *handle, u8 mode,
 				    u32 ctx_lo, u32 ctx_hi, u32 debug_flags)
 {
 	u32 msg_flags = mode == TISCI_MSG_VALUE_SLEEP_MODE_PARTIAL_IO ?
@@ -1737,7 +1737,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_msg_cmd_query_fw_caps(const struct ti_sci_handle *handle,
+static int ti_sci_msg_cmd_query_fw_caps(struct ti_sci_handle *handle,
 					u64 *fw_caps)
 {
 	struct ti_sci_info *info;
@@ -1794,8 +1794,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_set_io_isolation(const struct ti_sci_handle *handle,
-				       u8 state)
+static int ti_sci_cmd_set_io_isolation(struct ti_sci_handle *handle, u8 state)
 {
 	struct ti_sci_info *info;
 	struct ti_sci_msg_req_set_io_isolation *req;
@@ -1852,7 +1851,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_msg_cmd_lpm_wake_reason(const struct ti_sci_handle *handle,
+static int ti_sci_msg_cmd_lpm_wake_reason(struct ti_sci_handle *handle,
 					  u32 *source, u64 *timestamp, u8 *pin, u8 *mode)
 {
 	struct ti_sci_info *info;
@@ -1916,7 +1915,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_set_device_constraint(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_set_device_constraint(struct ti_sci_handle *handle,
 					    u32 id, u8 state)
 {
 	struct ti_sci_info *info;
@@ -1973,7 +1972,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_set_latency_constraint(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_set_latency_constraint(struct ti_sci_handle *handle,
 					     u16 latency, u8 state)
 {
 	struct ti_sci_info *info;
@@ -2063,7 +2062,7 @@ fail:
 	return ret;
 }
 
-static int ti_sci_cmd_core_reboot(const struct ti_sci_handle *handle)
+static int ti_sci_cmd_core_reboot(struct ti_sci_handle *handle)
 {
 	struct ti_sci_info *info;
 	struct ti_sci_msg_req_reboot *req;
@@ -2123,7 +2122,7 @@ fail:
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_get_resource_range(const struct ti_sci_handle *handle,
+static int ti_sci_get_resource_range(struct ti_sci_handle *handle,
 				     u32 dev_id, u8 subtype, u8 s_host,
 				     struct ti_sci_resource_desc *desc)
 {
@@ -2194,7 +2193,7 @@ fail:
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_get_resource_range(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_get_resource_range(struct ti_sci_handle *handle,
 					 u32 dev_id, u8 subtype,
 					 struct ti_sci_resource_desc *desc)
 {
@@ -2217,7 +2216,7 @@ static int ti_sci_cmd_get_resource_range(const struct ti_sci_handle *handle,
  * Return: 0 if all went fine, else return appropriate error.
  */
 static
-int ti_sci_cmd_get_resource_range_from_shost(const struct ti_sci_handle *handle,
+int ti_sci_cmd_get_resource_range_from_shost(struct ti_sci_handle *handle,
 					     u32 dev_id, u8 subtype, u8 s_host,
 					     struct ti_sci_resource_desc *desc)
 {
@@ -2243,7 +2242,7 @@ int ti_sci_cmd_get_resource_range_from_shost(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_manage_irq(const struct ti_sci_handle *handle,
+static int ti_sci_manage_irq(struct ti_sci_handle *handle,
 			     u32 valid_params, u16 src_id, u16 src_index,
 			     u16 dst_id, u16 dst_host_irq, u16 ia_id, u16 vint,
 			     u16 global_event, u8 vint_status_bit, u8 s_host,
@@ -2317,7 +2316,7 @@ fail:
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_set_irq(const struct ti_sci_handle *handle, u32 valid_params,
+static int ti_sci_set_irq(struct ti_sci_handle *handle, u32 valid_params,
 			  u16 src_id, u16 src_index, u16 dst_id,
 			  u16 dst_host_irq, u16 ia_id, u16 vint,
 			  u16 global_event, u8 vint_status_bit, u8 s_host)
@@ -2351,7 +2350,7 @@ static int ti_sci_set_irq(const struct ti_sci_handle *handle, u32 valid_params,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_free_irq(const struct ti_sci_handle *handle, u32 valid_params,
+static int ti_sci_free_irq(struct ti_sci_handle *handle, u32 valid_params,
 			   u16 src_id, u16 src_index, u16 dst_id,
 			   u16 dst_host_irq, u16 ia_id, u16 vint,
 			   u16 global_event, u8 vint_status_bit, u8 s_host)
@@ -2378,7 +2377,7 @@ static int ti_sci_free_irq(const struct ti_sci_handle *handle, u32 valid_params,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_set_irq(const struct ti_sci_handle *handle, u16 src_id,
+static int ti_sci_cmd_set_irq(struct ti_sci_handle *handle, u16 src_id,
 			      u16 src_index, u16 dst_id, u16 dst_host_irq)
 {
 	u32 valid_params = MSG_FLAG_DST_ID_VALID | MSG_FLAG_DST_HOST_IRQ_VALID;
@@ -2400,7 +2399,7 @@ static int ti_sci_cmd_set_irq(const struct ti_sci_handle *handle, u16 src_id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_set_event_map(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_set_event_map(struct ti_sci_handle *handle,
 				    u16 src_id, u16 src_index, u16 ia_id,
 				    u16 vint, u16 global_event,
 				    u8 vint_status_bit)
@@ -2424,7 +2423,7 @@ static int ti_sci_cmd_set_event_map(const struct ti_sci_handle *handle,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_free_irq(const struct ti_sci_handle *handle, u16 src_id,
+static int ti_sci_cmd_free_irq(struct ti_sci_handle *handle, u16 src_id,
 			       u16 src_index, u16 dst_id, u16 dst_host_irq)
 {
 	u32 valid_params = MSG_FLAG_DST_ID_VALID | MSG_FLAG_DST_HOST_IRQ_VALID;
@@ -2446,7 +2445,7 @@ static int ti_sci_cmd_free_irq(const struct ti_sci_handle *handle, u16 src_id,
  *
  * Return: 0 if all went fine, else return appropriate error.
  */
-static int ti_sci_cmd_free_event_map(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_free_event_map(struct ti_sci_handle *handle,
 				     u16 src_id, u16 src_index, u16 ia_id,
 				     u16 vint, u16 global_event,
 				     u8 vint_status_bit)
@@ -2469,7 +2468,7 @@ static int ti_sci_cmd_free_event_map(const struct ti_sci_handle *handle,
  * See @ti_sci_msg_rm_ring_cfg and @ti_sci_msg_rm_ring_cfg_req for
  * more info.
  */
-static int ti_sci_cmd_rm_ring_cfg(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_rm_ring_cfg(struct ti_sci_handle *handle,
 				  const struct ti_sci_msg_rm_ring_cfg *params)
 {
 	struct ti_sci_msg_rm_ring_cfg_req *req;
@@ -2531,7 +2530,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_rm_psil_pair(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_rm_psil_pair(struct ti_sci_handle *handle,
 				   u32 nav_id, u32 src_thread, u32 dst_thread)
 {
 	struct ti_sci_msg_psil_pair *req;
@@ -2587,7 +2586,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_rm_psil_unpair(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_rm_psil_unpair(struct ti_sci_handle *handle,
 				     u32 nav_id, u32 src_thread, u32 dst_thread)
 {
 	struct ti_sci_msg_psil_unpair *req;
@@ -2644,7 +2643,7 @@ fail:
  * See @ti_sci_msg_rm_udmap_tx_ch_cfg and @ti_sci_msg_rm_udmap_tx_ch_cfg_req for
  * more info.
  */
-static int ti_sci_cmd_rm_udmap_tx_ch_cfg(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_rm_udmap_tx_ch_cfg(struct ti_sci_handle *handle,
 			const struct ti_sci_msg_rm_udmap_tx_ch_cfg *params)
 {
 	struct ti_sci_msg_rm_udmap_tx_ch_cfg_req *req;
@@ -2716,7 +2715,7 @@ fail:
  * See @ti_sci_msg_rm_udmap_rx_ch_cfg and @ti_sci_msg_rm_udmap_rx_ch_cfg_req for
  * more info.
  */
-static int ti_sci_cmd_rm_udmap_rx_ch_cfg(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_rm_udmap_rx_ch_cfg(struct ti_sci_handle *handle,
 			const struct ti_sci_msg_rm_udmap_rx_ch_cfg *params)
 {
 	struct ti_sci_msg_rm_udmap_rx_ch_cfg_req *req;
@@ -2785,7 +2784,7 @@ fail:
  * See @ti_sci_msg_rm_udmap_flow_cfg and @ti_sci_msg_rm_udmap_flow_cfg_req for
  * more info.
  */
-static int ti_sci_cmd_rm_udmap_rx_flow_cfg(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_rm_udmap_rx_flow_cfg(struct ti_sci_handle *handle,
 			const struct ti_sci_msg_rm_udmap_flow_cfg *params)
 {
 	struct ti_sci_msg_rm_udmap_flow_cfg_req *req;
@@ -2855,8 +2854,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_proc_request(const struct ti_sci_handle *handle,
-				   u8 proc_id)
+static int ti_sci_cmd_proc_request(struct ti_sci_handle *handle, u8 proc_id)
 {
 	struct ti_sci_msg_req_proc_request *req;
 	struct ti_sci_msg_hdr *resp;
@@ -2907,8 +2905,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_proc_release(const struct ti_sci_handle *handle,
-				   u8 proc_id)
+static int ti_sci_cmd_proc_release(struct ti_sci_handle *handle, u8 proc_id)
 {
 	struct ti_sci_msg_req_proc_release *req;
 	struct ti_sci_msg_hdr *resp;
@@ -2962,8 +2959,8 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_proc_handover(const struct ti_sci_handle *handle,
-				    u8 proc_id, u8 host_id)
+static int ti_sci_cmd_proc_handover(struct ti_sci_handle *handle, u8 proc_id,
+				    u8 host_id)
 {
 	struct ti_sci_msg_req_proc_handover *req;
 	struct ti_sci_msg_hdr *resp;
@@ -3019,7 +3016,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_proc_set_config(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_proc_set_config(struct ti_sci_handle *handle,
 				      u8 proc_id, u64 bootvector,
 				      u32 config_flags_set,
 				      u32 config_flags_clear)
@@ -3081,7 +3078,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_proc_set_control(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_proc_set_control(struct ti_sci_handle *handle,
 				       u8 proc_id, u32 control_flags_set,
 				       u32 control_flags_clear)
 {
@@ -3140,7 +3137,7 @@ fail:
  *
  * Return: 0 if all went well, else returns appropriate error value.
  */
-static int ti_sci_cmd_proc_get_status(const struct ti_sci_handle *handle,
+static int ti_sci_cmd_proc_get_status(struct ti_sci_handle *handle,
 				      u8 proc_id, u64 *bv, u32 *cfg_flags,
 				      u32 *ctrl_flags, u32 *sts_flags)
 {
@@ -3290,7 +3287,7 @@ static void ti_sci_setup_ops(struct ti_sci_info *info)
  * -ENODEV if the required node handler is missing
  * -EINVAL if invalid conditions are encountered.
  */
-const struct ti_sci_handle *ti_sci_get_handle(struct device *dev)
+struct ti_sci_handle *ti_sci_get_handle(struct device *dev)
 {
 	struct device_node *ti_sci_np;
 	struct ti_sci_handle *handle = NULL;
@@ -3336,7 +3333,7 @@ EXPORT_SYMBOL_GPL(ti_sci_get_handle);
  * if an error pointer was passed, it returns the error value back,
  * if null was passed, it returns -EINVAL;
  */
-int ti_sci_put_handle(const struct ti_sci_handle *handle)
+int ti_sci_put_handle(struct ti_sci_handle *handle)
 {
 	struct ti_sci_info *info;
 
@@ -3357,8 +3354,8 @@ EXPORT_SYMBOL_GPL(ti_sci_put_handle);
 
 static void devm_ti_sci_release(struct device *dev, void *res)
 {
-	const struct ti_sci_handle **ptr = res;
-	const struct ti_sci_handle *handle = *ptr;
+	struct ti_sci_handle **ptr = res;
+	struct ti_sci_handle *handle = *ptr;
 	int ret;
 
 	ret = ti_sci_put_handle(handle);
@@ -3375,12 +3372,14 @@ static void devm_ti_sci_release(struct device *dev, void *res)
  * The function does not track individual clients of the framework
  * and is expected to be maintained by caller of TI SCI protocol library.
  *
+ * Do not change handle pointer to pointer to const.
+ *
  * Return: 0 if all went fine, else corresponding error.
  */
-const struct ti_sci_handle *devm_ti_sci_get_handle(struct device *dev)
+struct ti_sci_handle *devm_ti_sci_get_handle(struct device *dev)
 {
-	const struct ti_sci_handle **ptr;
-	const struct ti_sci_handle *handle;
+	struct ti_sci_handle **ptr;
+	struct ti_sci_handle *handle;
 
 	ptr = devres_alloc(devm_ti_sci_release, sizeof(*ptr), GFP_KERNEL);
 	if (!ptr)
@@ -3411,8 +3410,8 @@ EXPORT_SYMBOL_GPL(devm_ti_sci_get_handle);
  * -ENODEV if the required node handler is missing
  * -EINVAL if invalid conditions are encountered.
  */
-const struct ti_sci_handle *ti_sci_get_by_phandle(struct device_node *np,
-						  const char *property)
+struct ti_sci_handle *ti_sci_get_by_phandle(struct device_node *np,
+					    const char *property)
 {
 	struct ti_sci_handle *handle = NULL;
 	struct device_node *ti_sci_np;
@@ -3457,10 +3456,10 @@ EXPORT_SYMBOL_GPL(ti_sci_get_by_phandle);
  *
  * Return: 0 if all went fine, else corresponding error.
  */
-const struct ti_sci_handle *devm_ti_sci_get_by_phandle(struct device *dev,
-						       const char *property)
+struct ti_sci_handle *devm_ti_sci_get_by_phandle(struct device *dev,
+						 const char *property)
 {
-	const struct ti_sci_handle *handle;
+	struct ti_sci_handle *handle;
 	const struct ti_sci_handle **ptr;
 
 	ptr = devres_alloc(devm_ti_sci_release, sizeof(*ptr), GFP_KERNEL);
@@ -3566,7 +3565,7 @@ EXPORT_SYMBOL_GPL(ti_sci_get_num_resources);
  *	   error pointer.
  */
 static struct ti_sci_resource *
-devm_ti_sci_get_resource_sets(const struct ti_sci_handle *handle,
+devm_ti_sci_get_resource_sets(struct ti_sci_handle *handle,
 			      struct device *dev, u32 dev_id, u32 *sub_types,
 			      u32 sets)
 {
@@ -3626,7 +3625,7 @@ devm_ti_sci_get_resource_sets(const struct ti_sci_handle *handle,
  *	   error pointer.
  */
 struct ti_sci_resource *
-devm_ti_sci_get_of_resource(const struct ti_sci_handle *handle,
+devm_ti_sci_get_of_resource(struct ti_sci_handle *handle,
 			    struct device *dev, u32 dev_id, char *of_prop)
 {
 	struct ti_sci_resource *res;
@@ -3664,7 +3663,7 @@ EXPORT_SYMBOL_GPL(devm_ti_sci_get_of_resource);
  *	   error pointer.
  */
 struct ti_sci_resource *
-devm_ti_sci_get_resource(const struct ti_sci_handle *handle, struct device *dev,
+devm_ti_sci_get_resource(struct ti_sci_handle *handle, struct device *dev,
 			 u32 dev_id, u32 sub_type)
 {
 	return devm_ti_sci_get_resource_sets(handle, dev, dev_id, &sub_type, 1);
@@ -3720,7 +3719,7 @@ static bool ti_sci_partial_io_wakeup_enabled(struct ti_sci_info *info)
 static int ti_sci_sys_off_handler(struct sys_off_data *data)
 {
 	struct ti_sci_info *info = data->cb_data;
-	const struct ti_sci_handle *handle = &info->handle;
+	struct ti_sci_handle *handle = &info->handle;
 	bool enter_partial_io = ti_sci_partial_io_wakeup_enabled(info);
 	int ret;
 
@@ -3746,7 +3745,7 @@ static int ti_sci_sys_off_handler(struct sys_off_data *data)
 static int tisci_reboot_handler(struct sys_off_data *data)
 {
 	struct ti_sci_info *info = data->cb_data;
-	const struct ti_sci_handle *handle = &info->handle;
+	struct ti_sci_handle *handle = &info->handle;
 
 	ti_sci_cmd_core_reboot(handle);
 

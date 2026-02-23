@@ -36,7 +36,7 @@ struct ti_sci_reset_control {
 struct ti_sci_reset_data {
 	struct reset_controller_dev rcdev;
 	struct device *dev;
-	const struct ti_sci_handle *sci;
+	struct ti_sci_handle *sci;
 	struct idr idr;
 };
 
@@ -63,7 +63,7 @@ static int ti_sci_reset_set(struct reset_controller_dev *rcdev,
 			    unsigned long id, bool assert)
 {
 	struct ti_sci_reset_data *data = to_ti_sci_reset_data(rcdev);
-	const struct ti_sci_handle *sci = data->sci;
+	struct ti_sci_handle *sci = data->sci;
 	const struct ti_sci_dev_ops *dev_ops = &sci->ops.dev_ops;
 	struct ti_sci_reset_control *control;
 	u32 reset_state;
@@ -144,7 +144,7 @@ static int ti_sci_reset_status(struct reset_controller_dev *rcdev,
 			       unsigned long id)
 {
 	struct ti_sci_reset_data *data = to_ti_sci_reset_data(rcdev);
-	const struct ti_sci_handle *sci = data->sci;
+	struct ti_sci_handle *sci = data->sci;
 	const struct ti_sci_dev_ops *dev_ops = &sci->ops.dev_ops;
 	struct ti_sci_reset_control *control;
 	u32 reset_state;

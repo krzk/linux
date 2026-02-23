@@ -112,7 +112,7 @@ enum udma_rm_range {
 };
 
 struct udma_tisci_rm {
-	const struct ti_sci_handle *tisci;
+	struct ti_sci_handle *tisci;
 	const struct ti_sci_rm_udmap_ops *tisci_udmap_ops;
 	u32  tisci_dev_id;
 

@@ -259,7 +259,7 @@ struct ti_sci_handle;
  * struct struct k3_ringacc_init_data - Initialization data for DMA rings
  */
 struct k3_ringacc_init_data {
-	const struct ti_sci_handle *tisci;
+	struct ti_sci_handle *tisci;
 	u32 tisci_dev_id;
 	u32 num_rings;
 };
