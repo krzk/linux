@@ -172,7 +172,7 @@ struct scmi_raw_queue {
  */
 struct scmi_raw_mode_info {
 	unsigned int id;
-	const struct scmi_handle *handle;
+	struct scmi_handle *handle;
 	const struct scmi_desc *desc;
 	int tx_max_msg;
 	struct scmi_raw_queue *q[SCMI_RAW_MAX_QUEUE];
@@ -1210,7 +1210,7 @@ err:
  *
  * Return: An opaque handle to the Raw instance on Success, an ERR_PTR otherwise
  */
-void *scmi_raw_mode_init(const struct scmi_handle *handle,
+void *scmi_raw_mode_init(struct scmi_handle *handle,
 			 struct dentry *top_dentry, int instance_id,
 			 u8 *channels, int num_chans,
 			 const struct scmi_desc *desc, int tx_max_msg)

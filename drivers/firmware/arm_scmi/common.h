@@ -154,8 +154,8 @@ struct scmi_device *scmi_device_create(struct device_node *np,
 				       const char *name);
 void scmi_device_destroy(struct device *parent, int protocol, const char *name);
 
-int scmi_protocol_acquire(const struct scmi_handle *handle, u8 protocol_id);
-void scmi_protocol_release(const struct scmi_handle *handle, u8 protocol_id);
+int scmi_protocol_acquire(struct scmi_handle *handle, u8 protocol_id);
+void scmi_protocol_release(struct scmi_handle *handle, u8 protocol_id);
 
 /* SCMI Transport */
 /**
@@ -277,13 +277,12 @@ static inline bool is_polling_enabled(struct scmi_chan_info *cinfo,
 		is_transport_polling_capable(desc);
 }
 
-void scmi_xfer_raw_put(const struct scmi_handle *handle,
-		       struct scmi_xfer *xfer);
-struct scmi_xfer *scmi_xfer_raw_get(const struct scmi_handle *handle);
+void scmi_xfer_raw_put(struct scmi_handle *handle, struct scmi_xfer *xfer);
+struct scmi_xfer *scmi_xfer_raw_get(struct scmi_handle *handle);
 struct scmi_chan_info *
-scmi_xfer_raw_channel_get(const struct scmi_handle *handle, u8 protocol_id);
+scmi_xfer_raw_channel_get(struct scmi_handle *handle, u8 protocol_id);
 
-int scmi_xfer_raw_inflight_register(const struct scmi_handle *handle,
+int scmi_xfer_raw_inflight_register(struct scmi_handle *handle,
 				    struct scmi_xfer *xfer);
 
 int scmi_xfer_raw_wait_for_message_response(struct scmi_chan_info *cinfo,
@@ -522,7 +521,7 @@ static struct platform_driver __drv = {					       \
 	.probe = __tag##_probe,						       \
 }
 
-void scmi_notification_instance_data_set(const struct scmi_handle *handle,
+void scmi_notification_instance_data_set(struct scmi_handle *handle,
 					 void *priv);
 void *scmi_notification_instance_data_get(const struct scmi_handle *handle);
 int scmi_inflight_count(const struct scmi_handle *handle);

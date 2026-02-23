@@ -1464,7 +1464,7 @@ static int scmi_notifier_unregister(const struct scmi_handle *handle,
 }
 
 struct scmi_notifier_devres {
-	const struct scmi_handle *handle;
+	struct scmi_handle *handle;
 	u8 proto_id;
 	u8 evt_id;
 	u32 __src_id;

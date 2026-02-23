@@ -438,7 +438,7 @@ static void scmi_destroy_protocol_devices(struct scmi_info *info,
 	mutex_unlock(&info->devreq_mtx);
 }
 
-void scmi_notification_instance_data_set(const struct scmi_handle *handle,
+void scmi_notification_instance_data_set(struct scmi_handle *handle,
 					 void *priv)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -638,7 +638,7 @@ static int scmi_xfer_inflight_register(struct scmi_xfer *xfer,
  *
  * Return: 0 on Success, error otherwise
  */
-int scmi_xfer_raw_inflight_register(const struct scmi_handle *handle,
+int scmi_xfer_raw_inflight_register(struct scmi_handle *handle,
 				    struct scmi_xfer *xfer)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -730,7 +730,7 @@ static struct scmi_xfer *scmi_xfer_get(const struct scmi_handle *handle,
  *
  * Return: A valid xfer on Success, or an error-pointer otherwise
  */
-struct scmi_xfer *scmi_xfer_raw_get(const struct scmi_handle *handle)
+struct scmi_xfer *scmi_xfer_raw_get(struct scmi_handle *handle)
 {
 	struct scmi_xfer *xfer;
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -757,7 +757,7 @@ struct scmi_xfer *scmi_xfer_raw_get(const struct scmi_handle *handle)
  * Return: A reference to the channel to use, or an ERR_PTR
  */
 struct scmi_chan_info *
-scmi_xfer_raw_channel_get(const struct scmi_handle *handle, u8 protocol_id)
+scmi_xfer_raw_channel_get(struct scmi_handle *handle, u8 protocol_id)
 {
 	struct scmi_chan_info *cinfo;
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -820,7 +820,7 @@ __scmi_xfer_put(struct scmi_xfers_info *minfo, struct scmi_xfer *xfer)
  * Note that as with other xfer_put() handlers the xfer is really effectively
  * released only if there are no more users on the system.
  */
-void scmi_xfer_raw_put(const struct scmi_handle *handle, struct scmi_xfer *xfer)
+void scmi_xfer_raw_put(struct scmi_handle *handle, struct scmi_xfer *xfer)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
 
@@ -2202,7 +2202,7 @@ scmi_alloc_init_protocol_instance(struct scmi_info *info,
 	int ret = -ENOMEM;
 	void *gid;
 	struct scmi_protocol_instance *pi;
-	const struct scmi_handle *handle = &info->handle;
+	struct scmi_handle *handle = &info->handle;
 
 	/* Protocol specific devres group */
 	gid = devres_open_group(handle->dev, NULL, GFP_KERNEL);
@@ -2282,7 +2282,7 @@ out:
  *	   NOT be found.
  */
 static struct scmi_protocol_instance * __must_check
-scmi_get_protocol_instance(const struct scmi_handle *handle, u8 protocol_id)
+scmi_get_protocol_instance(struct scmi_handle *handle, u8 protocol_id)
 {
 	struct scmi_protocol_instance *pi;
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -2317,7 +2317,7 @@ scmi_get_protocol_instance(const struct scmi_handle *handle, u8 protocol_id)
  *
  * Return: 0 if protocol was acquired successfully.
  */
-int scmi_protocol_acquire(const struct scmi_handle *handle, u8 protocol_id)
+int scmi_protocol_acquire(struct scmi_handle *handle, u8 protocol_id)
 {
 	return PTR_ERR_OR_ZERO(scmi_get_protocol_instance(handle, protocol_id));
 }
@@ -2330,7 +2330,7 @@ int scmi_protocol_acquire(const struct scmi_handle *handle, u8 protocol_id)
  * Remove one user for the specified protocol and triggers de-initialization
  * and resources de-allocation once the last user has gone.
  */
-void scmi_protocol_release(const struct scmi_handle *handle, u8 protocol_id)
+void scmi_protocol_release(struct scmi_handle *handle, u8 protocol_id)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
 	struct scmi_protocol_instance *pi;
@@ -2372,7 +2372,7 @@ void scmi_setup_protocol_implemented(const struct scmi_protocol_handle *ph,
 }
 
 static bool
-scmi_is_protocol_implemented(const struct scmi_handle *handle, u8 prot_id)
+scmi_is_protocol_implemented(struct scmi_handle *handle, u8 prot_id)
 {
 	int i;
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -2388,7 +2388,7 @@ scmi_is_protocol_implemented(const struct scmi_handle *handle, u8 prot_id)
 }
 
 struct scmi_protocol_devres {
-	const struct scmi_handle *handle;
+	struct scmi_handle *handle;
 	u8 protocol_id;
 };
 
@@ -2525,7 +2525,7 @@ static void scmi_devm_protocol_put(struct scmi_device *sdev, u8 protocol_id)
  *
  * Return: True if transport is configured as atomic
  */
-static bool scmi_is_transport_atomic(const struct scmi_handle *handle,
+static bool scmi_is_transport_atomic(struct scmi_handle *handle,
 				     unsigned int *atomic_threshold)
 {
 	bool ret;
@@ -2582,7 +2582,7 @@ static struct scmi_handle *scmi_handle_get(struct device *dev)
  * Return: 0 is successfully released
  *	if null was passed, it returns -EINVAL;
  */
-static int scmi_handle_put(const struct scmi_handle *handle)
+static int scmi_handle_put(struct scmi_handle *handle)
 {
 	struct scmi_info *info;
 

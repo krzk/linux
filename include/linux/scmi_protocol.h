@@ -909,7 +909,7 @@ struct scmi_handle {
 		(*devm_protocol_get)(struct scmi_device *sdev, u8 proto,
 				     struct scmi_protocol_handle **ph);
 	void (*devm_protocol_put)(struct scmi_device *sdev, u8 proto);
-	bool (*is_transport_atomic)(const struct scmi_handle *handle,
+	bool (*is_transport_atomic)(struct scmi_handle *handle,
 				    unsigned int *atomic_threshold);
 
 	const struct scmi_notify_ops *notify_ops;
