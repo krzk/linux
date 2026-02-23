@@ -174,6 +174,7 @@ struct scmi_info {
 };
 
 #define handle_to_scmi_info(h)	container_of(h, struct scmi_info, handle)
+#define handle_to_scmi_info_const(h)	container_of_const(h, struct scmi_info, handle)
 #define tx_minfo_to_scmi_info(h) container_of(h, struct scmi_info, tx_minfo)
 #define bus_nb_to_scmi_info(nb)	container_of(nb, struct scmi_info, bus_nb)
 #define req_nb_to_scmi_info(nb)	container_of(nb, struct scmi_info, dev_req_nb)
@@ -450,7 +451,7 @@ void scmi_notification_instance_data_set(struct scmi_handle *handle,
 
 void *scmi_notification_instance_data_get(const struct scmi_handle *handle)
 {
-	struct scmi_info *info = handle_to_scmi_info(handle);
+	const struct scmi_info *info = handle_to_scmi_info_const(handle);
 
 	/* Ensure protocols_private_data has been updated */
 	smp_rmb();
@@ -866,7 +867,7 @@ static void scmi_bad_message_trace(struct scmi_chan_info *cinfo, u32 msg_hdr,
 				   enum scmi_bad_msg err)
 {
 	char *tag;
-	struct scmi_info *info = handle_to_scmi_info(cinfo->handle);
+	const struct scmi_info *info = handle_to_scmi_info_const(cinfo->handle);
 
 	switch (MSG_XTRACT_TYPE(msg_hdr)) {
 	case MSG_TYPE_COMMAND:
@@ -1062,7 +1063,7 @@ static inline void scmi_xfer_command_release(struct scmi_info *info,
 	__scmi_xfer_put(&info->tx_minfo, xfer);
 }
 
-static inline void scmi_clear_channel(struct scmi_info *info,
+static inline void scmi_clear_channel(const struct scmi_info *info,
 				      struct scmi_chan_info *cinfo)
 {
 	if (!cinfo->is_p2a) {
@@ -1240,7 +1241,7 @@ static bool scmi_xfer_done_no_timeout(struct scmi_chan_info *cinfo,
 				      struct scmi_xfer *xfer, ktime_t stop,
 				      bool *ooo)
 {
-	struct scmi_info *info = handle_to_scmi_info(cinfo->handle);
+	const struct scmi_info *info = handle_to_scmi_info_const(cinfo->handle);
 
 	/*
 	 * Poll also on xfer->done so that polling can be forcibly terminated
@@ -3459,7 +3460,7 @@ static struct dentry *scmi_debugfs_init(void)
 int scmi_inflight_count(const struct scmi_handle *handle)
 {
 	if (IS_ENABLED(CONFIG_ARM_SCMI_DEBUG_COUNTERS)) {
-		struct scmi_info *info = handle_to_scmi_info(handle);
+		const struct scmi_info *info = handle_to_scmi_info_const(handle);
 
 		if (!info->dbg)
 			return 0;
