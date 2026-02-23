@@ -114,6 +114,7 @@ struct scmi_protocol_instance {
 };
 
 #define ph_to_pi(h)	container_of(h, struct scmi_protocol_instance, ph)
+#define ph_to_pi_const(h)	container_of_const(h, struct scmi_protocol_instance, ph)
 
 /**
  * struct scmi_info - Structure representing a SCMI instance
@@ -1231,7 +1232,7 @@ static void scmi_rx_callback(struct scmi_chan_info *cinfo, u32 msg_hdr,
 static void xfer_put(const struct scmi_protocol_handle *ph,
 		     struct scmi_xfer *xfer)
 {
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 	struct scmi_info *info = handle_to_scmi_info(pi->handle);
 
 	__scmi_xfer_put(&info->tx_minfo, xfer);
@@ -1394,7 +1395,7 @@ static int do_xfer(const struct scmi_protocol_handle *ph,
 		   struct scmi_xfer *xfer)
 {
 	int ret;
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 	struct scmi_info *info = handle_to_scmi_info(pi->handle);
 	struct device *dev = info->dev;
 	struct scmi_chan_info *cinfo;
@@ -1473,7 +1474,7 @@ static int do_xfer(const struct scmi_protocol_handle *ph,
 static void reset_rx_to_maxsz(const struct scmi_protocol_handle *ph,
 			      struct scmi_xfer *xfer)
 {
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 	struct scmi_info *info = handle_to_scmi_info(pi->handle);
 
 	xfer->rx.len = info->desc->max_msg_size;
@@ -1556,7 +1557,7 @@ static int xfer_get_init(const struct scmi_protocol_handle *ph,
 {
 	int ret;
 	struct scmi_xfer *xfer;
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 	struct scmi_info *info = handle_to_scmi_info(pi->handle);
 	struct scmi_xfers_info *minfo = &info->tx_minfo;
 	struct device *dev = info->dev;
@@ -1650,7 +1651,7 @@ static int scmi_set_protocol_priv(struct scmi_protocol_handle *ph,
  */
 static void *scmi_get_protocol_priv(const struct scmi_protocol_handle *ph)
 {
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 
 	return pi->priv;
 }
@@ -1720,7 +1721,7 @@ out:
  */
 static int scmi_common_get_max_msg_size(const struct scmi_protocol_handle *ph)
 {
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 	struct scmi_info *info = handle_to_scmi_info(pi->handle);
 
 	return info->desc->max_msg_size;
@@ -1914,7 +1915,7 @@ scmi_common_fastchannel_init(const struct scmi_protocol_handle *ph,
 	struct scmi_fc_db_info *db = NULL;
 	struct scmi_msg_get_fc_info *info;
 	struct scmi_msg_resp_desc_fc *resp;
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 
 	/* Check if the MSG_ID supports fastchannel */
 	ret = scmi_protocol_msg_check(ph, message_id, &attributes);
@@ -2067,7 +2068,7 @@ static const struct scmi_proto_helpers_ops helpers_ops = {
 struct scmi_revision_info *
 scmi_revision_area_get(const struct scmi_protocol_handle *ph)
 {
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 
 	return pi->handle->version;
 }
@@ -2366,7 +2367,7 @@ out:
 void scmi_setup_protocol_implemented(const struct scmi_protocol_handle *ph,
 				     u8 *prot_imp)
 {
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+	const struct scmi_protocol_instance *pi = ph_to_pi_const(ph);
 	struct scmi_info *info = handle_to_scmi_info(pi->handle);
 
 	info->protocols_imp = prot_imp;
