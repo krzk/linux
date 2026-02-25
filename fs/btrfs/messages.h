@@ -84,11 +84,7 @@ void _btrfs_printk(const struct btrfs_fs_info *fs_info, unsigned int level, cons
 #ifdef CONFIG_PRINTK
 
 #define btrfs_printk_in_rcu(fs_info, level, fmt, args...)	\
-do {								\
-	rcu_read_lock();					\
-	_btrfs_printk(fs_info, level, fmt, ##args);		\
-	rcu_read_unlock();					\
-} while (0)
+	_btrfs_printk(fs_info, level, fmt, ##args)
 
 #define btrfs_printk_rl_in_rcu(fs_info, level, fmt, args...)	\
 do {								\
@@ -96,10 +92,8 @@ do {								\
 		DEFAULT_RATELIMIT_INTERVAL,			\
 		DEFAULT_RATELIMIT_BURST);			\
 								\
-	rcu_read_lock();					\
 	if (__ratelimit(&_rs))					\
 		_btrfs_printk(fs_info, level, fmt, ##args);	\
-	rcu_read_unlock();					\
 } while (0)
 
 #endif
@@ -147,11 +141,11 @@ do {										\
 	verify_assert_printk_format("check the format string" args);		\
 	if (!likely(cond)) {							\
 		if (("" __FIRST_ARG(args) [0]) == 0) {				\
-			pr_err("assertion failed: %s :: %ld, in %s:%d\n",	\
-				#cond, (long)(cond), __FILE__, __LINE__);	\
+			pr_err("assertion failed: %s, in %s:%d\n",		\
+				#cond, __FILE__, __LINE__);			\
 		} else {							\
-			pr_err("assertion failed: %s :: %ld, in %s:%d (" __FIRST_ARG(args) ")\n", \
-				#cond, (long)(cond), __FILE__, __LINE__ __REST_ARGS(args)); \
+			pr_err("assertion failed: %s, in %s:%d (" __FIRST_ARG(args) ")\n", \
+				#cond, __FILE__, __LINE__ __REST_ARGS(args));	\
 		}								\
 		BUG();								\
 	}									\
