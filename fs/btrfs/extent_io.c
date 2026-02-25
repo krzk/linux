@@ -4486,6 +4486,7 @@ static int try_release_subpage_extent_buffer(struct folio *folio)
 		 */
 		if (!test_and_clear_bit(EXTENT_BUFFER_TREE_REF, &eb->bflags)) {
 			spin_unlock(&eb->refs_lock);
+			rcu_read_lock();
 			break;
 		}
 
