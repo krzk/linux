@@ -150,6 +150,7 @@ static void scrub_rbio_work_locked(struct work_struct *work);
 static void free_raid_bio_pointers(struct btrfs_raid_bio *rbio)
 {
 	bitmap_free(rbio->error_bitmap);
+	bitmap_free(rbio->stripe_uptodate_bitmap);
 	kfree(rbio->stripe_pages);
 	kfree(rbio->bio_paddrs);
 	kfree(rbio->stripe_paddrs);
@@ -207,7 +208,7 @@ int btrfs_alloc_stripe_hash_table(struct btrfs_fs_info *info)
 	 * Try harder to allocate and fallback to vmalloc to lower the chance
 	 * of a failing mount.
 	 */
-	table = kvzalloc(struct_size(table, table, num_entries), GFP_KERNEL);
+	table = kvzalloc_flex(*table, table, num_entries);
 	if (!table)
 		return -ENOMEM;
 
@@ -1089,13 +1090,15 @@ static struct btrfs_raid_bio *alloc_rbio(struct btrfs_fs_info *fs_info,
 	ASSERT(real_stripes >= 2);
 	ASSERT(real_stripes <= U8_MAX);
 
-	rbio = kzalloc(sizeof(*rbio), GFP_NOFS);
+	rbio = kzalloc_obj(*rbio, GFP_NOFS);
 	if (!rbio)
 		return ERR_PTR(-ENOMEM);
-	rbio->stripe_pages = kcalloc(num_pages, sizeof(struct page *),
-				     GFP_NOFS);
-	rbio->bio_paddrs = kcalloc(num_sectors * sector_nsteps, sizeof(phys_addr_t), GFP_NOFS);
-	rbio->stripe_paddrs = kcalloc(num_sectors * sector_nsteps, sizeof(phys_addr_t), GFP_NOFS);
+	rbio->stripe_pages = kzalloc_objs(struct page *, num_pages, GFP_NOFS);
+	rbio->bio_paddrs = kzalloc_objs(phys_addr_t,
+					num_sectors * sector_nsteps, GFP_NOFS);
+	rbio->stripe_paddrs = kzalloc_objs(phys_addr_t,
+					   num_sectors * sector_nsteps,
+					   GFP_NOFS);
 	rbio->finish_pointers = kcalloc(real_stripes, sizeof(void *), GFP_NOFS);
 	rbio->error_bitmap = bitmap_zalloc(num_sectors, GFP_NOFS);
 	rbio->stripe_uptodate_bitmap = bitmap_zalloc(num_sectors, GFP_NOFS);
@@ -1650,12 +1653,7 @@ static int get_bio_sector_nr(struct btrfs_raid_bio *rbio, struct bio *bio)
 static void rbio_update_error_bitmap(struct btrfs_raid_bio *rbio, struct bio *bio)
 {
 	int total_sector_nr = get_bio_sector_nr(rbio, bio);
-	u32 bio_size = 0;
-	struct bio_vec *bvec;
-	int i;
-
-	bio_for_each_bvec_all(bvec, bio, i)
-		bio_size += bvec->bv_len;
+	const u32 bio_size = bio_get_size(bio);
 
 	/*
 	 * Since we can have multiple bios touching the error_bitmap, we cannot
@@ -1663,7 +1661,7 @@ static void rbio_update_error_bitmap(struct btrfs_raid_bio *rbio, struct bio *bi
 	 *
 	 * Instead use set_bit() for each bit, as set_bit() itself is atomic.
 	 */
-	for (i = total_sector_nr; i < total_sector_nr +
+	for (int i = total_sector_nr; i < total_sector_nr +
 	     (bio_size >> rbio->bioc->fs_info->sectorsize_bits); i++)
 		set_bit(i, rbio->error_bitmap);
 }
@@ -2294,8 +2292,7 @@ void raid56_parity_recover(struct bio *bio, struct btrfs_io_context *bioc,
 static void fill_data_csums(struct btrfs_raid_bio *rbio)
 {
 	struct btrfs_fs_info *fs_info = rbio->bioc->fs_info;
-	struct btrfs_root *csum_root = btrfs_csum_root(fs_info,
-						       rbio->bioc->full_stripe_logical);
+	struct btrfs_root *csum_root;
 	const u64 start = rbio->bioc->full_stripe_logical;
 	const u32 len = (rbio->nr_data * rbio->stripe_nsectors) <<
 			fs_info->sectorsize_bits;
@@ -2325,6 +2322,15 @@ static void fill_data_csums(struct btrfs_raid_bio *rbio)
 					  GFP_NOFS);
 	if (!rbio->csum_buf || !rbio->csum_bitmap) {
 		ret = -ENOMEM;
+		goto error;
+	}
+
+	csum_root = btrfs_csum_root(fs_info, rbio->bioc->full_stripe_logical);
+	if (unlikely(!csum_root)) {
+		btrfs_err(fs_info,
+			  "missing csum root for extent at bytenr %llu",
+			  rbio->bioc->full_stripe_logical);
+		ret = -EUCLEAN;
 		goto error;
 	}
 
