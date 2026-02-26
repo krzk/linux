@@ -673,6 +673,7 @@ struct scmi_powercap_info {
 	bool powercap_monitoring;
 	bool powercap_scale_mw;
 	bool powercap_scale_uw;
+	bool extended_names;
 	bool fastchannels;
 	char name[SCMI_MAX_STR_SIZE];
 	unsigned int sustainable_power;
