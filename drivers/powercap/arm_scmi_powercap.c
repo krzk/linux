@@ -97,7 +97,7 @@ static const struct powercap_zone_ops zone_ops = {
 };
 
 static void scmi_powercap_normalize_cap(const struct scmi_powercap_zone *spz,
-					u64 power_limit_uw, u32 *norm)
+					u64 power_limit_uw, int cid, u32 *norm)
 {
 	bool scale_mw = spz->info->powercap_scale_mw;
 	u64 val;
@@ -108,9 +108,9 @@ static void scmi_powercap_normalize_cap(const struct scmi_powercap_zone *spz,
 	 * the range [min_power_cap, max_power_cap] whose bounds are assured to
 	 * be two unsigned 32bits quantities.
 	 */
-	*norm = clamp_t(u32, val, spz->info->min_power_cap,
-			spz->info->max_power_cap);
-	*norm = rounddown(*norm, spz->info->power_cap_step);
+	*norm = clamp_t(u32, val, spz->info->cpli[cid].min_power_cap,
+			spz->info->cpli[cid].max_power_cap);
+	*norm = rounddown(*norm, spz->info->cpli[cid].power_cap_step);
 
 	val = (scale_mw) ? *norm * 1000 : *norm;
 	if (power_limit_uw != val)
@@ -125,12 +125,12 @@ static int scmi_powercap_set_power_limit_uw(struct powercap_zone *pz, int cid,
 	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
 	u32 norm_power;
 
-	if (!spz->info->powercap_cap_config)
+	if (!spz->info->cpli[cid].cap_config)
 		return -EINVAL;
 
-	scmi_powercap_normalize_cap(spz, power_uw, &norm_power);
+	scmi_powercap_normalize_cap(spz, power_uw, cid, &norm_power);
 
-	return powercap_ops->cap_set(spz->ph, spz->info->id, norm_power, false);
+	return powercap_ops->cap_set(spz->ph, spz->info->id, cid, norm_power, false);
 }
 
 static int scmi_powercap_get_power_limit_uw(struct powercap_zone *pz, int cid,
@@ -140,7 +140,7 @@ static int scmi_powercap_get_power_limit_uw(struct powercap_zone *pz, int cid,
 	u32 power;
 	int ret;
 
-	ret = powercap_ops->cap_get(spz->ph, spz->info->id, &power);
+	ret = powercap_ops->cap_get(spz->ph, spz->info->id, cid, &power);
 	if (ret)
 		return ret;
 
@@ -152,19 +152,20 @@ static int scmi_powercap_get_power_limit_uw(struct powercap_zone *pz, int cid,
 }
 
 static void scmi_powercap_normalize_time(const struct scmi_powercap_zone *spz,
-					 u64 time_us, u32 *norm)
+					 u64 time_us, int cid, u32 *norm)
 {
 	/*
 	 * This cast is lossless since here @time_us is certain to be within the
-	 * range [min_pai, max_pai] whose bounds are assured to be two unsigned
-	 * 32bits quantities.
+	 * range [min_avg_ivl, max_avg_ivl] whose bounds are assured to be two
+	 * unsigned 32bits quantities.
 	 */
-	*norm = clamp_t(u32, time_us, spz->info->min_pai, spz->info->max_pai);
-	*norm = rounddown(*norm, spz->info->pai_step);
+	*norm = clamp_t(u32, time_us, spz->info->cpli[cid].min_avg_ivl,
+			spz->info->cpli[cid].max_avg_ivl);
+	*norm = rounddown(*norm, spz->info->cpli[cid].avg_ivl_step);
 
 	if (time_us != *norm)
 		dev_dbg(spz->dev,
-			"Normalized %s:PAI - requested:%llu - normalized:%u\n",
+			"Normalized %s:AVG_IVL - requested:%llu - normalized:%u\n",
 			spz->info->name, time_us, *norm);
 }
 
@@ -174,12 +175,13 @@ static int scmi_powercap_set_time_window_us(struct powercap_zone *pz, int cid,
 	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
 	u32 norm_pai;
 
-	if (!spz->info->powercap_pai_config)
+	if (!spz->info->cpli[cid].avg_ivl_config)
 		return -EINVAL;
 
-	scmi_powercap_normalize_time(spz, time_window_us, &norm_pai);
+	scmi_powercap_normalize_time(spz, time_window_us, cid, &norm_pai);
 
-	return powercap_ops->pai_set(spz->ph, spz->info->id, norm_pai);
+	return powercap_ops->avg_interval_set(spz->ph, spz->info->id,
+					      cid, norm_pai);
 }
 
 static int scmi_powercap_get_time_window_us(struct powercap_zone *pz, int cid,
@@ -189,7 +191,7 @@ static int scmi_powercap_get_time_window_us(struct powercap_zone *pz, int cid,
 	int ret;
 	u32 pai;
 
-	ret = powercap_ops->pai_get(spz->ph, spz->info->id, &pai);
+	ret = powercap_ops->avg_interval_get(spz->ph, spz->info->id, cid, &pai);
 	if (ret)
 		return ret;
 
@@ -203,7 +205,7 @@ static int scmi_powercap_get_max_power_uw(struct powercap_zone *pz, int cid,
 {
 	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
 
-	*max_power_uw = spz->info->max_power_cap;
+	*max_power_uw = spz->info->cpli[cid].max_power_cap;
 	if (spz->info->powercap_scale_mw)
 		*max_power_uw *= 1000;
 
@@ -215,7 +217,7 @@ static int scmi_powercap_get_min_power_uw(struct powercap_zone *pz, int cid,
 {
 	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
 
-	*min_power_uw = spz->info->min_power_cap;
+	*min_power_uw = spz->info->cpli[cid].min_power_cap;
 	if (spz->info->powercap_scale_mw)
 		*min_power_uw *= 1000;
 
@@ -227,7 +229,7 @@ static int scmi_powercap_get_max_time_window_us(struct powercap_zone *pz,
 {
 	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
 
-	*time_window_us = spz->info->max_pai;
+	*time_window_us = spz->info->cpli[cid].max_avg_ivl;
 
 	return 0;
 }
@@ -237,14 +239,16 @@ static int scmi_powercap_get_min_time_window_us(struct powercap_zone *pz,
 {
 	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
 
-	*time_window_us = (u64)spz->info->min_pai;
+	*time_window_us = (u64)spz->info->cpli[cid].min_avg_ivl;
 
 	return 0;
 }
 
 static const char *scmi_powercap_get_name(struct powercap_zone *pz, int cid)
 {
-	return "SCMI power-cap";
+	struct scmi_powercap_zone *spz = to_scmi_powercap_zone(pz);
+
+	return spz->info->cpli[cid].name;
 }
 
 static const struct powercap_zone_constraint_ops constraint_ops  = {
