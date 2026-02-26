@@ -32,6 +32,7 @@
 #include "xe_guc_tlb_inval.h"
 #include "xe_map.h"
 #include "xe_pm.h"
+#include "xe_sleep.h"
 #include "xe_sriov_vf.h"
 #include "xe_trace_guc.h"
 
@@ -274,7 +275,7 @@ static bool g2h_fence_needs_alloc(struct g2h_fence *g2h_fence)
  */
 long xe_guc_ct_queue_proc_time_jiffies(struct xe_guc_ct *ct)
 {
-	BUILD_BUG_ON(!IS_ALIGNED(CTB_H2G_BUFFER_SIZE, SZ_4));
+	BUILD_BUG_ON(!IS_ALIGNED(CTB_H2G_BUFFER_SIZE, SZ_4K));
 	return (CTB_H2G_BUFFER_SIZE / SZ_4K) * HZ;
 }
 
@@ -643,7 +644,7 @@ static int __xe_guc_ct_start(struct xe_guc_ct *ct, bool needs_register)
 	spin_lock_irq(&ct->dead.lock);
 	if (ct->dead.reason) {
 		ct->dead.reason |= (1 << CT_DEAD_STATE_REARM);
-		queue_work(system_unbound_wq, &ct->dead.worker);
+		queue_work(system_dfl_wq, &ct->dead.worker);
 	}
 	spin_unlock_irq(&ct->dead.lock);
 #endif
@@ -1101,7 +1102,8 @@ static int dequeue_one_g2h(struct xe_guc_ct *ct);
  */
 static bool guc_ct_send_wait_for_retry(struct xe_guc_ct *ct, u32 len,
 				       u32 g2h_len, struct g2h_fence *g2h_fence,
-				       unsigned int *sleep_period_ms)
+				       unsigned int *sleep_period_ms,
+				       unsigned int *sleep_total_ms)
 {
 	struct xe_device *xe = ct_to_xe(ct);
 
@@ -1115,17 +1117,15 @@ static bool guc_ct_send_wait_for_retry(struct xe_guc_ct *ct, u32 len,
 	if (!h2g_has_room(ct, len + GUC_CTB_HDR_LEN)) {
 		struct guc_ctb *h2g = &ct->ctbs.h2g;
 
-		if (*sleep_period_ms == 1024)
+		if (*sleep_total_ms > 1000)
 			return false;
 
 		trace_xe_guc_ct_h2g_flow_control(xe, h2g->info.head, h2g->info.tail,
 						 h2g->info.size,
 						 h2g->info.space,
 						 len + GUC_CTB_HDR_LEN);
-		msleep(*sleep_period_ms);
-		*sleep_period_ms <<= 1;
+		*sleep_total_ms += xe_sleep_exponential_ms(sleep_period_ms, 64);
 	} else {
-		struct xe_device *xe = ct_to_xe(ct);
 		struct guc_ctb *g2h = &ct->ctbs.g2h;
 		int ret;
 
@@ -1147,7 +1147,7 @@ static bool guc_ct_send_wait_for_retry(struct xe_guc_ct *ct, u32 len,
 		ret = dequeue_one_g2h(ct);
 		if (ret < 0) {
 			if (ret != -ECANCELED)
-				xe_gt_err(ct_to_gt(ct), "CTB receive failed (%pe)",
+				xe_gt_err(ct_to_gt(ct), "CTB receive failed (%pe)\n",
 					  ERR_PTR(ret));
 			return false;
 		}
@@ -1161,6 +1161,7 @@ static int guc_ct_send_locked(struct xe_guc_ct *ct, const u32 *action, u32 len,
 {
 	struct xe_gt *gt = ct_to_gt(ct);
 	unsigned int sleep_period_ms = 1;
+	unsigned int sleep_total_ms = 0;
 	int ret;
 
 	xe_gt_assert(gt, !g2h_len || !g2h_fence);
@@ -1173,7 +1174,7 @@ try_again:
 
 	if (unlikely(ret == -EBUSY)) {
 		if (!guc_ct_send_wait_for_retry(ct, len, g2h_len, g2h_fence,
-						&sleep_period_ms))
+						&sleep_period_ms, &sleep_total_ms))
 			goto broken;
 		goto try_again;
 	}
@@ -1322,7 +1323,7 @@ retry_same_fence:
 	 */
 	mutex_lock(&ct->lock);
 	if (!ret) {
-		xe_gt_err(gt, "Timed out wait for G2H, fence %u, action %04x, done %s",
+		xe_gt_err(gt, "Timed out wait for G2H, fence %u, action %04x, done %s\n",
 			  g2h_fence.seqno, action[0], str_yes_no(g2h_fence.done));
 		xa_erase(&ct->fence_lookup, g2h_fence.seqno);
 		mutex_unlock(&ct->lock);
@@ -1832,7 +1833,7 @@ static void g2h_fast_path(struct xe_guc_ct *ct, u32 *msg, u32 len)
 		ret = xe_guc_tlb_inval_done_handler(guc, payload, adj_len);
 		break;
 	default:
-		xe_gt_warn(gt, "NOT_POSSIBLE");
+		xe_gt_warn(gt, "NOT_POSSIBLE\n");
 	}
 
 	if (ret) {
@@ -1935,7 +1936,7 @@ static void receive_g2h(struct xe_guc_ct *ct)
 		mutex_unlock(&ct->lock);
 
 		if (unlikely(ret == -EPROTO || ret == -EOPNOTSUPP)) {
-			xe_gt_err(ct_to_gt(ct), "CT dequeue failed: %d", ret);
+			xe_gt_err(ct_to_gt(ct), "CT dequeue failed: %d\n", ret);
 			CT_DEAD(ct, NULL, G2H_RECV);
 			kick_reset(ct);
 		}
@@ -2165,7 +2166,7 @@ static void ct_dead_capture(struct xe_guc_ct *ct, struct guc_ctb *ctb, u32 reaso
 
 	spin_unlock_irqrestore(&ct->dead.lock, flags);
 
-	queue_work(system_unbound_wq, &(ct)->dead.worker);
+	queue_work(system_dfl_wq, &(ct)->dead.worker);
 }
 
 static void ct_dead_print(struct xe_dead_ct *dead)
