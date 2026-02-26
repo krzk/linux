@@ -350,7 +350,7 @@ static int vmemmap_remap_free(unsigned long start, unsigned long end,
 	/*
 	 * In order to make remapping routine most efficient for the huge pages,
 	 * the routine of vmemmap page table walking has the following rules
-	 * (see more details from the vmemmap_pte_range()):
+	 * (see more details from the vmemmap_pte_entry()):
 	 *
 	 * - The range [@start, @end) and the range [@reuse, @reuse + PAGE_SIZE)
 	 *   should be continuous.
