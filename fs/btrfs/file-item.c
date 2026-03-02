@@ -308,6 +308,13 @@ static int search_csum_tree(struct btrfs_fs_info *fs_info,
 	/* Current item doesn't contain the desired range, search again */
 	btrfs_release_path(path);
 	csum_root = btrfs_csum_root(fs_info, disk_bytenr);
+	if (unlikely(!csum_root)) {
+		btrfs_err(fs_info,
+			  "missing csum root for extent at bytenr %llu",
+			  disk_bytenr);
+		return -EUCLEAN;
+	}
+
 	item = btrfs_lookup_csum(NULL, csum_root, path, disk_bytenr, 0);
 	if (IS_ERR(item)) {
 		ret = PTR_ERR(item);
@@ -845,7 +852,7 @@ int btrfs_csum_one_bio(struct btrfs_bio *bbio, bool async)
  */
 int btrfs_alloc_dummy_sum(struct btrfs_bio *bbio)
 {
-	bbio->sums = kmalloc(sizeof(*bbio->sums), GFP_NOFS);
+	bbio->sums = kmalloc_obj(*bbio->sums, GFP_NOFS);
 	if (!bbio->sums)
 		return -ENOMEM;
 	bbio->sums->len = bbio->bio.bi_iter.bi_size;
@@ -1090,9 +1097,9 @@ static int find_next_csum_offset(struct btrfs_root *root,
 	return 0;
 }
 
-int btrfs_csum_file_blocks(struct btrfs_trans_handle *trans,
-			   struct btrfs_root *root,
-			   struct btrfs_ordered_sum *sums)
+int btrfs_insert_data_csums(struct btrfs_trans_handle *trans,
+			    struct btrfs_root *root,
+			    struct btrfs_ordered_sum *sums)
 {
 	struct btrfs_fs_info *fs_info = root->fs_info;
 	struct btrfs_key file_key;

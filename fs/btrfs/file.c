@@ -10,6 +10,7 @@
 #include <linux/string.h>
 #include <linux/backing-dev.h>
 #include <linux/falloc.h>
+#include <linux/filelock.h>
 #include <linux/writeback.h>
 #include <linux/compat.h>
 #include <linux/slab.h>
@@ -2841,7 +2842,7 @@ static int add_falloc_range(struct list_head *head, u64 start, u64 len)
 		}
 	}
 
-	range = kmalloc(sizeof(*range), GFP_KERNEL);
+	range = kmalloc_obj(*range);
 	if (!range)
 		return -ENOMEM;
 	range->start = start;
@@ -3315,8 +3316,8 @@ static bool find_delalloc_subrange(struct btrfs_inode *inode, u64 start, u64 end
 			*delalloc_start_ret = start;
 			delalloc_len = btrfs_count_range_bits(&inode->io_tree,
 							      delalloc_start_ret, end,
-							      len, EXTENT_DELALLOC, 1,
-							      cached_state);
+							      len, EXTENT_DELALLOC,
+							      true, cached_state);
 		} else {
 			spin_unlock(&inode->lock);
 		}
@@ -3571,7 +3572,7 @@ static loff_t find_desired_extent(struct file *file, loff_t offset, int whence)
 		 */
 		private = NULL;
 	} else if (!private) {
-		private = kzalloc(sizeof(*private), GFP_KERNEL);
+		private = kzalloc_obj(*private);
 		/*
 		 * No worries if memory allocation failed.
 		 * The private structure is used only for speeding up multiple
@@ -3865,6 +3866,7 @@ const struct file_operations btrfs_file_operations = {
 	.remap_file_range = btrfs_remap_file_range,
 	.uring_cmd	= btrfs_uring_cmd,
 	.fop_flags	= FOP_BUFFER_RASYNC | FOP_BUFFER_WASYNC,
+	.setlease	= generic_setlease,
 };
 
 int btrfs_fdatawrite_range(struct btrfs_inode *inode, loff_t start, loff_t end)

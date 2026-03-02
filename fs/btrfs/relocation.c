@@ -483,7 +483,7 @@ static int __add_reloc_root(struct btrfs_root *root)
 	struct mapping_node *node;
 	struct reloc_control *rc = fs_info->reloc_ctl;
 
-	node = kmalloc(sizeof(*node), GFP_NOFS);
+	node = kmalloc_obj(*node, GFP_NOFS);
 	if (!node)
 		return -ENOMEM;
 
@@ -2440,10 +2440,7 @@ static int get_tree_block_key(struct btrfs_fs_info *fs_info,
 	eb = read_tree_block(fs_info, block->bytenr, &check);
 	if (IS_ERR(eb))
 		return PTR_ERR(eb);
-	if (unlikely(!extent_buffer_uptodate(eb))) {
-		free_extent_buffer(eb);
-		return -EIO;
-	}
+
 	if (block->level == 0)
 		btrfs_item_key_to_cpu(eb, &block->key, 0);
 	else
@@ -3115,7 +3112,7 @@ static int add_tree_block(struct reloc_control *rc,
 
 	BUG_ON(level == -1);
 
-	block = kmalloc(sizeof(*block), GFP_NOFS);
+	block = kmalloc_obj(*block, GFP_NOFS);
 	if (!block)
 		return -ENOMEM;
 
@@ -3645,12 +3642,7 @@ restart:
 	btrfs_block_rsv_release(fs_info, rc->block_rsv, (u64)-1, NULL);
 
 	/* get rid of pinned extents */
-	trans = btrfs_join_transaction(rc->extent_root);
-	if (IS_ERR(trans)) {
-		err = PTR_ERR(trans);
-		goto out_free;
-	}
-	ret = btrfs_commit_transaction(trans);
+	ret = btrfs_commit_current_transaction(rc->extent_root);
 	if (ret && !err)
 		err = ret;
 out_free:
@@ -3813,7 +3805,7 @@ static struct reloc_control *alloc_reloc_control(struct btrfs_fs_info *fs_info)
 {
 	struct reloc_control *rc;
 
-	rc = kzalloc(sizeof(*rc), GFP_NOFS);
+	rc = kzalloc_obj(*rc, GFP_NOFS);
 	if (!rc)
 		return NULL;
 
@@ -4042,7 +4034,7 @@ static int copy_remapped_data(struct btrfs_fs_info *fs_info, u64 old_addr,
 	struct reloc_io_private priv;
 	unsigned int nr_pages = DIV_ROUND_UP(length, PAGE_SIZE);
 
-	pages = kcalloc(nr_pages, sizeof(struct page *), GFP_NOFS);
+	pages = kzalloc_objs(struct page *, nr_pages, GFP_NOFS);
 	if (!pages)
 		return -ENOMEM;
 
@@ -4399,6 +4391,8 @@ static int move_existing_remaps(struct btrfs_fs_info *fs_info,
 
 				leaf = path->nodes[0];
 			}
+
+			btrfs_item_key_to_cpu(leaf, &key, path->slots[0]);
 		}
 
 		remap = btrfs_item_ptr(leaf, path->slots[0], struct btrfs_remap_item);
@@ -4952,6 +4946,12 @@ static int do_remap_reloc_trans(struct btrfs_fs_info *fs_info,
 	struct btrfs_space_info *sinfo = src_bg->space_info;
 
 	extent_root = btrfs_extent_root(fs_info, src_bg->start);
+	if (unlikely(!extent_root)) {
+		btrfs_err(fs_info,
+			  "missing extent root for block group at offset %llu",
+			  src_bg->start);
+		return -EUCLEAN;
+	}
 
 	trans = btrfs_start_transaction(extent_root, 0);
 	if (IS_ERR(trans))
@@ -5304,6 +5304,13 @@ int btrfs_relocate_block_group(struct btrfs_fs_info *fs_info, u64 group_start,
 	int ret;
 	bool bg_is_ro = false;
 
+	if (unlikely(!extent_root)) {
+		btrfs_err(fs_info,
+			  "missing extent root for block group at offset %llu",
+			  group_start);
+		return -EUCLEAN;
+	}
+
 	/*
 	 * This only gets set if we had a half-deleted snapshot on mount.  We
 	 * cannot allow relocation to start while we're still trying to clean up
@@ -5534,11 +5541,16 @@ int btrfs_recover_relocation(struct btrfs_fs_info *fs_info)
 		goto out;
 	}
 
+	rc->extent_root = btrfs_extent_root(fs_info, 0);
+	if (unlikely(!rc->extent_root)) {
+		btrfs_err(fs_info, "missing extent root for extent at bytenr 0");
+		ret = -EUCLEAN;
+		goto out;
+	}
+
 	ret = reloc_chunk_start(fs_info);
 	if (ret < 0)
 		goto out_end;
-
-	rc->extent_root = btrfs_extent_root(fs_info, 0);
 
 	set_reloc_control(rc);
 
@@ -5633,6 +5645,14 @@ int btrfs_reloc_clone_csums(struct btrfs_ordered_extent *ordered)
 	struct btrfs_root *csum_root = btrfs_csum_root(fs_info, disk_bytenr);
 	LIST_HEAD(list);
 	int ret;
+
+	if (unlikely(!csum_root)) {
+		btrfs_mark_ordered_extent_error(ordered);
+		btrfs_err(fs_info,
+			  "missing csum root for extent at bytenr %llu",
+			  disk_bytenr);
+		return -EUCLEAN;
+	}
 
 	ret = btrfs_lookup_csums_list(csum_root, disk_bytenr,
 				      disk_bytenr + ordered->num_bytes - 1,

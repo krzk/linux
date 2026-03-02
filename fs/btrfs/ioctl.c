@@ -672,6 +672,13 @@ static noinline int create_subvol(struct mnt_idmap *idmap,
 		goto out;
 	}
 
+	/*
+	 * Subvolumes have orphans cleaned on first dentry lookup. A new
+	 * subvolume cannot have any orphans, so we should set the bit before we
+	 * add the subvolume dentry to the dentry cache, so that it is in the
+	 * same state as a subvolume after first lookup.
+	 */
+	set_bit(BTRFS_ROOT_ORPHAN_CLEANUP, &new_root->state);
 	d_instantiate_new(dentry, new_inode_args.inode);
 	new_inode_args.inode = NULL;
 
@@ -726,15 +733,14 @@ static int create_snapshot(struct btrfs_root *root, struct inode *dir,
 		return -ETXTBSY;
 	}
 
-	pending_snapshot = kzalloc(sizeof(*pending_snapshot), GFP_KERNEL);
+	pending_snapshot = kzalloc_obj(*pending_snapshot);
 	if (!pending_snapshot)
 		return -ENOMEM;
 
 	ret = get_anon_bdev(&pending_snapshot->anon_dev);
 	if (ret < 0)
 		goto free_pending;
-	pending_snapshot->root_item = kzalloc(sizeof(struct btrfs_root_item),
-			GFP_KERNEL);
+	pending_snapshot->root_item = kzalloc_obj(struct btrfs_root_item);
 	pending_snapshot->path = btrfs_alloc_path();
 	if (!pending_snapshot->root_item || !pending_snapshot->path) {
 		ret = -ENOMEM;
@@ -815,75 +821,6 @@ free_pending:
 	return ret;
 }
 
-/*  copy of may_delete in fs/namei.c()
- *	Check whether we can remove a link victim from directory dir, check
- *  whether the type of victim is right.
- *  1. We can't do it if dir is read-only (done in permission())
- *  2. We should have write and exec permissions on dir
- *  3. We can't remove anything from append-only dir
- *  4. We can't do anything with immutable dir (done in permission())
- *  5. If the sticky bit on dir is set we should either
- *	a. be owner of dir, or
- *	b. be owner of victim, or
- *	c. have CAP_FOWNER capability
- *  6. If the victim is append-only or immutable we can't do anything with
- *     links pointing to it.
- *  7. If we were asked to remove a directory and victim isn't one - ENOTDIR.
- *  8. If we were asked to remove a non-directory and victim isn't one - EISDIR.
- *  9. We can't remove a root or mountpoint.
- * 10. We don't allow removal of NFS sillyrenamed files; it's handled by
- *     nfs_async_unlink().
- */
-
-static int btrfs_may_delete(struct mnt_idmap *idmap,
-			    struct inode *dir, struct dentry *victim, int isdir)
-{
-	int ret;
-
-	if (d_really_is_negative(victim))
-		return -ENOENT;
-
-	/* The @victim is not inside @dir. */
-	if (d_inode(victim->d_parent) != dir)
-		return -EINVAL;
-	audit_inode_child(dir, victim, AUDIT_TYPE_CHILD_DELETE);
-
-	ret = inode_permission(idmap, dir, MAY_WRITE | MAY_EXEC);
-	if (ret)
-		return ret;
-	if (IS_APPEND(dir))
-		return -EPERM;
-	if (check_sticky(idmap, dir, d_inode(victim)) ||
-	    IS_APPEND(d_inode(victim)) || IS_IMMUTABLE(d_inode(victim)) ||
-	    IS_SWAPFILE(d_inode(victim)))
-		return -EPERM;
-	if (isdir) {
-		if (!d_is_dir(victim))
-			return -ENOTDIR;
-		if (IS_ROOT(victim))
-			return -EBUSY;
-	} else if (d_is_dir(victim))
-		return -EISDIR;
-	if (IS_DEADDIR(dir))
-		return -ENOENT;
-	if (victim->d_flags & DCACHE_NFSFS_RENAMED)
-		return -EBUSY;
-	return 0;
-}
-
-/* copy of may_create in fs/namei.c() */
-static inline int btrfs_may_create(struct mnt_idmap *idmap,
-				   struct inode *dir, const struct dentry *child)
-{
-	if (d_really_is_positive(child))
-		return -EEXIST;
-	if (IS_DEADDIR(dir))
-		return -ENOENT;
-	if (!fsuidgid_has_mapping(dir->i_sb, idmap))
-		return -EOVERFLOW;
-	return inode_permission(idmap, dir, MAY_WRITE | MAY_EXEC);
-}
-
 /*
  * Create a new subvolume below @parent.  This is largely modeled after
  * sys_mkdirat and vfs_mkdir, but we only do a single component lookup
@@ -905,7 +842,7 @@ static noinline int btrfs_mksubvol(struct dentry *parent,
 	if (IS_ERR(dentry))
 		return PTR_ERR(dentry);
 
-	ret = btrfs_may_create(idmap, dir, dentry);
+	ret = may_create_dentry(idmap, dir, dentry);
 	if (ret)
 		goto out_dput;
 
@@ -2027,7 +1964,7 @@ static int btrfs_ioctl_get_subvol_info(struct inode *inode, void __user *argp)
 	if (!path)
 		return -ENOMEM;
 
-	subvol_info = kzalloc(sizeof(*subvol_info), GFP_KERNEL);
+	subvol_info = kzalloc_obj(*subvol_info);
 	if (!subvol_info) {
 		btrfs_free_path(path);
 		return -ENOMEM;
@@ -2410,7 +2347,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
 	}
 
 	/* check if subvolume may be deleted by a user */
-	ret = btrfs_may_delete(idmap, dir, dentry, 1);
+	ret = may_delete_dentry(idmap, dir, dentry, true);
 	if (ret)
 		goto out_end_removing;
 
@@ -3101,7 +3038,7 @@ static long btrfs_ioctl_scrub(struct file *file, void __user *arg)
 
 	ret = btrfs_scrub_dev(fs_info, sa->devid, sa->start, sa->end,
 			      &sa->progress, sa->flags & BTRFS_SCRUB_READONLY,
-			      0);
+			      false);
 
 	/*
 	 * Copy scrub args to user space even if btrfs_scrub_dev() returned an
@@ -3492,7 +3429,7 @@ static long btrfs_ioctl_balance(struct file *file, void __user *arg)
 		goto out_unlock;
 	}
 
-	bctl = kzalloc(sizeof(*bctl), GFP_KERNEL);
+	bctl = kzalloc_obj(*bctl);
 	if (!bctl) {
 		ret = -ENOMEM;
 		goto out_unlock;
@@ -3673,14 +3610,15 @@ static long btrfs_ioctl_qgroup_assign(struct file *file, void __user *arg)
 	}
 
 	if (sa->assign) {
-		prealloc = kzalloc(sizeof(*prealloc), GFP_KERNEL);
+		prealloc = kzalloc_obj(*prealloc);
 		if (!prealloc) {
 			ret = -ENOMEM;
 			goto out;
 		}
 	}
 
-	trans = btrfs_join_transaction(root);
+	/* 2 BTRFS_QGROUP_RELATION_KEY items. */
+	trans = btrfs_start_transaction(root, 2);
 	if (IS_ERR(trans)) {
 		ret = PTR_ERR(trans);
 		goto out;
@@ -3752,7 +3690,11 @@ static long btrfs_ioctl_qgroup_create(struct file *file, void __user *arg)
 		goto out;
 	}
 
-	trans = btrfs_join_transaction(root);
+	/*
+	 * 1 BTRFS_QGROUP_INFO_KEY item.
+	 * 1 BTRFS_QGROUP_LIMIT_KEY item.
+	 */
+	trans = btrfs_start_transaction(root, 2);
 	if (IS_ERR(trans)) {
 		ret = PTR_ERR(trans);
 		goto out;
@@ -3801,7 +3743,8 @@ static long btrfs_ioctl_qgroup_limit(struct file *file, void __user *arg)
 		goto drop_write;
 	}
 
-	trans = btrfs_join_transaction(root);
+	/* 1 BTRFS_QGROUP_LIMIT_KEY item. */
+	trans = btrfs_start_transaction(root, 1);
 	if (IS_ERR(trans)) {
 		ret = PTR_ERR(trans);
 		goto out;
@@ -3922,6 +3865,25 @@ static long _btrfs_ioctl_set_received_subvol(struct file *file,
 		goto out;
 	}
 
+	received_uuid_changed = memcmp(root_item->received_uuid, sa->uuid,
+				       BTRFS_UUID_SIZE);
+
+	/*
+	 * Before we attempt to add the new received uuid, check if we have room
+	 * for it in case there's already an item. If the size of the existing
+	 * item plus this root's ID (u64) exceeds the maximum item size, we can
+	 * return here without the need to abort a transaction. If we don't do
+	 * this check, the btrfs_uuid_tree_add() call below would fail with
+	 * -EOVERFLOW and result in a transaction abort. Malicious users could
+	 * exploit this to turn the fs into RO mode.
+	 */
+	if (received_uuid_changed && !btrfs_is_empty_uuid(sa->uuid)) {
+		ret = btrfs_uuid_tree_check_overflow(fs_info, sa->uuid,
+						     BTRFS_UUID_KEY_RECEIVED_SUBVOL);
+		if (ret < 0)
+			goto out;
+	}
+
 	/*
 	 * 1 - root item
 	 * 2 - uuid items (received uuid + subvol uuid)
@@ -3937,15 +3899,12 @@ static long _btrfs_ioctl_set_received_subvol(struct file *file,
 	sa->rtime.sec = ct.tv_sec;
 	sa->rtime.nsec = ct.tv_nsec;
 
-	received_uuid_changed = memcmp(root_item->received_uuid, sa->uuid,
-				       BTRFS_UUID_SIZE);
 	if (received_uuid_changed &&
 	    !btrfs_is_empty_uuid(root_item->received_uuid)) {
 		ret = btrfs_uuid_tree_remove(trans, root_item->received_uuid,
 					  BTRFS_UUID_KEY_RECEIVED_SUBVOL,
 					  btrfs_root_id(root));
 		if (unlikely(ret && ret != -ENOENT)) {
-		        btrfs_abort_transaction(trans, ret);
 		        btrfs_end_transaction(trans);
 		        goto out;
 		}
@@ -3960,7 +3919,8 @@ static long _btrfs_ioctl_set_received_subvol(struct file *file,
 
 	ret = btrfs_update_root(trans, fs_info->tree_root,
 				&root->root_key, &root->root_item);
-	if (ret < 0) {
+	if (unlikely(ret < 0)) {
+		btrfs_abort_transaction(trans, ret);
 		btrfs_end_transaction(trans);
 		goto out;
 	}
@@ -3968,7 +3928,7 @@ static long _btrfs_ioctl_set_received_subvol(struct file *file,
 		ret = btrfs_uuid_tree_add(trans, sa->uuid,
 					  BTRFS_UUID_KEY_RECEIVED_SUBVOL,
 					  btrfs_root_id(root));
-		if (unlikely(ret < 0 && ret != -EEXIST)) {
+		if (unlikely(ret < 0)) {
 			btrfs_abort_transaction(trans, ret);
 			btrfs_end_transaction(trans);
 			goto out;
@@ -3993,7 +3953,7 @@ static long btrfs_ioctl_set_received_subvol_32(struct file *file,
 	if (IS_ERR(args32))
 		return PTR_ERR(args32);
 
-	args64 = kmalloc(sizeof(*args64), GFP_KERNEL);
+	args64 = kmalloc_obj(*args64);
 	if (!args64) {
 		ret = -ENOMEM;
 		goto out;
@@ -4303,7 +4263,7 @@ static int _btrfs_ioctl_send(struct btrfs_root *root, void __user *argp, bool co
 		ret = copy_from_user(&args32, argp, sizeof(args32));
 		if (ret)
 			return -EFAULT;
-		arg = kzalloc(sizeof(*arg), GFP_KERNEL);
+		arg = kzalloc_obj(*arg);
 		if (!arg)
 			return -ENOMEM;
 		arg->send_fd = args32.send_fd;
@@ -4657,7 +4617,7 @@ static int btrfs_uring_read_extent(struct kiocb *iocb, struct iov_iter *iter,
 	int ret;
 
 	nr_pages = DIV_ROUND_UP(disk_io_size, PAGE_SIZE);
-	pages = kcalloc(nr_pages, sizeof(struct page *), GFP_NOFS);
+	pages = kzalloc_objs(struct page *, nr_pages, GFP_NOFS);
 	if (!pages)
 		return -ENOMEM;
 	ret = btrfs_alloc_page_array(nr_pages, pages, 0);
@@ -4666,7 +4626,7 @@ static int btrfs_uring_read_extent(struct kiocb *iocb, struct iov_iter *iter,
 		goto out_fail;
 	}
 
-	priv = kmalloc(sizeof(*priv), GFP_NOFS);
+	priv = kmalloc_obj(*priv, GFP_NOFS);
 	if (!priv) {
 		ret = -ENOMEM;
 		goto out_fail;
@@ -4756,7 +4716,7 @@ static int btrfs_uring_encoded_read(struct io_uring_cmd *cmd, unsigned int issue
 	}
 
 	if (!data) {
-		data = kzalloc(sizeof(*data), GFP_NOFS);
+		data = kzalloc_obj(*data, GFP_NOFS);
 		if (!data) {
 			ret = -ENOMEM;
 			goto out_acct;
@@ -4891,7 +4851,7 @@ static int btrfs_uring_encoded_write(struct io_uring_cmd *cmd, unsigned int issu
 	}
 
 	if (!data) {
-		data = kzalloc(sizeof(*data), GFP_NOFS);
+		data = kzalloc_obj(*data, GFP_NOFS);
 		if (!data) {
 			ret = -ENOMEM;
 			goto out_acct;

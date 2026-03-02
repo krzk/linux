@@ -75,7 +75,7 @@ struct list_head *zlib_alloc_workspace(struct btrfs_fs_info *fs_info, unsigned i
 	struct workspace *workspace;
 	int workspacesize;
 
-	workspace = kzalloc(sizeof(*workspace), GFP_KERNEL);
+	workspace = kzalloc_obj(*workspace);
 	if (!workspace)
 		return ERR_PTR(-ENOMEM);
 
@@ -349,7 +349,7 @@ int zlib_decompress_bio(struct list_head *ws, struct compressed_bio *cb)
 	int wbits = MAX_WBITS;
 	char *data_in;
 	size_t total_out = 0;
-	size_t srclen = cb->compressed_len;
+	const size_t srclen = bio_get_size(&cb->bbio.bio);
 	unsigned long buf_start;
 
 	bio_first_folio(&fi, &cb->bbio.bio, 0);

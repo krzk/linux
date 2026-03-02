@@ -450,7 +450,7 @@ static struct fs_path *fs_path_alloc(void)
 {
 	struct fs_path *p;
 
-	p = kmalloc(sizeof(*p), GFP_KERNEL);
+	p = kmalloc_obj(*p);
 	if (!p)
 		return NULL;
 	init_path(p);
@@ -1429,7 +1429,7 @@ static void store_backref_cache(u64 leaf_bytenr, const struct ulist *root_ids,
 	 * fs_info->commit_root_sem (at iterate_extent_inodes()), so must do a
 	 * NOFS allocation.
 	 */
-	new_entry = kmalloc(sizeof(struct backref_cache_entry), GFP_NOFS);
+	new_entry = kmalloc_obj(struct backref_cache_entry, GFP_NOFS);
 	/* No worries, cache is optional. */
 	if (!new_entry)
 		return;
@@ -2743,7 +2743,7 @@ static int cache_dir_utimes(struct send_ctx *sctx, u64 dir, u64 gen)
 		return 0;
 
 	/* Caching is optional, don't fail if we can't allocate memory. */
-	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+	entry = kmalloc_obj(*entry);
 	if (!entry)
 		return send_utimes(sctx, dir, gen);
 
@@ -2870,7 +2870,7 @@ static void cache_dir_created(struct send_ctx *sctx, u64 dir)
 	int ret;
 
 	/* Caching is optional, ignore any failures. */
-	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+	entry = kmalloc_obj(*entry);
 	if (!entry)
 		return;
 
@@ -2974,7 +2974,7 @@ static struct recorded_ref *recorded_ref_alloc(void)
 {
 	struct recorded_ref *ref;
 
-	ref = kzalloc(sizeof(*ref), GFP_KERNEL);
+	ref = kzalloc_obj(*ref);
 	if (!ref)
 		return NULL;
 	RB_CLEAR_NODE(&ref->node);
@@ -3083,7 +3083,7 @@ static struct orphan_dir_info *add_orphan_dir_info(struct send_ctx *sctx,
 			return entry;
 	}
 
-	odi = kmalloc(sizeof(*odi), GFP_KERNEL);
+	odi = kmalloc_obj(*odi);
 	if (!odi)
 		return ERR_PTR(-ENOMEM);
 	odi->ino = dir_ino;
@@ -3284,7 +3284,7 @@ static int add_waiting_dir_move(struct send_ctx *sctx, u64 ino, bool orphanized)
 	struct rb_node *parent = NULL;
 	struct waiting_dir_move *entry, *dm;
 
-	dm = kmalloc(sizeof(*dm), GFP_KERNEL);
+	dm = kmalloc_obj(*dm);
 	if (!dm)
 		return -ENOMEM;
 	dm->ino = ino;
@@ -3352,7 +3352,7 @@ static int add_pending_dir_move(struct send_ctx *sctx,
 	int exists = 0;
 	int ret;
 
-	pm = kmalloc(sizeof(*pm), GFP_KERNEL);
+	pm = kmalloc_obj(*pm);
 	if (!pm)
 		return -ENOMEM;
 	pm->parent_ino = parent_ino;
@@ -7201,7 +7201,7 @@ static int changed_cb(struct btrfs_path *left_path,
 	sctx->right_path = right_path;
 	sctx->cmp_key = key;
 
-	ret = finish_inode_if_needed(sctx, 0);
+	ret = finish_inode_if_needed(sctx, false);
 	if (ret < 0)
 		return ret;
 
@@ -7328,7 +7328,7 @@ static int full_send_tree(struct send_ctx *sctx)
 	}
 
 out_finish:
-	return finish_inode_if_needed(sctx, 1);
+	return finish_inode_if_needed(sctx, true);
 }
 
 static int replace_node_with_clone(struct btrfs_path *path, int level)
@@ -7879,7 +7879,7 @@ static int send_subvol(struct send_ctx *sctx)
 		ret = btrfs_compare_trees(sctx->send_root, sctx->parent_root, sctx);
 		if (ret < 0)
 			goto out;
-		ret = finish_inode_if_needed(sctx, 1);
+		ret = finish_inode_if_needed(sctx, true);
 		if (ret < 0)
 			goto out;
 	} else {
@@ -8035,7 +8035,7 @@ long btrfs_ioctl_send(struct btrfs_root *send_root, const struct btrfs_ioctl_sen
 		goto out;
 	}
 
-	sctx = kzalloc(sizeof(struct send_ctx), GFP_KERNEL);
+	sctx = kzalloc_obj(struct send_ctx);
 	if (!sctx) {
 		ret = -ENOMEM;
 		goto out;
@@ -8097,9 +8097,8 @@ long btrfs_ioctl_send(struct btrfs_root *send_root, const struct btrfs_ioctl_sen
 			goto out;
 		}
 		send_buf_num_pages = sctx->send_max_size >> PAGE_SHIFT;
-		sctx->send_buf_pages = kcalloc(send_buf_num_pages,
-					       sizeof(*sctx->send_buf_pages),
-					       GFP_KERNEL);
+		sctx->send_buf_pages = kzalloc_objs(*sctx->send_buf_pages,
+						    send_buf_num_pages);
 		if (!sctx->send_buf_pages) {
 			ret = -ENOMEM;
 			goto out;
@@ -8117,9 +8116,8 @@ long btrfs_ioctl_send(struct btrfs_root *send_root, const struct btrfs_ioctl_sen
 		goto out;
 	}
 
-	sctx->clone_roots = kvcalloc(arg->clone_sources_count + 1,
-				     sizeof(*sctx->clone_roots),
-				     GFP_KERNEL);
+	sctx->clone_roots = kvzalloc_objs(*sctx->clone_roots,
+					  arg->clone_sources_count + 1);
 	if (!sctx->clone_roots) {
 		ret = -ENOMEM;
 		goto out;
