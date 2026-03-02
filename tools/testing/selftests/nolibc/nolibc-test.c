@@ -1668,13 +1668,18 @@ static int expect_vfprintf(int llen, int c, const char *expected, const char *fm
 	char buf[100];
 	va_list args;
 	ssize_t w;
-	int ret;
-
 
 	va_start(args, fmt);
 	/* Only allow writing 21 bytes, to test truncation */
 	w = vsnprintf(buf, 21, fmt, args);
 	va_end(args);
+
+	llen += printf(" \"%s\"", buf);
+	if (strncmp(expected, buf, c)) {
+		llen += printf(" should be \"%s\"", expected);
+		result(llen, FAIL);
+		return 1;
+	}
 
 	if (w != c) {
 		llen += printf(" written(%d) != %d", (int)w, c);
@@ -1682,11 +1687,8 @@ static int expect_vfprintf(int llen, int c, const char *expected, const char *fm
 		return 1;
 	}
 
-	llen += printf(" \"%s\" = \"%s\"", expected, buf);
-	ret = strncmp(expected, buf, c) != 0;
-
-	result(llen, ret ? FAIL : OK);
-	return ret;
+	result(llen, OK);
+	return 0;
 }
 
 static int test_scanf(void)
