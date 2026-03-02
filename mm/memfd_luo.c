@@ -112,7 +112,7 @@ static int memfd_luo_preserve_folios(struct file *file,
 	 * up being smaller if there are higher order folios.
 	 */
 	max_folios = PAGE_ALIGN(size) / PAGE_SIZE;
-	folios = kvmalloc_array(max_folios, sizeof(*folios), GFP_KERNEL);
+	folios = kvmalloc_objs(*folios, max_folios);
 	if (!folios)
 		return -ENOMEM;
 
@@ -326,7 +326,12 @@ static void memfd_luo_finish(struct liveupdate_file_op_args *args)
 	struct memfd_luo_folio_ser *folios_ser;
 	struct memfd_luo_ser *ser;
 
-	if (args->retrieved)
+	/*
+	 * If retrieve was successful, nothing to do. If it failed, retrieve()
+	 * already cleaned up everything it could. So nothing to do there
+	 * either. Only need to clean up when retrieve was not called.
+	 */
+	if (args->retrieve_status)
 		return;
 
 	ser = phys_to_virt(args->serialized_data);
