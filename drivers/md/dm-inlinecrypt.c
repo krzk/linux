@@ -396,7 +396,7 @@ static struct target_type inlinecrypt_target = {
 	 * Do not set DM_TARGET_PASSES_CRYPTO, since dm-inlinecrypt consumes the
 	 * crypto capability itself.
 	 */
-	.features		= DM_TARGET_ZONED_HM,
+	.features		= DM_TARGET_CONSUME_CRYPTO | DM_TARGET_ZONED_HM,
 	.module			= THIS_MODULE,
 	.ctr			= inlinecrypt_ctr,
 	.dtr			= inlinecrypt_dtr,
