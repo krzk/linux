@@ -94,6 +94,9 @@ static inline bool file_thp_enabled(struct vm_area_struct *vma)
 
 	inode = file_inode(vma->vm_file);
 
+	if (IS_ANON_FILE(inode))
+		return false;
+
 	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
 }
 
@@ -718,7 +721,7 @@ static struct thpsize *thpsize_create(int order, struct kobject *parent)
 	struct thpsize *thpsize;
 	int ret = -ENOMEM;
 
-	thpsize = kzalloc(sizeof(*thpsize), GFP_KERNEL);
+	thpsize = kzalloc_obj(*thpsize);
 	if (!thpsize)
 		goto err;
 

@@ -4,6 +4,7 @@
  *   Copyright (C) 2018 Samsung Electronics Co., Ltd.
  */
 
+#include <crypto/utils.h>
 #include <linux/inetdevice.h>
 #include <net/addrconf.h>
 #include <linux/syscalls.h>
@@ -1164,8 +1165,8 @@ int smb2_handle_negotiate(struct ksmbd_work *work)
 	switch (conn->dialect) {
 	case SMB311_PROT_ID:
 		conn->preauth_info =
-			kzalloc(sizeof(struct preauth_integrity_info),
-				KSMBD_DEFAULT_GFP);
+			kzalloc_obj(struct preauth_integrity_info,
+				    KSMBD_DEFAULT_GFP);
 		if (!conn->preauth_info) {
 			rc = -ENOMEM;
 			rsp->hdr.Status = STATUS_INVALID_PARAMETER;
@@ -1560,7 +1561,7 @@ binding_session:
 	if (conn->dialect >= SMB30_PROT_ID) {
 		chann = lookup_chann_list(sess, conn);
 		if (!chann) {
-			chann = kmalloc(sizeof(struct channel), KSMBD_DEFAULT_GFP);
+			chann = kmalloc_obj(struct channel, KSMBD_DEFAULT_GFP);
 			if (!chann)
 				return -ENOMEM;
 
@@ -1655,7 +1656,7 @@ binding_session:
 	if (conn->dialect >= SMB30_PROT_ID) {
 		chann = lookup_chann_list(sess, conn);
 		if (!chann) {
-			chann = kmalloc(sizeof(struct channel), KSMBD_DEFAULT_GFP);
+			chann = kmalloc_obj(struct channel, KSMBD_DEFAULT_GFP);
 			if (!chann)
 				return -ENOMEM;
 
@@ -6115,14 +6116,14 @@ static int smb2_create_link(struct ksmbd_work *work,
 				rc = -EINVAL;
 				ksmbd_debug(SMB, "cannot delete %s\n",
 					    link_name);
-				goto out;
 			}
 		} else {
 			rc = -EEXIST;
 			ksmbd_debug(SMB, "link already exists\n");
-			goto out;
 		}
 		ksmbd_vfs_kern_path_end_removing(&path);
+		if (rc)
+			goto out;
 	}
 	rc = ksmbd_vfs_link(work, target_name, link_name);
 	if (rc)
@@ -7326,7 +7327,7 @@ static struct ksmbd_lock *smb2_lock_init(struct file_lock *flock,
 {
 	struct ksmbd_lock *lock;
 
-	lock = kzalloc(sizeof(struct ksmbd_lock), KSMBD_DEFAULT_GFP);
+	lock = kzalloc_obj(struct ksmbd_lock, KSMBD_DEFAULT_GFP);
 	if (!lock)
 		return NULL;
 
@@ -8880,7 +8881,7 @@ int smb2_check_sign_req(struct ksmbd_work *work)
 	ksmbd_sign_smb2_pdu(work->conn, work->sess->sess_key, iov, 1,
 			    signature);
 
-	if (memcmp(signature, signature_req, SMB2_SIGNATURE_SIZE)) {
+	if (crypto_memneq(signature, signature_req, SMB2_SIGNATURE_SIZE)) {
 		pr_err("bad smb2 signature\n");
 		return 0;
 	}
@@ -8968,7 +8969,7 @@ int smb3_check_sign_req(struct ksmbd_work *work)
 	if (ksmbd_sign_smb3_pdu(conn, signing_key, iov, 1, signature))
 		return 0;
 
-	if (memcmp(signature, signature_req, SMB2_SIGNATURE_SIZE)) {
+	if (crypto_memneq(signature, signature_req, SMB2_SIGNATURE_SIZE)) {
 		pr_err("bad smb2 signature\n");
 		return 0;
 	}

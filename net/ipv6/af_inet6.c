@@ -921,8 +921,7 @@ static int __net_init ipv6_init_mibs(struct net *net)
 	net->mib.icmpv6_statistics = alloc_percpu(struct icmpv6_mib);
 	if (!net->mib.icmpv6_statistics)
 		goto err_icmp_mib;
-	net->mib.icmpv6msg_statistics = kzalloc(sizeof(struct icmpv6msg_mib),
-						GFP_KERNEL);
+	net->mib.icmpv6msg_statistics = kzalloc_obj(struct icmpv6msg_mib);
 	if (!net->mib.icmpv6msg_statistics)
 		goto err_icmpmsg_mib;
 	return 0;
@@ -952,7 +951,7 @@ static int __net_init inet6_net_init(struct net *net)
 	int err = 0;
 
 	net->ipv6.sysctl.bindv6only = 0;
-	net->ipv6.sysctl.icmpv6_time = 1*HZ;
+	net->ipv6.sysctl.icmpv6_time = HZ / 10;
 	net->ipv6.sysctl.icmpv6_echo_ignore_all = 0;
 	net->ipv6.sysctl.icmpv6_echo_ignore_multicast = 0;
 	net->ipv6.sysctl.icmpv6_echo_ignore_anycast = 0;

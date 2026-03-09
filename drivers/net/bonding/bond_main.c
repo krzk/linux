@@ -324,7 +324,7 @@ static bool bond_sk_check(struct bonding *bond)
 	}
 }
 
-bool bond_xdp_check(struct bonding *bond, int mode)
+bool __bond_xdp_check(int mode, int xmit_policy)
 {
 	switch (mode) {
 	case BOND_MODE_ROUNDROBIN:
@@ -335,12 +335,17 @@ bool bond_xdp_check(struct bonding *bond, int mode)
 		/* vlan+srcmac is not supported with XDP as in most cases the 802.1q
 		 * payload is not in the packet due to hardware offload.
 		 */
-		if (bond->params.xmit_policy != BOND_XMIT_POLICY_VLAN_SRCMAC)
+		if (xmit_policy != BOND_XMIT_POLICY_VLAN_SRCMAC)
 			return true;
 		fallthrough;
 	default:
 		return false;
 	}
+}
+
+bool bond_xdp_check(struct bonding *bond, int mode)
+{
+	return __bond_xdp_check(mode, bond->params.xmit_policy);
 }
 
 /*---------------------------------- VLAN -----------------------------------*/
@@ -491,7 +496,7 @@ static int bond_ipsec_add_sa(struct net_device *bond_dev,
 		goto out;
 	}
 
-	ipsec = kmalloc(sizeof(*ipsec), GFP_KERNEL);
+	ipsec = kmalloc_obj(*ipsec);
 	if (!ipsec) {
 		err = -ENOMEM;
 		goto out;
@@ -1387,7 +1392,7 @@ static inline int slave_enable_netpoll(struct slave *slave)
 	struct netpoll *np;
 	int err = 0;
 
-	np = kzalloc(sizeof(*np), GFP_KERNEL);
+	np = kzalloc_obj(*np);
 	err = -ENOMEM;
 	if (!np)
 		goto out;
@@ -1711,7 +1716,7 @@ static struct slave *bond_alloc_slave(struct bonding *bond,
 {
 	struct slave *slave = NULL;
 
-	slave = kzalloc(sizeof(*slave), GFP_KERNEL);
+	slave = kzalloc_obj(*slave);
 	if (!slave)
 		return NULL;
 
@@ -1723,8 +1728,7 @@ static struct slave *bond_alloc_slave(struct bonding *bond,
 		return NULL;
 
 	if (BOND_MODE(bond) == BOND_MODE_8023AD) {
-		SLAVE_AD_INFO(slave) = kzalloc(sizeof(struct ad_slave_info),
-					       GFP_KERNEL);
+		SLAVE_AD_INFO(slave) = kzalloc_obj(struct ad_slave_info);
 		if (!SLAVE_AD_INFO(slave)) {
 			kobject_put(&slave->kobj);
 			return NULL;
@@ -2982,7 +2986,7 @@ struct bond_vlan_tag *bond_verify_device_path(struct net_device *start_dev,
 	struct list_head  *iter;
 
 	if (start_dev == end_dev) {
-		tags = kcalloc(level + 1, sizeof(*tags), GFP_ATOMIC);
+		tags = kzalloc_objs(*tags, level + 1, GFP_ATOMIC);
 		if (!tags)
 			return ERR_PTR(-ENOMEM);
 		tags[level].vlan_proto = BOND_VLAN_PROTO_NONE;
@@ -4343,9 +4347,13 @@ static int bond_close(struct net_device *bond_dev)
 
 	bond_work_cancel_all(bond);
 	bond->send_peer_notif = 0;
+	WRITE_ONCE(bond->recv_probe, NULL);
+
+	/* Wait for any in-flight RX handlers */
+	synchronize_net();
+
 	if (bond_is_lb(bond))
 		bond_alb_deinitialize(bond);
-	bond->recv_probe = NULL;
 
 	if (BOND_MODE(bond) == BOND_MODE_8023AD &&
 	    bond->params.broadcast_neighbor)
@@ -5093,10 +5101,8 @@ int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave)
 
 	might_sleep();
 
-	usable_slaves = kzalloc(struct_size(usable_slaves, arr,
-					    bond->slave_cnt), GFP_KERNEL);
-	all_slaves = kzalloc(struct_size(all_slaves, arr,
-					 bond->slave_cnt), GFP_KERNEL);
+	usable_slaves = kzalloc_flex(*usable_slaves, arr, bond->slave_cnt);
+	all_slaves = kzalloc_flex(*all_slaves, arr, bond->slave_cnt);
 	if (!usable_slaves || !all_slaves) {
 		ret = -ENOMEM;
 		goto out;

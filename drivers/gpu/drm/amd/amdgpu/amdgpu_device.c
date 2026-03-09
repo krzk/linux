@@ -2596,7 +2596,7 @@ out:
 static void amdgpu_uid_init(struct amdgpu_device *adev)
 {
 	/* Initialize the UID for the device */
-	adev->uid_info = kzalloc(sizeof(struct amdgpu_uid), GFP_KERNEL);
+	adev->uid_info = kzalloc_obj(struct amdgpu_uid);
 	if (!adev->uid_info) {
 		dev_warn(adev->dev, "Failed to allocate memory for UID\n");
 		return;
@@ -3503,9 +3503,6 @@ static int amdgpu_device_ip_fini_early(struct amdgpu_device *adev)
 				adev->ip_blocks[i].version->funcs->name, r);
 		}
 	}
-
-	amdgpu_device_set_pg_state(adev, AMD_PG_STATE_UNGATE);
-	amdgpu_device_set_cg_state(adev, AMD_CG_STATE_UNGATE);
 
 	amdgpu_amdkfd_suspend(adev, true);
 	amdgpu_amdkfd_teardown_processes(adev);
@@ -4618,9 +4615,10 @@ int amdgpu_device_init(struct amdgpu_device *adev,
 	/* APUs w/ gfx9 onwards doesn't reply on PCIe atomics, rather it is a
 	 * internal path natively support atomics, set have_atomics_support to true.
 	 */
-	} else if ((adev->flags & AMD_IS_APU) &&
-		   (amdgpu_ip_version(adev, GC_HWIP, 0) >
-		    IP_VERSION(9, 0, 0))) {
+	} else if ((adev->flags & AMD_IS_APU &&
+		   amdgpu_ip_version(adev, GC_HWIP, 0) > IP_VERSION(9, 0, 0)) ||
+		   (adev->gmc.xgmi.connected_to_cpu &&
+		   amdgpu_ip_version(adev, GC_HWIP, 0) >= IP_VERSION(12, 1, 0))) {
 		adev->have_atomics_support = true;
 	} else {
 		adev->have_atomics_support =
@@ -4655,9 +4653,6 @@ int amdgpu_device_init(struct amdgpu_device *adev,
 			dev_info(adev->dev, "Pending hive reset.\n");
 			amdgpu_set_init_level(adev,
 					      AMDGPU_INIT_LEVEL_MINIMAL_XGMI);
-		} else if (amdgpu_ip_version(adev, MP1_HWIP, 0) == IP_VERSION(13, 0, 10) &&
-				   !amdgpu_device_has_display_hardware(adev)) {
-					r = psp_gpu_reset(adev);
 		} else {
 				tmp = amdgpu_reset_method;
 				/* It should do a default reset when loading or reloading the driver,
@@ -4902,6 +4897,9 @@ void amdgpu_device_fini_hw(struct amdgpu_device *adev)
 		amdgpu_virt_fini_data_exchange(adev);
 	}
 
+	amdgpu_device_set_pg_state(adev, AMD_PG_STATE_UNGATE);
+	amdgpu_device_set_cg_state(adev, AMD_CG_STATE_UNGATE);
+
 	/* disable all interrupts */
 	amdgpu_irq_disable_all(adev);
 	if (adev->mode_info.mode_config_initialized) {
@@ -4924,7 +4922,7 @@ void amdgpu_device_fini_hw(struct amdgpu_device *adev)
 	 * before ip_fini_early to prevent kfd locking refcount issues by calling
 	 * amdgpu_amdkfd_suspend()
 	 */
-	if (drm_dev_is_unplugged(adev_to_drm(adev)))
+	if (pci_dev_is_disconnected(adev->pdev))
 		amdgpu_amdkfd_device_fini_sw(adev);
 
 	amdgpu_device_ip_fini_early(adev);
@@ -4936,7 +4934,7 @@ void amdgpu_device_fini_hw(struct amdgpu_device *adev)
 
 	amdgpu_gart_dummy_page_fini(adev);
 
-	if (drm_dev_is_unplugged(adev_to_drm(adev)))
+	if (pci_dev_is_disconnected(adev->pdev))
 		amdgpu_device_unmap_mmio(adev);
 
 }
@@ -5732,6 +5730,9 @@ int amdgpu_device_mode1_reset(struct amdgpu_device *adev)
 
 	/* enable mmio access after mode 1 reset completed */
 	adev->no_hw_access = false;
+
+	/* ensure no_hw_access is updated before we access hw */
+	smp_mb();
 
 	amdgpu_device_load_pci_state(adev->pdev);
 	ret = amdgpu_psp_wait_for_bootloader(adev);
@@ -7058,6 +7059,15 @@ pci_ers_result_t amdgpu_pci_slot_reset(struct pci_dev *pdev)
 	dev_info(adev->dev, "PCI error: slot reset callback!!\n");
 
 	memset(&reset_context, 0, sizeof(reset_context));
+	INIT_LIST_HEAD(&device_list);
+	hive = amdgpu_get_xgmi_hive(adev);
+	if (hive) {
+		mutex_lock(&hive->hive_lock);
+		list_for_each_entry(tmp_adev, &hive->device_list, gmc.xgmi.head)
+			list_add_tail(&tmp_adev->reset_list, &device_list);
+	} else {
+		list_add_tail(&adev->reset_list, &device_list);
+	}
 
 	if (adev->pcie_reset_ctx.swus)
 		link_dev = adev->pcie_reset_ctx.swus;
@@ -7098,19 +7108,13 @@ pci_ers_result_t amdgpu_pci_slot_reset(struct pci_dev *pdev)
 	reset_context.reset_req_dev = adev;
 	set_bit(AMDGPU_NEED_FULL_RESET, &reset_context.flags);
 	set_bit(AMDGPU_SKIP_COREDUMP, &reset_context.flags);
-	INIT_LIST_HEAD(&device_list);
 
-	hive = amdgpu_get_xgmi_hive(adev);
 	if (hive) {
-		mutex_lock(&hive->hive_lock);
 		reset_context.hive = hive;
-		list_for_each_entry(tmp_adev, &hive->device_list, gmc.xgmi.head) {
+		list_for_each_entry(tmp_adev, &hive->device_list, gmc.xgmi.head)
 			tmp_adev->pcie_reset_ctx.in_link_reset = true;
-			list_add_tail(&tmp_adev->reset_list, &device_list);
-		}
 	} else {
 		set_bit(AMDGPU_SKIP_HW_RESET, &reset_context.flags);
-		list_add_tail(&adev->reset_list, &device_list);
 	}
 
 	r = amdgpu_device_asic_reset(adev, &device_list, &reset_context);
@@ -7356,6 +7360,9 @@ void amdgpu_device_halt(struct amdgpu_device *adev)
 
 	amdgpu_xcp_dev_unplug(adev);
 	drm_dev_unplug(ddev);
+
+	amdgpu_device_set_pg_state(adev, AMD_PG_STATE_UNGATE);
+	amdgpu_device_set_cg_state(adev, AMD_CG_STATE_UNGATE);
 
 	amdgpu_irq_disable_all(adev);
 

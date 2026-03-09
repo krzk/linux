@@ -1288,7 +1288,7 @@ static void mpi3mr_fault_uevent_emit(struct mpi3mr_ioc *mrioc)
 	struct kobj_uevent_env *env;
 	int ret;
 
-	env = kzalloc(sizeof(*env), GFP_KERNEL);
+	env = kzalloc_obj(*env);
 	if (!env)
 		return;
 
@@ -2110,8 +2110,8 @@ static int mpi3mr_alloc_op_reply_q_segments(struct mpi3mr_ioc *mrioc, u16 qidx)
 	op_reply_q->num_segments = DIV_ROUND_UP(op_reply_q->num_replies,
 	    op_reply_q->segment_qd);
 
-	op_reply_q->q_segments = kcalloc(op_reply_q->num_segments,
-	    sizeof(struct segments), GFP_KERNEL);
+	op_reply_q->q_segments = kzalloc_objs(struct segments,
+					      op_reply_q->num_segments);
 	if (!op_reply_q->q_segments)
 		return -ENOMEM;
 
@@ -2168,8 +2168,8 @@ static int mpi3mr_alloc_op_req_q_segments(struct mpi3mr_ioc *mrioc, u16 qidx)
 	op_req_q->num_segments = DIV_ROUND_UP(op_req_q->num_requests,
 	    op_req_q->segment_qd);
 
-	op_req_q->q_segments = kcalloc(op_req_q->num_segments,
-	    sizeof(struct segments), GFP_KERNEL);
+	op_req_q->q_segments = kzalloc_objs(struct segments,
+					    op_req_q->num_segments);
 	if (!op_req_q->q_segments)
 		return -ENOMEM;
 
@@ -2463,8 +2463,7 @@ static int mpi3mr_create_op_queues(struct mpi3mr_ioc *mrioc)
 	    num_queues);
 
 	if (!mrioc->req_qinfo) {
-		mrioc->req_qinfo = kcalloc(num_queues,
-		    sizeof(struct op_req_qinfo), GFP_KERNEL);
+		mrioc->req_qinfo = kzalloc_objs(struct op_req_qinfo, num_queues);
 		if (!mrioc->req_qinfo) {
 			retval = -1;
 			goto out_failed;
@@ -4808,21 +4807,25 @@ void mpi3mr_memset_buffers(struct mpi3mr_ioc *mrioc)
 	}
 
 	for (i = 0; i < mrioc->num_queues; i++) {
-		mrioc->op_reply_qinfo[i].qid = 0;
-		mrioc->op_reply_qinfo[i].ci = 0;
-		mrioc->op_reply_qinfo[i].num_replies = 0;
-		mrioc->op_reply_qinfo[i].ephase = 0;
-		atomic_set(&mrioc->op_reply_qinfo[i].pend_ios, 0);
-		atomic_set(&mrioc->op_reply_qinfo[i].in_use, 0);
-		mpi3mr_memset_op_reply_q_buffers(mrioc, i);
+		if (mrioc->op_reply_qinfo) {
+			mrioc->op_reply_qinfo[i].qid = 0;
+			mrioc->op_reply_qinfo[i].ci = 0;
+			mrioc->op_reply_qinfo[i].num_replies = 0;
+			mrioc->op_reply_qinfo[i].ephase = 0;
+			atomic_set(&mrioc->op_reply_qinfo[i].pend_ios, 0);
+			atomic_set(&mrioc->op_reply_qinfo[i].in_use, 0);
+			mpi3mr_memset_op_reply_q_buffers(mrioc, i);
+		}
 
-		mrioc->req_qinfo[i].ci = 0;
-		mrioc->req_qinfo[i].pi = 0;
-		mrioc->req_qinfo[i].num_requests = 0;
-		mrioc->req_qinfo[i].qid = 0;
-		mrioc->req_qinfo[i].reply_qid = 0;
-		spin_lock_init(&mrioc->req_qinfo[i].q_lock);
-		mpi3mr_memset_op_req_q_buffers(mrioc, i);
+		if (mrioc->req_qinfo) {
+			mrioc->req_qinfo[i].ci = 0;
+			mrioc->req_qinfo[i].pi = 0;
+			mrioc->req_qinfo[i].num_requests = 0;
+			mrioc->req_qinfo[i].qid = 0;
+			mrioc->req_qinfo[i].reply_qid = 0;
+			spin_lock_init(&mrioc->req_qinfo[i].q_lock);
+			mpi3mr_memset_op_req_q_buffers(mrioc, i);
+		}
 	}
 
 	atomic_set(&mrioc->pend_large_data_sz, 0);

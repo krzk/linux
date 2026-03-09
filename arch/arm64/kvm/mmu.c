@@ -487,7 +487,7 @@ static int share_pfn_hyp(u64 pfn)
 		goto unlock;
 	}
 
-	this = kzalloc(sizeof(*this), GFP_KERNEL);
+	this = kzalloc_obj(*this);
 	if (!this) {
 		ret = -ENOMEM;
 		goto unlock;
@@ -978,7 +978,7 @@ int kvm_init_stage2_mmu(struct kvm *kvm, struct kvm_s2_mmu *mmu, unsigned long t
 	if (err)
 		return err;
 
-	pgt = kzalloc(sizeof(*pgt), GFP_KERNEL_ACCOUNT);
+	pgt = kzalloc_obj(*pgt, GFP_KERNEL_ACCOUNT);
 	if (!pgt)
 		return -ENOMEM;
 
@@ -1155,7 +1155,8 @@ int topup_hyp_memcache(struct kvm_hyp_memcache *mc, unsigned long min_pages)
 		return 0;
 
 	if (!mc->mapping) {
-		mc->mapping = kzalloc(sizeof(struct pkvm_mapping), GFP_KERNEL_ACCOUNT);
+		mc->mapping = kzalloc_obj(struct pkvm_mapping,
+					  GFP_KERNEL_ACCOUNT);
 		if (!mc->mapping)
 			return -ENOMEM;
 	}
@@ -1753,14 +1754,12 @@ static int user_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa,
 	}
 
 	/*
-	 * Both the canonical IPA and fault IPA must be hugepage-aligned to
-	 * ensure we find the right PFN and lay down the mapping in the right
-	 * place.
+	 * Both the canonical IPA and fault IPA must be aligned to the
+	 * mapping size to ensure we find the right PFN and lay down the
+	 * mapping in the right place.
 	 */
-	if (vma_pagesize == PMD_SIZE || vma_pagesize == PUD_SIZE) {
-		fault_ipa &= ~(vma_pagesize - 1);
-		ipa &= ~(vma_pagesize - 1);
-	}
+	fault_ipa = ALIGN_DOWN(fault_ipa, vma_pagesize);
+	ipa = ALIGN_DOWN(ipa, vma_pagesize);
 
 	gfn = ipa >> PAGE_SHIFT;
 	mte_allowed = kvm_vma_mte_allowed(vma);
@@ -2328,7 +2327,7 @@ int __init kvm_mmu_init(u32 hyp_va_bits)
 		goto out;
 	}
 
-	hyp_pgtable = kzalloc(sizeof(*hyp_pgtable), GFP_KERNEL);
+	hyp_pgtable = kzalloc_obj(*hyp_pgtable);
 	if (!hyp_pgtable) {
 		kvm_err("Hyp mode page-table not allocated\n");
 		err = -ENOMEM;
