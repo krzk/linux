@@ -151,6 +151,9 @@ static int msm_hdmi_phy_pll_init(struct platform_device *pdev,
 	case MSM_HDMI_PHY_8998:
 		ret = msm_hdmi_pll_8998_init(pdev);
 		break;
+	case MSM_HDMI_PHY_ELIZA:
+		ret = msm_hdmi_pll_eliza_init(pdev);
+		break;
 	/*
 	 * we don't have PLL support for these, don't report an error for now
 	 */
@@ -178,13 +181,17 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 	if (!phy->cfg)
 		return -ENODEV;
 
-	phy->mmio = msm_ioremap(pdev, "hdmi_phy");
+	if (phy->cfg->num_regs)
+		phy->mmio = msm_ioremap(pdev, "hdmi_phy");
+	else
+		phy->mmio = msm_ioremap(pdev, NULL);
 	if (IS_ERR(phy->mmio)) {
 		DRM_DEV_ERROR(dev, "%s: failed to map phy base\n", __func__);
 		return -ENOMEM;
 	}
 
 	phy->pdev = pdev;
+	platform_set_drvdata(pdev, phy);
 
 	ret = msm_hdmi_phy_resource_init(phy);
 	if (ret)
@@ -205,7 +212,6 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 
 	msm_hdmi_phy_resource_disable(phy);
 
-	platform_set_drvdata(pdev, phy);
 
 	return 0;
 }
@@ -228,6 +234,8 @@ static const struct of_device_id msm_hdmi_phy_dt_match[] = {
 	  .data = &msm_hdmi_phy_8996_cfg },
 	{ .compatible = "qcom,hdmi-phy-8998",
 	  .data = &msm_hdmi_phy_8998_cfg },
+	{ .compatible = "qcom,eliza-hdmi-phy",
+	  .data = &msm_hdmi_phy_eliza_cfg },
 	{}
 };
 MODULE_DEVICE_TABLE(of, msm_hdmi_phy_dt_match);
