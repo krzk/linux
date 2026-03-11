@@ -1101,4 +1101,144 @@ xsi:schemaLocation="https://gitlab.freedesktop.org/freedreno/ rules-fd.xsd">
 	<reg32 offset="0x002C" name="LANE_MODE"/>
 </domain>
 
+<domain name="HDMI_ELIZA_PHY" width="32">
+	<reg32 offset="0x0014" name="RESET_CONTROL_0"/>
+	<reg32 offset="0x0018" name="MISC_CONTROL_0"/>
+	<reg32 offset="0x001c" name="MISC_CONTROL_1"/>
+	<reg32 offset="0x0020" name="MISC_CONTROL_2"/>
+	<reg32 offset="0x0024" name="MISC_CONTROL_3"/>
+	<reg32 offset="0x0028" name="SRAM_CONTROL_0"/>
+	<reg32 offset="0x002c" name="SRAM_CONTROL_1"/>
+	<reg32 offset="0x0038" name="CR_ACCESS_CMD"/>
+	<reg32 offset="0x0040" name="CR_ADDRESS_LSB"/>
+	<reg32 offset="0x0044" name="CR_ADDRESS_MSB"/>
+	<reg32 offset="0x0048" name="CR_WRDATA_LSB"/>
+	<reg32 offset="0x004c" name="CR_WRDATA_MSB"/>
+
+	<reg32 offset="0x0060" name="REXT_CONTROL_2"/>
+	<reg32 offset="0x006c" name="REFCLK_CONTROL_0"/>
+	<reg32 offset="0x0070" name="REFCLK_CONTROL_1"/>
+	<reg32 offset="0x0074" name="REFCLK_CONTROL_2"/>
+
+	<reg32 offset="0x0078" name="MPLLA_CONTROL_0"/>
+	<reg32 offset="0x007c" name="MPLLA_CONTROL_1"/>
+	<reg32 offset="0x0080" name="MPLLA_CONTROL_2"/>
+	<reg32 offset="0x0084" name="MPLLA_CONTROL_3"/>
+	<reg32 offset="0x0088" name="MPLLA_CONTROL_4"/>
+	<reg32 offset="0x008c" name="MPLLA_CONTROL_5"/>
+	<reg32 offset="0x0090" name="MPLLA_CONTROL_6"/>
+	<reg32 offset="0x0094" name="MPLLA_CONTROL_7"/>
+	<reg32 offset="0x0098" name="MPLLA_CONTROL_8"/>
+	<reg32 offset="0x009c" name="MPLLA_CONTROL_9"/>
+	<reg32 offset="0x00a0" name="MPLLA_CONTROL_10"/>
+	<reg32 offset="0x00a4" name="MPLLA_CONTROL_11"/>
+	<reg32 offset="0x00a8" name="MPLLA_CONTROL_12"/>
+	<reg32 offset="0x00ac" name="MPLLA_CONTROL_13"/>
+	<reg32 offset="0x00b0" name="MPLLA_CONTROL_14"/>
+	<reg32 offset="0x00b4" name="MPLLA_CONTROL_15"/>
+	<reg32 offset="0x00b8" name="MPLLA_CONTROL_16"/>
+	<reg32 offset="0x00bc" name="MPLLA_CONTROL_17"/>
+	<reg32 offset="0x00c0" name="MPLLA_CONTROL_18"/>
+	<reg32 offset="0x00c4" name="MPLLA_CONTROL_19"/>
+	<reg32 offset="0x00c8" name="MPLLA_CONTROL_20"/>
+	<reg32 offset="0x00cc" name="MPLLA_CONTROL_21"/>
+	<reg32 offset="0x00d0" name="MPLLA_CONTROL_22"/>
+	<reg32 offset="0x00d4" name="MPLLA_CONTROL_23"/>
+	<reg32 offset="0x00d8" name="MPLLA_CONTROL_24"/>
+
+	<reg32 offset="0x00dc" name="MPLLB_CONTROL_0"/>
+	<reg32 offset="0x00e0" name="MPLLB_CONTROL_1"/>
+	<reg32 offset="0x00e4" name="MPLLB_CONTROL_2"/>
+	<reg32 offset="0x00e8" name="MPLLB_CONTROL_3"/>
+	<reg32 offset="0x00ec" name="MPLLB_CONTROL_4"/>
+	<reg32 offset="0x00f0" name="MPLLB_CONTROL_5"/>
+	<reg32 offset="0x00f4" name="MPLLB_CONTROL_6"/>
+	<reg32 offset="0x00f8" name="MPLLB_CONTROL_7"/>
+	<reg32 offset="0x00fc" name="MPLLB_CONTROL_8"/>
+	<reg32 offset="0x0100" name="MPLLB_CONTROL_9"/>
+	<reg32 offset="0x0104" name="MPLLB_CONTROL_10"/>
+	<reg32 offset="0x0108" name="MPLLB_CONTROL_11"/>
+	<reg32 offset="0x010c" name="MPLLB_CONTROL_12"/>
+	<reg32 offset="0x0110" name="MPLLB_CONTROL_13"/>
+	<reg32 offset="0x0114" name="MPLLB_CONTROL_14"/>
+	<reg32 offset="0x0118" name="MPLLB_CONTROL_15"/>
+	<reg32 offset="0x011c" name="MPLLB_CONTROL_16"/>
+	<reg32 offset="0x0120" name="MPLLB_CONTROL_17"/>
+	<reg32 offset="0x0124" name="MPLLB_CONTROL_18"/>
+	<reg32 offset="0x0128" name="MPLLB_CONTROL_19"/>
+	<reg32 offset="0x012c" name="MPLLB_CONTROL_20"/>
+	<reg32 offset="0x0130" name="MPLLB_CONTROL_21"/>
+	<reg32 offset="0x0134" name="MPLLB_CONTROL_22"/>
+	<reg32 offset="0x0138" name="MPLLB_CONTROL_23"/>
+	<reg32 offset="0x013c" name="MPLLB_CONTROL_24"/>
+
+	<reg32 offset="0x0140" name="TX_COMMON_CONTROL_0"/>
+	<reg32 offset="0x0144" name="TX_COMMON_CONTROL_1"/>
+
+	<reg32 offset="0x0148" name="TX0_CONTROL_0"/>
+	<reg32 offset="0x014c" name="TX0_CONTROL_1"/>
+	<reg32 offset="0x0150" name="TX0_CONTROL_2"/>
+	<reg32 offset="0x0154" name="TX0_CONTROL_3"/>
+	<reg32 offset="0x0158" name="TX0_CONTROL_4"/>
+	<reg32 offset="0x015c" name="TX0_CONTROL_5"/>
+	<reg32 offset="0x0160" name="TX0_CONTROL_6"/>
+	<reg32 offset="0x0164" name="TX0_CONTROL_7"/>
+	<reg32 offset="0x0168" name="TX0_CONTROL_8"/>
+	<reg32 offset="0x016c" name="TX0_CONTROL_9"/>
+	<reg32 offset="0x0170" name="TX0_CONTROL_10"/>
+	<reg32 offset="0x0174" name="TX0_CONTROL_11"/>
+	<reg32 offset="0x0178" name="TX0_CONTROL_12"/>
+
+	<reg32 offset="0x017c" name="TX1_CONTROL_0"/>
+	<reg32 offset="0x0180" name="TX1_CONTROL_1"/>
+	<reg32 offset="0x0184" name="TX1_CONTROL_2"/>
+	<reg32 offset="0x0188" name="TX1_CONTROL_3"/>
+	<reg32 offset="0x018c" name="TX1_CONTROL_4"/>
+	<reg32 offset="0x0190" name="TX1_CONTROL_5"/>
+	<reg32 offset="0x0194" name="TX1_CONTROL_6"/>
+	<reg32 offset="0x0198" name="TX1_CONTROL_7"/>
+	<reg32 offset="0x019c" name="TX1_CONTROL_8"/>
+	<reg32 offset="0x01a0" name="TX1_CONTROL_9"/>
+	<reg32 offset="0x01a4" name="TX1_CONTROL_10"/>
+	<reg32 offset="0x01a8" name="TX1_CONTROL_11"/>
+	<reg32 offset="0x01ac" name="TX1_CONTROL_12"/>
+
+	<reg32 offset="0x01b0" name="TX2_CONTROL_0"/>
+	<reg32 offset="0x01b4" name="TX2_CONTROL_1"/>
+	<reg32 offset="0x01b8" name="TX2_CONTROL_2"/>
+	<reg32 offset="0x01bc" name="TX2_CONTROL_3"/>
+	<reg32 offset="0x01c0" name="TX2_CONTROL_4"/>
+	<reg32 offset="0x01c4" name="TX2_CONTROL_5"/>
+	<reg32 offset="0x01c8" name="TX2_CONTROL_6"/>
+	<reg32 offset="0x01cc" name="TX2_CONTROL_7"/>
+	<reg32 offset="0x01d0" name="TX2_CONTROL_8"/>
+	<reg32 offset="0x01d4" name="TX2_CONTROL_9"/>
+	<reg32 offset="0x01d8" name="TX2_CONTROL_10"/>
+	<reg32 offset="0x01dc" name="TX2_CONTROL_11"/>
+	<reg32 offset="0x01e0" name="TX2_CONTROL_12"/>
+
+	<reg32 offset="0x01e4" name="TX3_CONTROL_0"/>
+	<reg32 offset="0x01e8" name="TX3_CONTROL_1"/>
+	<reg32 offset="0x01ec" name="TX3_CONTROL_2"/>
+	<reg32 offset="0x01f0" name="TX3_CONTROL_3"/>
+	<reg32 offset="0x01f4" name="TX3_CONTROL_4"/>
+	<reg32 offset="0x01f8" name="TX3_CONTROL_5"/>
+	<reg32 offset="0x01fc" name="TX3_CONTROL_6"/>
+	<reg32 offset="0x0200" name="TX3_CONTROL_7"/>
+	<reg32 offset="0x0204" name="TX3_CONTROL_8"/>
+	<reg32 offset="0x0208" name="TX3_CONTROL_9"/>
+	<reg32 offset="0x020c" name="TX3_CONTROL_10"/>
+	<reg32 offset="0x0210" name="TX3_CONTROL_11"/>
+	<reg32 offset="0x0214" name="TX3_CONTROL_12"/>
+
+	<reg32 offset="0x0218" name="QCSRAM_CONFIG_0"/>
+	<reg32 offset="0x021c" name="QCSRAM_CONFIG_1"/>
+	<reg32 offset="0x0220" name="QCSRAM_CONFIG_2"/>
+	<reg32 offset="0x0224" name="QCSRAM_CONFIG_3"/>
+	<reg32 offset="0x0228" name="CLOCK_PATTERN_CONFIG_0"/>
+
+	<reg32 offset="0x0270" name="RX1_CONFIG_15"/>
+	<reg32 offset="0x02b4" name="RX2_CONFIG_15"/>
+</domain>
+
 </database>
