@@ -897,10 +897,11 @@ static int __bio_clone(struct bio *bio, struct bio *bio_src, gfp_t gfp)
  * @gfp: allocation priority
  * @bs: bio_set to allocate from
  *
- * Allocate a new bio that is a clone of @bio_src. The caller owns the returned
- * bio, but not the actual data it points to.
- *
- * The caller must ensure that the return bio is not freed before @bio_src.
+ * Allocate a new bio that is a clone of @bio_src. This reuses the bio_vecs
+ * pointed to by @bio_src->bi_io_vec, and clones the iterator pointing to
+ * the current position in it.  The caller owns the returned bio, but not
+ * the bio_vecs, and must ensure the bio is freed before the memory
+ * pointed to by @bio_Src->bi_io_vecs.
  */
 struct bio *bio_alloc_clone(struct block_device *bdev, struct bio *bio_src,
 		gfp_t gfp, struct bio_set *bs)
@@ -929,9 +930,7 @@ EXPORT_SYMBOL(bio_alloc_clone);
  * @gfp: allocation priority
  *
  * Initialize a new bio in caller provided memory that is a clone of @bio_src.
- * The caller owns the returned bio, but not the actual data it points to.
- *
- * The caller must ensure that @bio_src is not freed before @bio.
+ * The same bio_vecs reuse and bio lifetime rules as bio_alloc_clone() apply.
  */
 int bio_init_clone(struct block_device *bdev, struct bio *bio,
 		struct bio *bio_src, gfp_t gfp)
@@ -1327,9 +1326,10 @@ static void bio_free_folios(struct bio *bio)
 	}
 }
 
-static int bio_iov_iter_bounce_write(struct bio *bio, struct iov_iter *iter)
+static int bio_iov_iter_bounce_write(struct bio *bio, struct iov_iter *iter,
+		size_t maxlen)
 {
-	size_t total_len = iov_iter_count(iter);
+	size_t total_len = min(maxlen, iov_iter_count(iter));
 
 	if (WARN_ON_ONCE(bio_flagged(bio, BIO_CLONED)))
 		return -EINVAL;
@@ -1367,9 +1367,10 @@ static int bio_iov_iter_bounce_write(struct bio *bio, struct iov_iter *iter)
 	return 0;
 }
 
-static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter)
+static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter,
+		size_t maxlen)
 {
-	size_t len = min(iov_iter_count(iter), SZ_1M);
+	size_t len = min3(iov_iter_count(iter), maxlen, SZ_1M);
 	struct folio *folio;
 
 	folio = folio_alloc_greedy(GFP_KERNEL, &len);
@@ -1408,6 +1409,7 @@ static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter)
  * bio_iov_iter_bounce - bounce buffer data from an iter into a bio
  * @bio:	bio to send
  * @iter:	iter to read from / write into
+ * @maxlen:	maximum size to bounce
  *
  * Helper for direct I/O implementations that need to bounce buffer because
  * we need to checksum the data or perform other operations that require
@@ -1415,11 +1417,11 @@ static int bio_iov_iter_bounce_read(struct bio *bio, struct iov_iter *iter)
  * copies the data into it.  Needs to be paired with bio_iov_iter_unbounce()
  * called on completion.
  */
-int bio_iov_iter_bounce(struct bio *bio, struct iov_iter *iter)
+int bio_iov_iter_bounce(struct bio *bio, struct iov_iter *iter, size_t maxlen)
 {
 	if (op_is_write(bio_op(bio)))
-		return bio_iov_iter_bounce_write(bio, iter);
-	return bio_iov_iter_bounce_read(bio, iter);
+		return bio_iov_iter_bounce_write(bio, iter, maxlen);
+	return bio_iov_iter_bounce_read(bio, iter, maxlen);
 }
 
 static void bvec_unpin(struct bio_vec *bv, bool mark_dirty)
