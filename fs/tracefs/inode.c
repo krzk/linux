@@ -522,7 +522,7 @@ static int tracefs_init_fs_context(struct fs_context *fc)
 {
 	struct tracefs_fs_info *fsi;
 
-	fsi = kzalloc(sizeof(struct tracefs_fs_info), GFP_KERNEL);
+	fsi = kzalloc_obj(struct tracefs_fs_info);
 	if (!fsi)
 		return -ENOMEM;
 
@@ -664,6 +664,7 @@ struct dentry *tracefs_create_file(const char *name, umode_t mode,
 	fsnotify_create(d_inode(dentry->d_parent), dentry);
 	return tracefs_end_creating(dentry);
 }
+EXPORT_SYMBOL_GPL(tracefs_create_file);
 
 static struct dentry *__create_dir(const char *name, struct dentry *parent,
 				   const struct inode_operations *ops)
