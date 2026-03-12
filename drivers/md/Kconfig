@@ -226,6 +226,7 @@ config BLK_DEV_DM
 	select BLOCK_HOLDER_DEPRECATED if SYSFS
 	select BLK_DEV_DM_BUILTIN
 	select BLK_MQ_STACKING
+	select CRYPTO_LIB_SHA256 if IMA
 	depends on DAX || DAX=n
 	help
 	  Device-mapper is a low level volume manager.  It works by allowing
@@ -312,6 +313,16 @@ config DM_CRYPT
 	  be called dm-crypt.
 
 	  If unsure, say N.
+
+config DM_INLINECRYPT
+	tristate "Inline encryption target support"
+	depends on BLK_DEV_DM
+	depends on BLK_INLINE_ENCRYPTION
+	help
+	  This device-mapper target is similar to dm-crypt, but it uses the
+	  blk-crypto API instead of the regular crypto API. This allows it to
+	  take advantage of inline encryption hardware such as that commonly
+	  built into UFS host controllers.
 
 config DM_SNAPSHOT
        tristate "Snapshot target"

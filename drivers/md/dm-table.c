@@ -1407,7 +1407,8 @@ static int dm_table_construct_crypto_profile(struct dm_table *t)
 	for (i = 0; i < t->num_targets; i++) {
 		struct dm_target *ti = dm_table_get_target(t, i);
 
-		if (!dm_target_passes_crypto(ti->type)) {
+		if (!dm_target_passes_crypto(ti->type)
+				&& !dm_target_consume_crypto(ti->type)) {
 			blk_crypto_intersect_capabilities(profile, NULL);
 			break;
 		}
