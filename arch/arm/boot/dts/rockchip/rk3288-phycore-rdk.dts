@@ -86,6 +86,10 @@
 	touchscreen@44 {
 		compatible = "st,stmpe811";
 		reg = <0x44>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <RK_PB4 IRQ_TYPE_EDGE_FALLING>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ts_irq_pin>;
 	};
 
 	adc@64 {
@@ -94,7 +98,7 @@
 	};
 
 	i2c_rtc: rtc@68 {
-		compatible = "rv4162";
+		compatible = "microcrystal,rv4162";
 		reg = <0x68>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&i2c_rtc_int>;
@@ -199,7 +203,7 @@
 
 	touchscreen {
 		ts_irq_pin: ts-irq-pin {
-			rockchip,pins = <5 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <5 RK_PB4 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
