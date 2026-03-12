@@ -408,16 +408,7 @@ impl DmaGspMem {
 
     // Informs the GSP that it can process `elem_count` new pages from the command queue.
     fn advance_cpu_write_ptr(&mut self, elem_count: u32) {
-        let wptr = self.cpu_write_ptr().wrapping_add(elem_count) % MSGQ_NUM_PAGES;
-        let gsp_mem = self.0.start_ptr_mut();
-
-        // SAFETY:
-        //  - The 'CoherentAllocation' contains at least one object.
-        //  - By the invariants of `CoherentAllocation` the pointer is valid.
-        unsafe { (*gsp_mem).cpuq.tx.set_write_ptr(wptr) };
-
-        // Ensure all command data is visible before triggering the GSP read.
-        fence(Ordering::SeqCst);
+        super::fw::gsp_mem::advance_cpu_write_ptr(&self.0, elem_count)
     }
 }
 
