@@ -494,11 +494,6 @@ static int atcspi_init_resources(struct platform_device *pdev,
 		return dev_err_probe(spi->dev, PTR_ERR(spi->regmap),
 				     "Failed to init regmap\n");
 
-	spi->clk = devm_clk_get(spi->dev, NULL);
-	if (IS_ERR(spi->clk))
-		return dev_err_probe(spi->dev, PTR_ERR(spi->clk),
-				     "Failed to get SPI clock\n");
-
 	spi->sclk_rate = ATCSPI_MAX_SPEED_HZ;
 	return 0;
 }
@@ -520,13 +515,10 @@ static int atcspi_configure_dma(struct atcspi_dev *spi)
 
 static int atcspi_enable_clk(struct atcspi_dev *spi)
 {
-	int ret;
-
-	ret = clk_prepare_enable(spi->clk);
-	if (ret)
-		return dev_err_probe(spi->dev, ret,
-				     "Failed to enable clock\n");
-
+	spi->clk = devm_clk_get_enabled(spi->dev, NULL);
+	if (IS_ERR(spi->clk))
+		return dev_err_probe(spi->dev, PTR_ERR(spi->clk),
+				     "Failed to get SPI clock\n");
 	spi->clk_rate = clk_get_rate(spi->clk);
 	if (!spi->clk_rate)
 		return dev_err_probe(spi->dev, -EINVAL,
@@ -579,15 +571,14 @@ static int atcspi_probe(struct platform_device *pdev)
 
 	ret = atcspi_setup(spi);
 	if (ret)
-		goto disable_clk;
+		goto free_controller;
 
 	ret = devm_spi_register_controller(&pdev->dev, host);
 	if (ret) {
 		dev_err_probe(spi->dev, ret,
 			      "Failed to register SPI controller\n");
-		goto disable_clk;
+		goto free_controller;
 	}
-
 	spi->use_dma = false;
 	if (ATCSPI_DMA_SUPPORT) {
 		ret = atcspi_configure_dma(spi);
@@ -600,9 +591,6 @@ static int atcspi_probe(struct platform_device *pdev)
 	mutex_init(&spi->mutex_lock);
 
 	return 0;
-
-disable_clk:
-	clk_disable_unprepare(spi->clk);
 
 free_controller:
 	spi_controller_put(host);
@@ -661,7 +649,6 @@ static struct platform_driver atcspi_driver = {
 	.probe = atcspi_probe,
 	.driver = {
 		.name = "atcspi200",
-		.owner	= THIS_MODULE,
 		.of_match_table = atcspi_of_match,
 		.pm = pm_sleep_ptr(&atcspi_pm_ops)
 	}
