@@ -189,13 +189,13 @@ struct scmi_protocol_handle {
 
 /**
  * struct scmi_iterator_state  - Iterator current state descriptor
- * @desc_index: Starting index for the current mulit-part request.
+ * @desc_index: Starting index for the current multi-part request.
  * @num_returned: Number of returned items in the last multi-part reply.
  * @num_remaining: Number of remaining items in the multi-part message.
  * @max_resources: Maximum acceptable number of items, configured by the caller
  *		   depending on the underlying resources that it is querying.
  * @loop_idx: The iterator loop index in the current multi-part reply.
- * @rx_len: Size in bytes of the currenly processed message; it can be used by
+ * @rx_len: Size in bytes of the currently processed message; it can be used by
  *	    the user of the iterator to verify a reply size.
  * @priv: Optional pointer to some additional state-related private data setup
  *	  by the caller during the iterations.
@@ -280,7 +280,7 @@ struct scmi_proto_helpers_ops {
 				  u32 message_id, u32 *attributes);
 	void (*fastchannel_init)(const struct scmi_protocol_handle *ph,
 				 u8 describe_id, u32 message_id,
-				 u32 valid_size, u32 domain,
+				 u32 valid_size, u32 domain, u32 *custom,
 				 void __iomem **p_addr,
 				 struct scmi_fc_db_info **p_db,
 				 u32 *rate_limit);
