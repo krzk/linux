@@ -808,7 +808,7 @@ static void ublk_dev_param_basic_apply(struct ublk_device *ub)
 
 static int ublk_integrity_flags(u32 flags)
 {
-	int ret_flags = 0;
+	int ret_flags = BLK_SPLIT_INTERVAL_CAPABLE;
 
 	if (flags & LBMD_PI_CAP_INTEGRITY) {
 		flags &= ~LBMD_PI_CAP_INTEGRITY;
@@ -1627,8 +1627,8 @@ ublk_auto_buf_register(const struct ublk_queue *ubq, struct request *req,
 {
 	int ret;
 
-	ret = io_buffer_register_bvec(cmd, req, ublk_io_release,
-				      io->buf.auto_reg.index, issue_flags);
+	ret = io_buffer_register_request(cmd, req, ublk_io_release,
+					 io->buf.auto_reg.index, issue_flags);
 	if (ret) {
 		if (io->buf.auto_reg.flags & UBLK_AUTO_BUF_REG_FALLBACK) {
 			ublk_auto_buf_reg_fallback(ubq, req->tag);
@@ -1789,7 +1789,7 @@ static bool ublk_batch_prep_dispatch(struct ublk_queue *ubq,
  * Filter out UBLK_BATCH_IO_UNUSED_TAG entries from tag_buf.
  * Returns the new length after filtering.
  */
-static unsigned int ublk_filter_unused_tags(unsigned short *tag_buf,
+static noinline unsigned int ublk_filter_unused_tags(unsigned short *tag_buf,
 					    unsigned int len)
 {
 	unsigned int i, j;
@@ -1803,6 +1803,41 @@ static unsigned int ublk_filter_unused_tags(unsigned short *tag_buf,
 	}
 
 	return j;
+}
+
+static noinline void ublk_batch_dispatch_fail(struct ublk_queue *ubq,
+		const struct ublk_batch_io_data *data,
+		unsigned short *tag_buf, size_t len, int ret)
+{
+	int i, res;
+
+	/*
+	 * Undo prep state for all IOs since userspace never received them.
+	 * This restores IOs to pre-prepared state so they can be cleanly
+	 * re-prepared when tags are pulled from FIFO again.
+	 */
+	for (i = 0; i < len; i++) {
+		struct ublk_io *io = &ubq->ios[tag_buf[i]];
+		int index = -1;
+
+		ublk_io_lock(io);
+		if (io->flags & UBLK_IO_FLAG_AUTO_BUF_REG)
+			index = io->buf.auto_reg.index;
+		io->flags &= ~(UBLK_IO_FLAG_OWNED_BY_SRV | UBLK_IO_FLAG_AUTO_BUF_REG);
+		io->flags |= UBLK_IO_FLAG_ACTIVE;
+		ublk_io_unlock(io);
+
+		if (index != -1)
+			io_buffer_unregister(data->cmd, index,
+					data->issue_flags);
+	}
+
+	res = kfifo_in_spinlocked_noirqsave(&ubq->evts_fifo,
+		tag_buf, len, &ubq->evts_lock);
+
+	pr_warn_ratelimited("%s: copy tags or post CQE failure, move back "
+			"tags(%d %zu) ret %d\n", __func__, res, len,
+			ret);
 }
 
 #define MAX_NR_TAG 128
@@ -1848,37 +1883,8 @@ static int __ublk_batch_dispatch(struct ublk_queue *ubq,
 
 	sel.val = ublk_batch_copy_io_tags(fcmd, sel.addr, tag_buf, len * tag_sz);
 	ret = ublk_batch_fetch_post_cqe(fcmd, &sel, data->issue_flags);
-	if (unlikely(ret < 0)) {
-		int i, res;
-
-		/*
-		 * Undo prep state for all IOs since userspace never received them.
-		 * This restores IOs to pre-prepared state so they can be cleanly
-		 * re-prepared when tags are pulled from FIFO again.
-		 */
-		for (i = 0; i < len; i++) {
-			struct ublk_io *io = &ubq->ios[tag_buf[i]];
-			int index = -1;
-
-			ublk_io_lock(io);
-			if (io->flags & UBLK_IO_FLAG_AUTO_BUF_REG)
-				index = io->buf.auto_reg.index;
-			io->flags &= ~(UBLK_IO_FLAG_OWNED_BY_SRV | UBLK_IO_FLAG_AUTO_BUF_REG);
-			io->flags |= UBLK_IO_FLAG_ACTIVE;
-			ublk_io_unlock(io);
-
-			if (index != -1)
-				io_buffer_unregister_bvec(data->cmd, index,
-						data->issue_flags);
-		}
-
-		res = kfifo_in_spinlocked_noirqsave(&ubq->evts_fifo,
-			tag_buf, len, &ubq->evts_lock);
-
-		pr_warn_ratelimited("%s: copy tags or post CQE failure, move back "
-				"tags(%d %zu) ret %d\n", __func__, res, len,
-				ret);
-	}
+	if (unlikely(ret < 0))
+		ublk_batch_dispatch_fail(ubq, data, tag_buf, len, ret);
 	return ret;
 }
 
@@ -3091,8 +3097,8 @@ static int ublk_register_io_buf(struct io_uring_cmd *cmd,
 	if (!req)
 		return -EINVAL;
 
-	ret = io_buffer_register_bvec(cmd, req, ublk_io_release, index,
-				      issue_flags);
+	ret = io_buffer_register_request(cmd, req, ublk_io_release, index,
+					 issue_flags);
 	if (ret) {
 		ublk_put_req_ref(io, req);
 		return ret;
@@ -3123,8 +3129,8 @@ ublk_daemon_register_io_buf(struct io_uring_cmd *cmd,
 	if (!ublk_dev_support_zero_copy(ub) || !ublk_rq_has_data(req))
 		return -EINVAL;
 
-	ret = io_buffer_register_bvec(cmd, req, ublk_io_release, index,
-				      issue_flags);
+	ret = io_buffer_register_request(cmd, req, ublk_io_release, index,
+					 issue_flags);
 	if (ret)
 		return ret;
 
@@ -3139,7 +3145,7 @@ static int ublk_unregister_io_buf(struct io_uring_cmd *cmd,
 	if (!(ub->dev_info.flags & UBLK_F_SUPPORT_ZERO_COPY))
 		return -EINVAL;
 
-	return io_buffer_unregister_bvec(cmd, index, issue_flags);
+	return io_buffer_unregister(cmd, index, issue_flags);
 }
 
 static int ublk_check_fetch_buf(const struct ublk_device *ub, __u64 buf_addr)
@@ -3280,7 +3286,7 @@ static int ublk_ch_uring_cmd_local(struct io_uring_cmd *cmd,
 		goto out;
 
 	/*
-	 * io_buffer_unregister_bvec() doesn't access the ubq or io,
+	 * io_buffer_unregister() doesn't access the ubq or io,
 	 * so no need to validate the q_id, tag, or task
 	 */
 	if (_IOC_NR(cmd_op) == UBLK_IO_UNREGISTER_IO_BUF)
@@ -3347,7 +3353,7 @@ static int ublk_ch_uring_cmd_local(struct io_uring_cmd *cmd,
 		req = ublk_fill_io_cmd(io, cmd);
 		ret = ublk_config_io_buf(ub, io, cmd, addr, &buf_idx);
 		if (buf_idx != UBLK_INVALID_BUF_IDX)
-			io_buffer_unregister_bvec(cmd, buf_idx, issue_flags);
+			io_buffer_unregister(cmd, buf_idx, issue_flags);
 		compl = ublk_need_complete_req(ub, io);
 
 		if (req_op(req) == REQ_OP_ZONE_APPEND)
@@ -3682,7 +3688,7 @@ static int ublk_batch_commit_io(struct ublk_queue *ubq,
 	}
 
 	if (buf_idx != UBLK_INVALID_BUF_IDX)
-		io_buffer_unregister_bvec(data->cmd, buf_idx, data->issue_flags);
+		io_buffer_unregister(data->cmd, buf_idx, data->issue_flags);
 	if (req_op(req) == REQ_OP_ZONE_APPEND)
 		req->__sector = ublk_batch_zone_lba(uc, elem);
 	if (compl)
