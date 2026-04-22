@@ -490,7 +490,7 @@ config EDAC_TI
 	  Support for error detection and correction on the TI SoCs.
 
 config EDAC_QCOM
-	tristate "QCOM EDAC Controller"
+	tristate "Qualcomm EDAC Controller"
 	depends on ARCH_QCOM && QCOM_LLCC
 	help
 	  Support for error detection and correction on the
