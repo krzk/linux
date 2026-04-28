@@ -167,7 +167,7 @@ static int efivarfs_d_compare(const struct dentry *dentry,
 	return strncasecmp(name->name + guid, str + guid, EFI_VARIABLE_GUID_LEN);
 }
 
-static int efivarfs_d_hash(const struct dentry *dentry, struct qstr *qstr)
+static int efivarfs_d_hash(const struct dentry *dentry, const struct qstr *qstr)
 {
 	unsigned long hash = init_name_hash(dentry);
 	const unsigned char *s = qstr->name;
@@ -191,12 +191,9 @@ static const struct dentry_operations efivarfs_d_ops = {
 
 static struct dentry *efivarfs_alloc_dentry(struct dentry *parent, char *name)
 {
+	const struct qstr q = QSTR(name);
 	struct dentry *d;
-	struct qstr q;
 	int err;
-
-	q.name = name;
-	q.len = strlen(name);
 
 	err = efivarfs_d_hash(parent, &q);
 	if (err)
