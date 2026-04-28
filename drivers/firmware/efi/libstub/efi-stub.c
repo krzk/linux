@@ -48,6 +48,13 @@
 static u64 virtmap_base = EFI_RT_VIRTUAL_BASE;
 static bool flat_va_mapping = (EFI_RT_VIRTUAL_OFFSET != 0);
 
+void __weak efi_cache_sync_image(unsigned long image_base,
+				 unsigned long alloc_size)
+{
+	// Provided by the arch to perform the cache maintenance necessary for
+	// executable code loaded into memory to be safe for execution.
+}
+
 void __weak free_primary_display(struct sysfb_display_info *dpy)
 { }
 

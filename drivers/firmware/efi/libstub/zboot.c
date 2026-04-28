@@ -19,13 +19,6 @@ static unsigned long alloc_preferred_address(unsigned long alloc_size)
 	return ULONG_MAX;
 }
 
-void __weak efi_cache_sync_image(unsigned long image_base,
-				 unsigned long alloc_size)
-{
-	// Provided by the arch to perform the cache maintenance necessary for
-	// executable code loaded into memory to be safe for execution.
-}
-
 struct sysfb_display_info *alloc_primary_display(void)
 {
 	return __alloc_primary_display();
