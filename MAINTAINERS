@@ -10756,6 +10756,7 @@ S:	Maintained
 P:	Documentation/process/maintainer-tip.rst
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git locking/core
 F:	Documentation/locking/*futex*
+F:	Documentation/process/maintainer-tip.rst
 F:	include/asm-generic/futex.h
 F:	include/linux/futex.h
 F:	include/uapi/linux/futex.h
