@@ -2654,7 +2654,7 @@ static void pwm_dbg_show(struct pwm_chip *chip, struct seq_file *s)
 			   state.polarity ? "inverse" : "normal");
 		if (state.usage_power)
 			seq_puts(s, ", usage_power");
-		seq_puts(s, "\n");
+		seq_putc(s, '\n');
 
 		if (pwmchip_supports_waveform(chip)) {
 			struct pwm_waveform wf;
@@ -2677,7 +2677,7 @@ static void pwm_dbg_show(struct pwm_chip *chip, struct seq_file *s)
 				seq_printf(s, "  actual configuration: read out error: %pe", ERR_PTR(err));
 		}
 
-		seq_puts(s, "\n");
+		seq_putc(s, '\n');
 	}
 }
 
