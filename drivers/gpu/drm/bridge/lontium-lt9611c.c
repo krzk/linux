@@ -97,7 +97,7 @@ static int lt9611c_read_write_flow(struct lt9611c *lt9611c, u8 *params,
 	regmap_write(lt9611c->regmap, 0xe0de, 0x01);
 
 	ret = regmap_read_poll_timeout(lt9611c->regmap, 0xe0ae, temp,
-				       temp == 0x01, 1000, 100 * 1000);
+				       temp == 0x01, 1000, 200 * 1000);
 	if (ret)
 		return -ETIMEDOUT;
 
@@ -107,7 +107,7 @@ static int lt9611c_read_write_flow(struct lt9611c *lt9611c, u8 *params,
 	regmap_write(lt9611c->regmap, 0xe0de, 0x02);
 
 	ret = regmap_read_poll_timeout(lt9611c->regmap, 0xe0ae, temp,
-				       temp == 0x02, 1000, 100 * 1000);
+				       temp == 0x02, 1000, 200 * 1000);
 	if (ret)
 		return -ETIMEDOUT;
 
