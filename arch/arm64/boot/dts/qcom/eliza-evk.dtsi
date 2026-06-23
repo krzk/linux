@@ -12,34 +12,23 @@
 		stdout-path = "serial0:115200n8";
 	};
 
-	lt9611_1v2: lt9611-1v2-regulator {
+	hdmi_earc_reg: regulator-5v0 {
 		compatible = "regulator-fixed";
-		regulator-name = "LT9611_1V2";
+		regulator-name = "hdmi_earc_5v0";
 
-		vin-supply = <&vph_pwr>;
-		regulator-min-microvolt = <1200000>;
-		regulator-max-microvolt = <1200000>;
-		regulator-boot-on;
-		regulator-always-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&tlmm 184 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&hdmi_earc_5v0_state>;
+		pinctrl-names = "default";
 	};
 
-	lt9611_3v3: lt9611-3v3-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "LT9611_3V3";
-
-		vin-supply = <&vreg_bob>;
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		regulator-boot-on;
-		regulator-always-on;
-	};
-
-	hdmi-connector {
+	hdmi-0-connector {
 		compatible = "hdmi-connector";
 		type = "a";
 
 		port {
-			hdmi_connector_in: endpoint {
+			hdmi_0_connector_in: endpoint {
 				remote-endpoint = <&lt9611_out>;
 			};
 		};
@@ -85,9 +74,6 @@
 };
 
 &i2c4 {
-	pinctrl-0 = <&qup_i2c4_data_clk>;
-	pinctrl-names = "default";
-
 	clock-frequency = <400000>;
 
 	status = "okay";
@@ -107,26 +93,35 @@
 		gpio-controller;
 		#gpio-cells = <2>;
 
+		/* That's GPIO 184 instead, here only as input */
+		/*
 		hdmi-5p0-pwr-en-hog {
 			gpio-hog;
 			gpios = <4 GPIO_ACTIVE_HIGH>;
 			output-high;
 			line-name = "hdmi_5p0_pwr_en";
 		};
+		*/
 	};
+};
 
-	lt9611_codec: hdmi-bridge@2b {
-		compatible = "lontium,lt9611uxc";
-		reg = <0x2b>;
+&i2c8 {
+	clock-frequency = <400000>;
+
+	status = "okay";
+
+	lt9611_codec: hdmi-bridge@41 {
+		compatible = "lontium,lt9611uxd";
+		reg = <0x41>;
 
 		interrupts-extended = <&tlmm 13 IRQ_TYPE_EDGE_FALLING>;
 		reset-gpios = <&tlmm 16 GPIO_ACTIVE_HIGH>;
 
-		vdd-supply = <&lt9611_1v2>;
-		vcc-supply = <&lt9611_3v3>;
+		vdd-supply = <&vph_pwr>;
+		vcc-supply = <&vreg_l7b>;
 
+		pinctrl-0 = <&lt9611_default>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&lt9611_state>;
 
 		ports {
 			#address-cells = <1>;
@@ -144,7 +139,7 @@
 				reg = <2>;
 
 				lt9611_out: endpoint {
-					remote-endpoint = <&hdmi_connector_in>;
+					remote-endpoint = <&hdmi_0_connector_in>;
 				};
 			};
 		};
@@ -153,6 +148,14 @@
 
 &mdss {
 	status = "okay";
+};
+
+&mdss_dp0 {
+	status = "okay";
+};
+
+&mdss_dp0_out {
+	link-frequencies = /bits/ 64 <1620000000 2700000000 5400000000 8100000000>;
 };
 
 &mdss_dsi0 {
@@ -168,6 +171,29 @@
 
 &mdss_dsi0_phy {
 	vdds-supply = <&vreg_l2b>;
+
+	status = "okay";
+};
+
+&mdss_hdmi {
+	//hpd-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
+
+	pinctrl-0 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_active>,
+		    <&hdmi_hpd_active>;
+	pinctrl-1 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_sleep>,
+		    <&hdmi_hpd_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	vdda-0p9-supply = <&vreg_l2b>;
+	vdda-1p2-supply = <&vreg_l4b>;
+
+	status = "okay";
+};
+
+&mdss_hdmi_phy {
+	vddio-supply = <&hdmi_earc_reg>;
 
 	status = "okay";
 };
@@ -220,19 +246,18 @@
 };
 
 &tlmm {
-	lt9611_state: lt9611-state {
+	lt9611_default: lt9611-state {
+		irq-pins {
+			pins = "gpio13";
+			function = "gpio";
+			bias-disable;
+		};
+
 		rst-pins {
 			pins = "gpio16";
 			function = "gpio";
 
 			output-high;
-			input-disable;
-		};
-
-		irq-pins {
-			pins = "gpio13";
-			function = "gpio";
-			bias-disable;
 		};
 	};
 
