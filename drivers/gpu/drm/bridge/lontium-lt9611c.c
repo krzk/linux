@@ -650,7 +650,7 @@ static void lt9611c_video_setup(struct lt9611c *lt9611c,
 }
 
 static void lt9611c_bridge_atomic_pre_enable(struct drm_bridge *bridge,
-					     struct drm_atomic_state *state)
+					     struct drm_atomic_commit *state)
 {
 	struct lt9611c *lt9611c = bridge_to_lt9611c(bridge);
 	int ret;
@@ -661,7 +661,7 @@ static void lt9611c_bridge_atomic_pre_enable(struct drm_bridge *bridge,
 }
 
 static void lt9611c_bridge_atomic_enable(struct drm_bridge *bridge,
-					 struct drm_atomic_state *state)
+					 struct drm_atomic_commit *state)
 {
 	struct lt9611c *lt9611c = bridge_to_lt9611c(bridge);
 	struct drm_connector *connector;
@@ -687,7 +687,7 @@ static void lt9611c_bridge_atomic_enable(struct drm_bridge *bridge,
 }
 
 static void lt9611c_bridge_atomic_post_disable(struct drm_bridge *bridge,
-					       struct drm_atomic_state *state)
+					       struct drm_atomic_commit *state)
 {
 	struct lt9611c *lt9611c = bridge_to_lt9611c(bridge);
 	int ret;
