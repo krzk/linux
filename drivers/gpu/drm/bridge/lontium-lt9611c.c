@@ -1076,7 +1076,6 @@ static int lt9611c_probe(struct i2c_client *client)
 
 	lt9611c->dev = dev;
 	lt9611c->client = client;
-	lt9611c->chip_type = id->driver_data;
 
 	if (dev->of_node) {
 		lt9611c->chip_type = (uintptr_t)of_device_get_match_data(dev);
