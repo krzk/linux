@@ -3786,8 +3786,7 @@ static long smb3_simple_falloc(struct file *file, struct cifs_tcon *tcon,
 		}
 	}
 
-	smb2_set_sparse(xid, tcon, cfile, inode, false);
-	rc = 0;
+	rc = smb2_set_sparse(xid, tcon, cfile, inode, false);
 
 out:
 	if (rc)
