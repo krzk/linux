@@ -3707,8 +3707,11 @@ static long smb3_simple_falloc(struct file *file, struct cifs_tcon *tcon,
 		if (rc)
 			goto out;
 
-		if (cifsi->cifsAttrs & FILE_ATTRIBUTE_SPARSE_FILE)
-			smb2_set_sparse(xid, tcon, cfile, inode, false);
+		if (cifsi->cifsAttrs & FILE_ATTRIBUTE_SPARSE_FILE) {
+			rc = smb2_set_sparse(xid, tcon, cfile, inode, false);
+			if (rc)
+				goto out;
+		}
 
 		new_eof = off + len;
 		rc = SMB2_set_eof(xid, tcon, cfile->fid.persistent_fid,
