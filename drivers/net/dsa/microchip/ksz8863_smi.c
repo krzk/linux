@@ -5,7 +5,7 @@
  * Copyright (C) 2019 Pengutronix, Michael Grzeschik <kernel@pengutronix.de>
  */
 
-#include <linux/mod_devicetable.h>
+#include <linux/device-id/of.h>
 #include <linux/property.h>
 
 #include "ksz8.h"

@@ -10,7 +10,7 @@
 #include <linux/cdev.h>
 #include <linux/delay.h>
 #include <linux/fs.h>
-#include <linux/mod_devicetable.h>
+#include <linux/device-id/of.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 #include <linux/list.h>

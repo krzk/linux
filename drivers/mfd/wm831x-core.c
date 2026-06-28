@@ -15,7 +15,7 @@
 #include <linux/mfd/core.h>
 #include <linux/slab.h>
 #include <linux/err.h>
-#include <linux/mod_devicetable.h>
+#include <linux/device-id/of.h>
 
 #include <linux/mfd/wm831x/core.h>
 #include <linux/mfd/wm831x/pdata.h>

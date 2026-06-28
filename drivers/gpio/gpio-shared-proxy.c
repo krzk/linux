@@ -9,7 +9,6 @@
 #include <linux/err.h>
 #include <linux/gpio/consumer.h>
 #include <linux/gpio/driver.h>
-#include <linux/mod_devicetable.h>
 #include <linux/module.h>
 #include <linux/string_choices.h>
 #include <linux/types.h>
