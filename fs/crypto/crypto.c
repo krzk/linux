@@ -323,7 +323,6 @@ EXPORT_SYMBOL(fscrypt_decrypt_block_inplace);
  */
 int fscrypt_initialize(struct super_block *sb)
 {
-	int err = 0;
 	mempool_t *pool;
 
 	/* pairs with smp_store_release() below */
@@ -334,20 +333,16 @@ int fscrypt_initialize(struct super_block *sb)
 	if (!sb->s_cop->needs_bounce_pages)
 		return 0;
 
-	mutex_lock(&fscrypt_init_mutex);
+	guard(mutex)(&fscrypt_init_mutex);
 	if (fscrypt_bounce_page_pool)
-		goto out_unlock;
+		return 0;
 
-	err = -ENOMEM;
 	pool = mempool_create_page_pool(num_prealloc_crypto_pages, 0);
 	if (!pool)
-		goto out_unlock;
+		return -ENOMEM;
 	/* pairs with smp_load_acquire() above */
 	smp_store_release(&fscrypt_bounce_page_pool, pool);
-	err = 0;
-out_unlock:
-	mutex_unlock(&fscrypt_init_mutex);
-	return err;
+	return 0;
 }
 
 void fscrypt_msg(const struct inode *inode, const char *level,
@@ -374,15 +369,8 @@ void fscrypt_msg(const struct inode *inode, const char *level,
 	va_end(args);
 }
 
-/**
- * fscrypt_init() - Set up for fs encryption.
- *
- * Return: 0 on success; -errno on failure
- */
 static int __init fscrypt_init(void)
 {
-	int err = -ENOMEM;
-
 	/*
 	 * Use an unbound workqueue to allow bios to be decrypted in parallel
 	 * even when they happen to complete on the same CPU.  This sacrifices
@@ -395,24 +383,12 @@ static int __init fscrypt_init(void)
 						 WQ_UNBOUND | WQ_HIGHPRI,
 						 num_online_cpus());
 	if (!fscrypt_read_workqueue)
-		goto fail;
+		panic("failed to allocate fscrypt_read_queue");
 
 	fscrypt_inode_info_cachep = KMEM_CACHE(fscrypt_inode_info,
-					       SLAB_RECLAIM_ACCOUNT);
-	if (!fscrypt_inode_info_cachep)
-		goto fail_free_queue;
-
-	err = fscrypt_init_keyring();
-	if (err)
-		goto fail_free_inode_info;
-
+					       SLAB_RECLAIM_ACCOUNT |
+					       SLAB_PANIC);
+	fscrypt_init_keyring();
 	return 0;
-
-fail_free_inode_info:
-	kmem_cache_destroy(fscrypt_inode_info_cachep);
-fail_free_queue:
-	destroy_workqueue(fscrypt_read_workqueue);
-fail:
-	return err;
 }
 late_initcall(fscrypt_init)
