@@ -91,6 +91,7 @@ struct kfd_sdma_activity_handler_workarea {
 
 struct temp_sdma_queue_list {
 	uint64_t __user *rptr;
+	void *mqd;
 	uint64_t sdma_val;
 	unsigned int queue_id;
 	struct list_head list;
@@ -161,6 +162,7 @@ static void kfd_sdma_activity_worker(struct work_struct *work)
 
 		INIT_LIST_HEAD(&sdma_q->list);
 		sdma_q->rptr = (uint64_t __user *)q->properties.read_ptr;
+		sdma_q->mqd = q->mqd;
 		sdma_q->queue_id = q->properties.queue_id;
 		list_add_tail(&sdma_q->list, &sdma_q_list.list);
 	}
@@ -189,7 +191,15 @@ static void kfd_sdma_activity_worker(struct work_struct *work)
 
 	list_for_each_entry(sdma_q, &sdma_q_list.list, list) {
 		val = 0;
-		ret = read_sdma_queue_counter(sdma_q->rptr, &val);
+
+		if (dqm->dev->kfd2kgd->hqd_sdma_get_counter)
+			ret = dqm->dev->kfd2kgd->hqd_sdma_get_counter(
+					dqm->dev->adev, sdma_q->mqd,
+					dqm->dev->kfd->device_info.num_sdma_queues_per_engine,
+					&val);
+		else
+			ret = read_sdma_queue_counter(sdma_q->rptr, &val);
+
 		if (ret) {
 			pr_debug("Failed to read SDMA queue active counter for queue id: %d",
 				 sdma_q->queue_id);
@@ -986,6 +996,33 @@ out:
 	return process;
 }
 
+/**
+ * amdgpu_amdkfd_set_sigbus_delay - Set per-process KFD SIGBUS delay
+ * @task: task in the target process
+ * @ms:   encoded delay value (0 = immediate, 0xFFFFFFFF = suppress,
+ *        otherwise delay in milliseconds)
+ *
+ * Stores the SIGBUS delivery option on the kfd_process associated with
+ * @task. If the calling process has not opened /dev/kfd yet (no
+ * kfd_process exists), this is a no-op - the option only applies to
+ * processes that actually use KFD.
+ */
+int amdgpu_amdkfd_set_sigbus_delay(struct task_struct *task, u32 ms)
+{
+	struct kfd_process *p;
+
+	if (!task->mm)
+		return -EINVAL;
+
+	p = kfd_lookup_process_by_mm(task->mm);
+	if (!p)
+		return 0;
+
+	atomic_set(&p->kfd_sigbus_delay_ms, ms);
+	kfd_unref_process(p);
+	return 0;
+}
+
 static struct kfd_process *find_process_by_mm(const struct mm_struct *mm)
 {
 	struct kfd_process *process;
@@ -1330,6 +1367,11 @@ void kfd_process_notifier_release_internal(struct kfd_process *p)
 	kfd_process_table_remove(p);
 	cancel_delayed_work_sync(&p->eviction_work);
 	cancel_delayed_work_sync(&p->restore_work);
+	/*
+	 * If work pending, cancel it and drop the extra ref
+	 */
+	if (cancel_delayed_work_sync(&p->signal_work))
+		kfd_unref_process(p);
 
 	/*
 	 * Dequeue and destroy user queues, it is not safe for GPU to access
@@ -1586,6 +1628,7 @@ struct kfd_process *create_process(const struct task_struct *thread, bool primar
 
 	INIT_DELAYED_WORK(&process->eviction_work, evict_process_worker);
 	INIT_DELAYED_WORK(&process->restore_work, restore_process_worker);
+	INIT_DELAYED_WORK(&process->signal_work, kfd_signal_sigbus_delayed_fn);
 	process->last_restore_timestamp = get_jiffies_64();
 	err = kfd_event_init_process(process);
 	if (err)
