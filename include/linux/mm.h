@@ -2290,6 +2290,7 @@ int memdesc_nid(memdesc_flags_t mdf);
 #else
 static inline int memdesc_nid(memdesc_flags_t mdf)
 {
+	ASSERT_EXCLUSIVE_BITS(mdf.f, NODES_MASK << NODES_PGSHIFT);
 	return (mdf.f >> NODES_PGSHIFT) & NODES_MASK;
 }
 #endif
