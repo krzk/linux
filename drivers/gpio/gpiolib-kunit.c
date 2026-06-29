@@ -18,19 +18,67 @@
 #define GPIO_TEST_PROVIDER		"gpio-test-provider"
 #define GPIO_SWNODE_TEST_CONSUMER	"gpio-swnode-test-consumer"
 #define GPIO_UNBIND_TEST_CONSUMER	"gpio-unbind-test-consumer"
+#define GPIO_CONSUMER_NAME		"gpio-swnode-consumer-test-device"
+
+#define GPIO_TEST_PROVIDER_NGPIO	4
+
+/*
+ * The test provider tracks per-line direction and value so that lines can be
+ * driven as both inputs and outputs - this is needed to exercise input as well
+ * as output GPIO hogs.
+ */
+struct gpio_test_provider_data {
+	DECLARE_BITMAP(is_output, GPIO_TEST_PROVIDER_NGPIO);
+	DECLARE_BITMAP(values, GPIO_TEST_PROVIDER_NGPIO);
+};
 
 static int gpio_test_provider_get_direction(struct gpio_chip *gc, unsigned int offset)
 {
-	return GPIO_LINE_DIRECTION_OUT;
+	struct gpio_test_provider_data *data = gpiochip_get_data(gc);
+
+	return test_bit(offset, data->is_output) ?
+		GPIO_LINE_DIRECTION_OUT : GPIO_LINE_DIRECTION_IN;
+}
+
+static int gpio_test_provider_direction_input(struct gpio_chip *gc, unsigned int offset)
+{
+	struct gpio_test_provider_data *data = gpiochip_get_data(gc);
+
+	clear_bit(offset, data->is_output);
+
+	return 0;
+}
+
+static int gpio_test_provider_direction_output(struct gpio_chip *gc, unsigned int offset,
+					       int value)
+{
+	struct gpio_test_provider_data *data = gpiochip_get_data(gc);
+
+	set_bit(offset, data->is_output);
+	__assign_bit(offset, data->values, value);
+
+	return 0;
+}
+
+static int gpio_test_provider_get(struct gpio_chip *gc, unsigned int offset)
+{
+	struct gpio_test_provider_data *data = gpiochip_get_data(gc);
+
+	return test_bit(offset, data->values);
 }
 
 static int gpio_test_provider_set(struct gpio_chip *gc, unsigned int offset, int value)
 {
+	struct gpio_test_provider_data *data = gpiochip_get_data(gc);
+
+	__assign_bit(offset, data->values, value);
+
 	return 0;
 }
 
 static int gpio_test_provider_probe(struct platform_device *pdev)
 {
+	struct gpio_test_provider_data *data;
 	struct device *dev = &pdev->dev;
 	struct gpio_chip *gc;
 
@@ -38,16 +86,26 @@ static int gpio_test_provider_probe(struct platform_device *pdev)
 	if (!gc)
 		return -ENOMEM;
 
+	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+	if (!data)
+		return -ENOMEM;
+
+	/* Lines start as outputs to preserve the default for lookup tests. */
+	bitmap_fill(data->is_output, GPIO_TEST_PROVIDER_NGPIO);
+
 	gc->base = -1;
-	gc->ngpio = 4;
-	gc->label = "gpio-swnode-consumer-test-device";
+	gc->ngpio = GPIO_TEST_PROVIDER_NGPIO;
+	gc->label = GPIO_CONSUMER_NAME;
 	gc->parent = dev;
 	gc->owner = THIS_MODULE;
 
 	gc->get_direction = gpio_test_provider_get_direction;
+	gc->direction_input = gpio_test_provider_direction_input;
+	gc->direction_output = gpio_test_provider_direction_output;
+	gc->get = gpio_test_provider_get;
 	gc->set = gpio_test_provider_set;
 
-	return devm_gpiochip_add_data(dev, gc, NULL);
+	return devm_gpiochip_add_data(dev, gc, data);
 }
 
 static struct platform_driver gpio_test_provider_driver = {
@@ -63,10 +121,12 @@ static const struct software_node gpio_test_provider_swnode = {
 
 struct gpio_swnode_consumer_pdata {
 	bool gpio_ok;
+	int errno;
 };
 
 static const struct gpio_swnode_consumer_pdata gpio_swnode_pdata_template = {
 	.gpio_ok = false,
+	.errno = 0,
 };
 
 static int gpio_swnode_consumer_probe(struct platform_device *pdev)
@@ -76,8 +136,10 @@ static int gpio_swnode_consumer_probe(struct platform_device *pdev)
 	struct gpio_desc *desc;
 
 	desc = devm_gpiod_get(dev, "foo", GPIOD_OUT_HIGH);
-	if (IS_ERR(desc))
+	if (IS_ERR(desc)) {
+		pdata->errno = PTR_ERR(desc);
 		return PTR_ERR(desc);
+	}
 
 	pdata->gpio_ok = true;
 
@@ -91,13 +153,8 @@ static struct platform_driver gpio_swnode_consumer_driver = {
 	},
 };
 
-static void gpio_swnode_lookup_by_primary(struct kunit *test)
+static int gpio_swnode_register_drivers(struct kunit *test)
 {
-	struct gpio_swnode_consumer_pdata *pdata;
-	struct platform_device_info pdevinfo;
-	struct property_entry properties[2];
-	struct platform_device *pdev;
-	bool bound = false;
 	int ret;
 
 	ret = kunit_platform_driver_register(test, &gpio_test_provider_driver);
@@ -105,6 +162,17 @@ static void gpio_swnode_lookup_by_primary(struct kunit *test)
 
 	ret = kunit_platform_driver_register(test, &gpio_swnode_consumer_driver);
 	KUNIT_ASSERT_EQ(test, ret, 0);
+
+	return 0;
+}
+
+static void gpio_swnode_lookup_by_primary(struct kunit *test)
+{
+	struct gpio_swnode_consumer_pdata *pdata;
+	struct platform_device_info pdevinfo;
+	struct property_entry properties[2];
+	struct platform_device *pdev;
+	bool bound = false;
 
 	pdevinfo = (struct platform_device_info){
 		.name = GPIO_TEST_PROVIDER,
@@ -149,7 +217,6 @@ static void gpio_swnode_lookup_by_secondary(struct kunit *test)
 	struct fwnode_handle *primary;
 	struct platform_device *pdev;
 	bool bound = false;
-	int ret;
 
 	/*
 	 * Can't live on the stack as it will still get referenced in cleanup
@@ -157,12 +224,6 @@ static void gpio_swnode_lookup_by_secondary(struct kunit *test)
 	 */
 	primary = kunit_kzalloc(test, sizeof(*primary), GFP_KERNEL);
 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, primary);
-
-	ret = kunit_platform_driver_register(test, &gpio_test_provider_driver);
-	KUNIT_ASSERT_EQ(test, ret, 0);
-
-	ret = kunit_platform_driver_register(test, &gpio_swnode_consumer_driver);
-	KUNIT_ASSERT_EQ(test, ret, 0);
 
 	fwnode_init(primary, NULL);
 
@@ -211,6 +272,7 @@ static struct kunit_case gpio_swnode_lookup_tests[] = {
 static struct kunit_suite gpio_swnode_lookup_test_suite = {
 	.name = "gpio-swnode-lookup",
 	.test_cases = gpio_swnode_lookup_tests,
+	.init = gpio_swnode_register_drivers,
 };
 
 static BLOCKING_NOTIFIER_HEAD(gpio_unbind_notifier);
@@ -348,9 +410,191 @@ static struct kunit_suite gpio_unbind_with_consumers_test_suite = {
 	.test_cases = gpio_unbind_with_consumers_tests,
 };
 
+/*
+ * GPIO line hogs are described by child software nodes of the provider
+ * carrying the "gpio-hog" property. They are picked up automatically when the
+ * gpiochip is registered. Each hog below sits on a distinct line of the
+ * provider.
+ */
+#define GPIO_HOG_OUTPUT_HIGH_OFFSET	0
+#define GPIO_HOG_OUTPUT_LOW_OFFSET	1
+#define GPIO_HOG_INPUT_OFFSET		2
+
+static const u32 gpio_hog_output_high_gpios[] = {
+	GPIO_HOG_OUTPUT_HIGH_OFFSET, GPIO_ACTIVE_HIGH,
+};
+
+static const struct property_entry gpio_hog_output_high_properties[] = {
+	PROPERTY_ENTRY_U32_ARRAY("gpios", gpio_hog_output_high_gpios),
+	PROPERTY_ENTRY_STRING("line-name", "hog-output-high"),
+	PROPERTY_ENTRY_BOOL("output-high"),
+	PROPERTY_ENTRY_BOOL("gpio-hog"),
+	{ }
+};
+
+static const struct software_node gpio_hog_output_high_swnode =
+	SOFTWARE_NODE("hog-output-high", gpio_hog_output_high_properties,
+		      &gpio_test_provider_swnode);
+
+static const u32 gpio_hog_output_low_gpios[] = {
+	GPIO_HOG_OUTPUT_LOW_OFFSET, GPIO_ACTIVE_HIGH,
+};
+
+static const struct property_entry gpio_hog_output_low_properties[] = {
+	PROPERTY_ENTRY_U32_ARRAY("gpios", gpio_hog_output_low_gpios),
+	PROPERTY_ENTRY_STRING("line-name", "hog-output-low"),
+	PROPERTY_ENTRY_BOOL("output-low"),
+	PROPERTY_ENTRY_BOOL("gpio-hog"),
+	{ }
+};
+
+static const struct software_node gpio_hog_output_low_swnode =
+	SOFTWARE_NODE("hog-output-low", gpio_hog_output_low_properties,
+		      &gpio_test_provider_swnode);
+
+static const u32 gpio_hog_input_gpios[] = {
+	GPIO_HOG_INPUT_OFFSET, GPIO_ACTIVE_HIGH,
+};
+
+static const struct property_entry gpio_hog_input_properties[] = {
+	PROPERTY_ENTRY_U32_ARRAY("gpios", gpio_hog_input_gpios),
+	PROPERTY_ENTRY_STRING("line-name", "hog-input"),
+	PROPERTY_ENTRY_BOOL("input"),
+	PROPERTY_ENTRY_BOOL("gpio-hog"),
+	{ }
+};
+
+static const struct software_node gpio_hog_input_swnode =
+	SOFTWARE_NODE("hog-input", gpio_hog_input_properties,
+		      &gpio_test_provider_swnode);
+
+static const struct software_node *const gpio_hog_swnodes[] = {
+	&gpio_test_provider_swnode,
+	&gpio_hog_output_high_swnode,
+	&gpio_hog_output_low_swnode,
+	&gpio_hog_input_swnode,
+	NULL
+};
+
+/*
+ * Bring up the provider with a single hog child registered and verify both
+ * that the line was configured with the expected direction and that it is now
+ * exclusively owned (a consumer asking for the same line fails to bind).
+ *
+ * The provider node is referenced by the device through its fwnode rather than
+ * being handed to .swnode, so the device takes no software node reference of
+ * its own. Both the provider and the hog child are therefore test-managed and
+ * torn down (child first) once the test case completes.
+ */
+static void gpio_hog_assert(struct kunit *test, unsigned int offset,
+			    int expected_direction)
+{
+	struct gpio_swnode_consumer_pdata *pdata;
+	struct platform_device_info pdevinfo;
+	struct property_entry properties[2];
+	struct platform_device *pdev;
+	struct fwnode_handle *fwnode;
+	struct gpio_desc *desc;
+	bool bound = true;
+	int ret;
+
+	fwnode = software_node_fwnode(&gpio_test_provider_swnode);
+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, fwnode);
+
+	pdevinfo = (struct platform_device_info){
+		.name = GPIO_TEST_PROVIDER,
+		.id = PLATFORM_DEVID_NONE,
+		.fwnode = fwnode,
+	};
+
+	pdev = kunit_platform_device_register_full(test, &pdevinfo);
+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pdev);
+
+	wait_for_device_probe();
+
+	/* The hog must have configured the line with the expected direction. */
+	struct gpio_device *gdev __free(gpio_device_put) =
+		gpio_device_find_by_label(GPIO_CONSUMER_NAME);
+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, gdev);
+
+	desc = gpio_device_get_desc(gdev, offset);
+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, desc);
+
+	ret = gpiod_get_direction(desc);
+	KUNIT_ASSERT_EQ(test, ret, expected_direction);
+
+	/* A hogged line is owned exclusively, so a consumer must fail to bind. */
+	properties[0] = PROPERTY_ENTRY_GPIO("foo-gpios",
+					    &gpio_test_provider_swnode,
+					    offset, GPIO_ACTIVE_HIGH);
+	properties[1] = (struct property_entry){ };
+
+	pdevinfo = (struct platform_device_info){
+		.name = GPIO_SWNODE_TEST_CONSUMER,
+		.id = PLATFORM_DEVID_NONE,
+		.data = &gpio_swnode_pdata_template,
+		.size_data = sizeof(gpio_swnode_pdata_template),
+		.properties = properties,
+	};
+
+	pdev = kunit_platform_device_register_full(test, &pdevinfo);
+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pdev);
+
+	wait_for_device_probe();
+	scoped_guard(device, &pdev->dev)
+		bound = device_is_bound(&pdev->dev);
+
+	KUNIT_ASSERT_FALSE(test, bound);
+
+	pdata = dev_get_platdata(&pdev->dev);
+	KUNIT_ASSERT_FALSE(test, pdata->gpio_ok);
+	KUNIT_ASSERT_EQ(test, pdata->errno, -EBUSY);
+}
+
+static void gpio_hog_output_high(struct kunit *test)
+{
+	gpio_hog_assert(test, GPIO_HOG_OUTPUT_HIGH_OFFSET, GPIO_LINE_DIRECTION_OUT);
+}
+
+static void gpio_hog_output_low(struct kunit *test)
+{
+	gpio_hog_assert(test, GPIO_HOG_OUTPUT_LOW_OFFSET, GPIO_LINE_DIRECTION_OUT);
+}
+
+static void gpio_hog_input(struct kunit *test)
+{
+	gpio_hog_assert(test, GPIO_HOG_INPUT_OFFSET, GPIO_LINE_DIRECTION_IN);
+}
+
+static int gpio_hog_suite_init(struct kunit_suite *suite)
+{
+	return software_node_register_node_group(gpio_hog_swnodes);
+}
+
+static void gpio_hog_suite_exit(struct kunit_suite *suite)
+{
+	software_node_unregister_node_group(gpio_hog_swnodes);
+}
+
+static struct kunit_case gpio_swnode_hog_tests[] = {
+	KUNIT_CASE(gpio_hog_output_high),
+	KUNIT_CASE(gpio_hog_output_low),
+	KUNIT_CASE(gpio_hog_input),
+	{ }
+};
+
+static struct kunit_suite gpio_swnode_hog_test_suite = {
+	.name = "gpio-swnode-hog",
+	.test_cases = gpio_swnode_hog_tests,
+	.suite_init = gpio_hog_suite_init,
+	.suite_exit = gpio_hog_suite_exit,
+	.init = gpio_swnode_register_drivers,
+};
+
 kunit_test_suites(
 	&gpio_swnode_lookup_test_suite,
 	&gpio_unbind_with_consumers_test_suite,
+	&gpio_swnode_hog_test_suite,
 );
 
 MODULE_DESCRIPTION("Test module for the GPIO subsystem");
