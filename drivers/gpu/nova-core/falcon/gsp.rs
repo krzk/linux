@@ -24,10 +24,6 @@ use crate::{
     regs,
 };
 
-/// Pattern returned by GSP register reads while the PRIV target mask still blocks CPU access.
-const GSP_TARGET_MASK_LOCKED_PATTERN: u32 = 0xbadf_4100;
-const GSP_TARGET_MASK_LOCKED_MASK: u32 = 0xffff_ff00;
-
 /// Type specifying the `Gsp` falcon engine. Cannot be instantiated.
 pub(crate) struct Gsp(());
 
@@ -70,10 +66,15 @@ impl Falcon<Gsp> {
 
     /// Returns whether GSP registers can be read by the CPU.
     pub(crate) fn priv_target_mask_released(&self, bar: Bar0<'_>) -> bool {
+        /// Pattern returned by GSP register reads while the PRIV target mask still blocks CPU
+        /// access. The low byte varies; the upper 24 bits are fixed.
+        const LOCKED_PATTERN: u32 = 0xbadf_4100;
+        const LOCKED_MASK: u32 = 0xffff_ff00;
+
         let hwcfg2 = bar
             .read(regs::NV_PFALCON_FALCON_HWCFG2::of::<Gsp>())
             .into_raw();
 
-        hwcfg2 != 0 && (hwcfg2 & GSP_TARGET_MASK_LOCKED_MASK) != GSP_TARGET_MASK_LOCKED_PATTERN
+        hwcfg2 != 0 && (hwcfg2 & LOCKED_MASK) != LOCKED_PATTERN
     }
 }

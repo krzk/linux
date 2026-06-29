@@ -6,7 +6,6 @@ use kernel::{
     device,
     dma::Coherent,
     io::poll::read_poll_timeout,
-    pci,
     prelude::*,
     time::Delta,
     types::ScopeGuard, //
@@ -24,7 +23,6 @@ use crate::{
         gsp::GspFirmware,
         FIRMWARE_VERSION, //
     },
-    gpu::Chipset,
     gsp::{
         cmdq::Cmdq,
         commands,
@@ -103,12 +101,12 @@ impl super::Gsp {
     /// [`Self::unload`]) returned.
     pub(crate) fn boot(
         self: Pin<&mut Self>,
-        pdev: &pci::Device<device::Bound>,
-        bar: Bar0<'_>,
-        chipset: Chipset,
-        gsp_falcon: &Falcon<Gsp>,
-        sec2_falcon: &Falcon<Sec2>,
+        ctx: super::GspBootContext<'_>,
     ) -> Result<Option<super::UnloadBundle>> {
+        let pdev = ctx.pdev;
+        let bar = ctx.bar;
+        let chipset = ctx.chipset;
+        let gsp_falcon = ctx.gsp_falcon;
         let dev = pdev.as_ref();
         let hal = super::hal::gsp_hal(chipset);
 
@@ -120,16 +118,7 @@ impl super::Gsp {
         let wpr_meta = Coherent::init(dev, GFP_KERNEL, GspFwWprMeta::new(&gsp_fw, &fb_layout))?;
 
         // Perform the chipset-specific boot sequence, and retrieve the unload bundle.
-        let unload_guard = hal.boot(
-            &self,
-            dev,
-            bar,
-            chipset,
-            &fb_layout,
-            &wpr_meta,
-            gsp_falcon,
-            sec2_falcon,
-        )?;
+        let unload_guard = hal.boot(&self, &ctx, &fb_layout, &wpr_meta)?;
 
         gsp_falcon.write_os_version(bar, gsp_fw.bootloader.app_version);
 
@@ -148,17 +137,10 @@ impl super::Gsp {
         self.cmdq
             .send_command_no_wait(bar, commands::SetRegistry::new())?;
 
-        hal.post_boot(&self, dev, bar, &gsp_fw, gsp_falcon, sec2_falcon)?;
+        hal.post_boot(&self, &ctx, &gsp_fw)?;
 
         // Wait until GSP is fully initialized.
         commands::wait_gsp_init_done(&self.cmdq)?;
-
-        // Obtain and display basic GPU information.
-        let info = self.cmdq.send_command(bar, commands::GetGspStaticInfo)?;
-        match info.gpu_name() {
-            Ok(name) => dev_info!(pdev, "GPU name: {}\n", name),
-            Err(e) => dev_warn!(pdev, "GPU name unavailable: {:?}\n", e),
-        }
 
         Ok(unload_guard.dismiss())
     }

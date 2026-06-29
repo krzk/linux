@@ -42,6 +42,7 @@ use crate::{
             GspSequencerParams, //
         },
         Gsp,
+        GspBootContext,
         GspFwWprMeta, //
     },
     regs,
@@ -134,11 +135,19 @@ impl UnloadBundle for Sec2UnloadBundle {
         sec2_falcon: &Falcon<Sec2>,
     ) -> Result {
         // Run FWSEC-SB to reset the GSP falcon to its pre-libos state.
-        self.fwsec_sb.run(dev, bar, gsp_falcon)?;
+        // Log errors but keep going if it fails.
+        let fwsec_sb_res = self
+            .fwsec_sb
+            .run(dev, bar, gsp_falcon)
+            .inspect_err(|e| dev_err!(dev, "FWSEC-SB failed to run: {:?}\n", e));
 
         // Remove WPR2 region if set.
         let wpr2_hi = bar.read(regs::NV_PFB_PRI_MMU_WPR2_ADDR_HI);
-        if wpr2_hi.is_wpr2_set() {
+        let booter_unloader_res = (|| {
+            if !wpr2_hi.is_wpr2_set() {
+                return Ok(());
+            }
+
             sec2_falcon.reset(bar)?;
             sec2_falcon.load(dev, bar, &self.booter_unloader)?;
 
@@ -160,9 +169,12 @@ impl UnloadBundle for Sec2UnloadBundle {
                 );
                 return Err(EBUSY);
             }
-        }
 
-        Ok(())
+            Ok(())
+        })()
+        .inspect_err(|e| dev_err!(dev, "Booter Unloader failed to run: {:?}\n", e));
+
+        fwsec_sb_res.and(booter_unloader_res)
     }
 }
 
@@ -258,14 +270,16 @@ impl GspHal for Tu102 {
     fn boot<'a>(
         &self,
         gsp: &'a Gsp,
-        dev: &'a device::Device<device::Bound>,
-        bar: Bar0<'a>,
-        chipset: Chipset,
+        ctx: &GspBootContext<'a>,
         fb_layout: &FbLayout,
         wpr_meta: &Coherent<GspFwWprMeta>,
-        gsp_falcon: &'a Falcon<GspEngine>,
-        sec2_falcon: &'a Falcon<Sec2>,
     ) -> Result<BootUnloadGuard<'a>> {
+        let dev = ctx.dev();
+        let bar = ctx.bar;
+        let chipset = ctx.chipset;
+        let gsp_falcon = ctx.gsp_falcon;
+        let sec2_falcon = ctx.sec2_falcon;
+
         let bios = Vbios::new(dev, bar)?;
 
         // Try and prepare the unload bundle.
@@ -321,23 +335,15 @@ impl GspHal for Tu102 {
         Ok(unload_guard)
     }
 
-    fn post_boot(
-        &self,
-        gsp: &Gsp,
-        dev: &device::Device<device::Bound>,
-        bar: Bar0<'_>,
-        gsp_fw: &GspFirmware,
-        gsp_falcon: &Falcon<GspEngine>,
-        sec2_falcon: &Falcon<Sec2>,
-    ) -> Result {
+    fn post_boot(&self, gsp: &Gsp, ctx: &GspBootContext<'_>, gsp_fw: &GspFirmware) -> Result {
         // Create and run the GSP sequencer.
         let seq_params = GspSequencerParams {
             bootloader_app_version: gsp_fw.bootloader.app_version,
             libos_dma_handle: gsp.libos.dma_handle(),
-            gsp_falcon,
-            sec2_falcon,
-            dev,
-            bar,
+            gsp_falcon: ctx.gsp_falcon,
+            sec2_falcon: ctx.sec2_falcon,
+            dev: ctx.dev(),
+            bar: ctx.bar,
         };
         GspSequencer::run(&gsp.cmdq, seq_params)?;
 

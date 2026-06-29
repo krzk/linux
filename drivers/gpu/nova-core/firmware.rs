@@ -424,19 +424,20 @@ impl<const N: usize> ModInfoBuilder<N> {
         let name = chipset.name();
 
         let this = self
-            .make_entry_file(name, "booter_load")
-            .make_entry_file(name, "booter_unload")
             .make_entry_file(name, "bootloader")
             .make_entry_file(name, "gsp");
 
-        let this = if chipset.needs_fwsec_bootloader() {
-            this.make_entry_file(name, "gen_bootloader")
+        // FSP-based chipsets (Hopper, Blackwell and later) boot the GSP via the FMC image loaded by
+        // FSP. Older chipsets use the SEC2 booter instead.
+        let this = if chipset.uses_fsp() {
+            this.make_entry_file(name, "fmc")
         } else {
-            this
+            this.make_entry_file(name, "booter_load")
+                .make_entry_file(name, "booter_unload")
         };
 
-        if chipset.uses_fsp() {
-            this.make_entry_file(name, "fmc")
+        if chipset.needs_fwsec_bootloader() {
+            this.make_entry_file(name, "gen_bootloader")
         } else {
             this
         }
@@ -464,11 +465,9 @@ impl<const N: usize> ModInfoBuilder<N> {
 /// that scheme before nova-core becomes stable, which means this module will eventually be
 /// removed.
 mod elf {
-    use core::mem::size_of;
-
     use kernel::{
         bindings,
-        str::CStr,
+        prelude::*,
         transmute::FromBytes, //
     };
 

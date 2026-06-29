@@ -7,7 +7,6 @@
 //! be loaded using PIO.
 
 use kernel::{
-    alloc::KVec,
     device::{
         self,
         Device, //

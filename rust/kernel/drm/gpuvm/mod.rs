@@ -116,9 +116,9 @@ impl<T: DriverGpuVm> GpuVm<T> {
 
     /// Creates a GPUVM instance.
     #[expect(clippy::new_ret_no_self)]
-    pub fn new<E>(
+    pub fn new<E, Ctx: drm::DeviceContext>(
         name: &'static CStr,
-        dev: &drm::Device<T::Driver>,
+        dev: &drm::Device<T::Driver, Ctx>,
         r_obj: &T::Object,
         range: Range<u64>,
         reserve_range: Range<u64>,
@@ -252,10 +252,10 @@ impl<T: DriverGpuVm> GpuVm<T> {
 /// The manager for a GPUVM.
 pub trait DriverGpuVm: Sized + Send {
     /// Parent `Driver` for this object.
-    type Driver: drm::Driver<Object = Self::Object>;
+    type Driver: drm::Driver;
 
     /// The kind of GEM object stored in this GPUVM.
-    type Object: IntoGEMObject;
+    type Object: drm::driver::AllocImpl<Driver = Self::Driver>;
 
     /// Data stored with each [`struct drm_gpuva`](struct@GpuVa).
     type VaData;
@@ -264,7 +264,9 @@ pub trait DriverGpuVm: Sized + Send {
     type VmBoData;
 
     /// The private data passed to callbacks.
-    type SmContext<'ctx>;
+    type SmContext<'ctx>
+    where
+        Self: 'ctx;
 
     /// Indicates that a new mapping should be created.
     fn sm_step_map<'op, 'ctx>(

@@ -18,15 +18,10 @@ use crate::{
         Falcon, //
     },
     fb::FbLayout,
-    firmware::{
-        fsp::FspFirmware,
-        FIRMWARE_VERSION, //
-    },
     fsp::{
         FmcBootArgs,
         Fsp, //
     },
-    gpu::Chipset,
     gsp::{
         boot::BootUnloadGuard,
         hal::{
@@ -34,6 +29,7 @@ use crate::{
             UnloadBundle, //
         },
         Gsp,
+        GspBootContext,
         GspFwWprMeta, //
     },
 };
@@ -152,15 +148,15 @@ impl GspHal for Gh100 {
     fn boot<'a>(
         &self,
         gsp: &'a Gsp,
-        dev: &'a device::Device<device::Bound>,
-        bar: Bar0<'a>,
-        chipset: Chipset,
+        ctx: &GspBootContext<'a>,
         fb_layout: &FbLayout,
         wpr_meta: &Coherent<GspFwWprMeta>,
-        gsp_falcon: &'a Falcon<GspEngine>,
-        sec2_falcon: &'a Falcon<Sec2>,
     ) -> Result<BootUnloadGuard<'a>> {
-        let fsp_fw = FspFirmware::new(dev, chipset, FIRMWARE_VERSION)?;
+        let dev = ctx.dev();
+        let bar = ctx.bar;
+        let chipset = ctx.chipset;
+        let gsp_falcon = ctx.gsp_falcon;
+        let sec2_falcon = ctx.sec2_falcon;
 
         let unload_bundle = crate::gsp::UnloadBundle(
             KBox::new(FspUnloadBundle, GFP_KERNEL)? as KBox<dyn UnloadBundle>
@@ -170,7 +166,7 @@ impl GspHal for Gh100 {
         let unload_guard =
             BootUnloadGuard::new(gsp, dev, bar, gsp_falcon, sec2_falcon, Some(unload_bundle));
 
-        let mut fsp = Fsp::wait_secure_boot(dev, bar, chipset, fsp_fw)?;
+        let mut fsp = Fsp::wait_secure_boot(dev, bar, chipset)?;
 
         let args = FmcBootArgs::new(
             dev,
