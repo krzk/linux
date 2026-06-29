@@ -280,6 +280,8 @@ extern int rcu_cpu_stall_notifiers;
 
 #ifdef CONFIG_RCU_STALL_COMMON
 
+#include <linux/trace_controls.h>
+
 extern int rcu_cpu_stall_ftrace_dump;
 extern int rcu_cpu_stall_suppress;
 extern int rcu_cpu_stall_timeout;
