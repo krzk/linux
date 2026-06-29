@@ -798,7 +798,7 @@ static int check_parse_id(const char *id, struct parse_events_error *error)
 			     /*warn_if_reordered=*/true, /*fake_tp=*/false);
 	free(dup);
 
-	evlist__delete(evlist);
+	evlist__put(evlist);
 	return ret;
 }
 
@@ -865,11 +865,11 @@ static int test__parsing_callback(const struct pmu_metric *pm,
 
 	cpus = perf_cpu_map__new("0");
 	if (!cpus) {
-		evlist__delete(evlist);
+		evlist__put(evlist);
 		return -ENOMEM;
 	}
 
-	perf_evlist__set_maps(&evlist->core, cpus, NULL);
+	perf_evlist__set_maps(evlist__core(evlist), cpus, NULL);
 
 	err = metricgroup__parse_groups_test(evlist, table, pm->metric_name);
 	if (err) {
@@ -895,7 +895,8 @@ static int test__parsing_callback(const struct pmu_metric *pm,
 		k++;
 	}
 	evlist__for_each_entry(evlist, evsel) {
-		struct metric_event *me = metricgroup__lookup(&evlist->metric_events, evsel, false);
+		struct metric_event *me = metricgroup__lookup(evlist__metric_events(evlist),
+							      evsel, false);
 
 		if (me != NULL) {
 			struct metric_expr *mexp;
@@ -919,7 +920,7 @@ out_err:
 	/* ... cleanup. */
 	evlist__free_stats(evlist);
 	perf_cpu_map__put(cpus);
-	evlist__delete(evlist);
+	evlist__put(evlist);
 	return err;
 }
 

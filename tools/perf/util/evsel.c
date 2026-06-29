@@ -422,6 +422,11 @@ void evsel__set_sample_id(struct evsel *evsel,
 	evsel->core.attr.read_format |= PERF_FORMAT_ID;
 }
 
+bool evsel__is_non_perf_event_open_pmu(const struct evsel *evsel)
+{
+	return evsel->pmu && evsel->pmu->type > PERF_PMU_TYPE_PE_END;
+}
+
 /**
  * evsel__is_function_event - Return whether given evsel is a function
  * trace event
@@ -440,10 +445,11 @@ bool evsel__is_function_event(struct evsel *evsel)
 #undef FUNCTION_EVENT
 }
 
-void evsel__init(struct evsel *evsel,
+static void evsel__init(struct evsel *evsel,
 		 struct perf_event_attr *attr, int idx)
 {
 	perf_evsel__init(&evsel->core, attr, idx);
+	refcount_set(&evsel->refcnt, 1);
 	evsel->tracking	   = !idx;
 	evsel->unit	   = strdup("");
 	evsel->scale	   = 1.0;
@@ -525,7 +531,7 @@ static int evsel__copy_config_terms(struct evsel *dst, struct evsel *src)
  * The assumption is that @orig is not configured nor opened yet.
  * So we only care about the attributes that can be set while it's parsed.
  */
-struct evsel *evsel__clone(struct evsel *dest, struct evsel *orig)
+struct evsel *evsel__clone(struct evsel *orig)
 {
 	struct evsel *evsel;
 
@@ -538,11 +544,7 @@ struct evsel *evsel__clone(struct evsel *dest, struct evsel *orig)
 	if (orig->bpf_obj)
 		return NULL;
 
-	if (dest)
-		evsel = dest;
-	else
-		evsel = evsel__new(&orig->core.attr);
-
+	evsel = evsel__new(&orig->core.attr);
 	if (evsel == NULL)
 		return NULL;
 
@@ -627,7 +629,7 @@ struct evsel *evsel__clone(struct evsel *dest, struct evsel *orig)
 	return evsel;
 
 out_err:
-	evsel__delete(evsel);
+	evsel__put(evsel);
 	return NULL;
 }
 
@@ -684,6 +686,12 @@ out_free:
 	free(evsel);
 out_err:
 	return ERR_PTR(err);
+}
+
+struct evsel *evsel__get(struct evsel *evsel)
+{
+	refcount_inc(&evsel->refcnt);
+	return evsel;
 }
 
 #ifdef HAVE_LIBTRACEEVENT
@@ -2024,7 +2032,7 @@ void evsel__set_priv_destructor(void (*destructor)(void *priv))
 	evsel__priv_destructor = destructor;
 }
 
-void evsel__exit(struct evsel *evsel)
+static void evsel__exit(struct evsel *evsel)
 {
 	assert(list_empty(&evsel->core.node));
 	assert(evsel->evlist == NULL);
@@ -2061,9 +2069,12 @@ void evsel__exit(struct evsel *evsel)
 	}
 }
 
-void evsel__delete(struct evsel *evsel)
+void evsel__put(struct evsel *evsel)
 {
 	if (!evsel)
+		return;
+
+	if (!refcount_dec_and_test(&evsel->refcnt))
 		return;
 
 	evsel__exit(evsel);
@@ -3350,7 +3361,7 @@ static inline bool evsel__has_branch_counters(const struct evsel *evsel)
 	if (!leader || !evsel->evlist)
 		return false;
 
-	if (evsel->evlist->nr_br_cntr < 0)
+	if (evlist__nr_br_cntr(evsel->evlist) < 0)
 		evlist__update_br_cntr(evsel->evlist);
 
 	if (leader->br_cntr_nr > 0)
@@ -3407,7 +3418,7 @@ int __evsel__parse_sample(struct evsel *evsel, union perf_event *event,
 	union u64_swap u;
 
 	perf_sample__init(data, /*all=*/true);
-	data->evsel = evsel;
+	data->evsel = evsel__get(evsel);
 	data->cpu = data->pid = data->tid = -1;
 	data->stream_id = data->id = data->time = -1ULL;
 	data->period = evsel->core.attr.sample_period;
@@ -4382,7 +4393,7 @@ int evsel__open_strerror(struct evsel *evsel, struct target *target,
 
 struct perf_session *evsel__session(struct evsel *evsel)
 {
-	return evsel && evsel->evlist ? evsel->evlist->session : NULL;
+	return evsel && evsel->evlist ? evlist__session(evsel->evlist) : NULL;
 }
 
 struct perf_env *evsel__env(struct evsel *evsel)
@@ -4407,7 +4418,7 @@ static int store_evsel_ids(struct evsel *evsel, struct evlist *evlist)
 		     thread++) {
 			int fd = FD(evsel, cpu_map_idx, thread);
 
-			if (perf_evlist__id_add_fd(&evlist->core, &evsel->core,
+			if (perf_evlist__id_add_fd(evlist__core(evlist), &evsel->core,
 						   cpu_map_idx, thread, fd) < 0)
 				return -1;
 		}
