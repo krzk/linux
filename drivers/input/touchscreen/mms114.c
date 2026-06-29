@@ -52,21 +52,13 @@
 #define MMS114_TYPE_TOUCHSCREEN		1
 #define MMS114_TYPE_TOUCHKEY		2
 
-enum mms_type {
-	TYPE_MMS114	= 114,
-	TYPE_MMS134S	= 134,
-	TYPE_MMS136	= 136,
-	TYPE_MMS152	= 152,
-	TYPE_MMS345L	= 345,
-};
-
 struct mms114_data {
+	const struct mms_chip	*chip;
 	struct i2c_client	*client;
 	struct input_dev	*input_dev;
 	struct regulator	*core_reg;
 	struct regulator	*io_reg;
 	struct touchscreen_properties props;
-	enum mms_type		type;
 	unsigned int		contact_threshold;
 	unsigned int		moving_threshold;
 
@@ -75,6 +67,13 @@ struct mms114_data {
 
 	/* Use cache data for mode control register(write only) */
 	u8			cache_mode_control;
+};
+
+struct mms_chip {
+	const char *name;
+	int event_size;
+	bool has_config_regs;
+	int (*get_version)(struct mms114_data *data);
 };
 
 struct mms114_touch {
@@ -87,16 +86,16 @@ struct mms114_touch {
 	u8 reserved[2];
 } __packed;
 
-static int __mms114_read_reg(struct mms114_data *data, unsigned int reg,
-			     unsigned int len, u8 *val)
+static int __mms114_read_reg(struct mms114_data *data, u8 reg,
+			     unsigned int len, void *val)
 {
 	struct i2c_client *client = data->client;
 	struct i2c_msg xfer[2];
-	u8 buf = reg & 0xff;
+	u8 buf = reg;
 	int error;
 
-	if (reg <= MMS114_MODE_CONTROL && reg + len > MMS114_MODE_CONTROL)
-		BUG();
+	if (WARN_ON(reg <= MMS114_MODE_CONTROL && reg + len > MMS114_MODE_CONTROL))
+		return -EINVAL;
 
 	/* Write register */
 	xfer[0].addr = client->addr;
@@ -116,12 +115,12 @@ static int __mms114_read_reg(struct mms114_data *data, unsigned int reg,
 			"%s: i2c transfer failed (%d)\n", __func__, error);
 		return error < 0 ? error : -EIO;
 	}
-	udelay(MMS114_I2C_DELAY);
+	usleep_range(MMS114_I2C_DELAY, MMS114_I2C_DELAY + 50);
 
 	return 0;
 }
 
-static int mms114_read_reg(struct mms114_data *data, unsigned int reg)
+static int mms114_read_reg(struct mms114_data *data, u8 reg)
 {
 	u8 val;
 	int error;
@@ -133,15 +132,14 @@ static int mms114_read_reg(struct mms114_data *data, unsigned int reg)
 	return error < 0 ? error : val;
 }
 
-static int mms114_write_reg(struct mms114_data *data, unsigned int reg,
-			    unsigned int val)
+static int mms114_write_reg(struct mms114_data *data, u8 reg, u8 val)
 {
 	struct i2c_client *client = data->client;
 	u8 buf[2];
 	int error;
 
-	buf[0] = reg & 0xff;
-	buf[1] = val & 0xff;
+	buf[0] = reg;
+	buf[1] = val;
 
 	error = i2c_master_send(client, buf, 2);
 	if (error != 2) {
@@ -149,13 +147,98 @@ static int mms114_write_reg(struct mms114_data *data, unsigned int reg,
 			"%s: i2c send failed (%d)\n", __func__, error);
 		return error < 0 ? error : -EIO;
 	}
-	udelay(MMS114_I2C_DELAY);
+	usleep_range(MMS114_I2C_DELAY, MMS114_I2C_DELAY + 50);
 
 	if (reg == MMS114_MODE_CONTROL)
 		data->cache_mode_control = val;
 
 	return 0;
 }
+
+static int mms114_get_version(struct mms114_data *data)
+{
+	struct device *dev = &data->client->dev;
+	u8 buf[6];
+	int error;
+
+	error = __mms114_read_reg(data, MMS114_TSP_REV, 6, buf);
+	if (error)
+		return error;
+
+	dev_info(dev, "TSP Rev: 0x%x, HW Rev: 0x%x, Firmware Ver: 0x%x\n",
+		 buf[0], buf[1], buf[3]);
+	return 0;
+}
+
+static int mms152_get_version(struct mms114_data *data)
+{
+	struct device *dev = &data->client->dev;
+	u8 buf[3];
+	int group;
+	int error;
+
+	error = __mms114_read_reg(data, MMS152_FW_REV, 3, buf);
+	if (error)
+		return error;
+
+	group = i2c_smbus_read_byte_data(data->client, MMS152_COMPAT_GROUP);
+	if (group < 0)
+		return group;
+
+	dev_info(dev, "TSP FW Rev: bootloader 0x%x / core 0x%x / config 0x%x, Compat group: %c\n",
+		 buf[0], buf[1], buf[2], group);
+	return 0;
+}
+
+static int mms345l_get_version(struct mms114_data *data)
+{
+	struct device *dev = &data->client->dev;
+	u8 buf[3];
+	int error;
+
+	error = __mms114_read_reg(data, MMS152_FW_REV, 3, buf);
+	if (error)
+		return error;
+
+	dev_info(dev, "TSP FW Rev: bootloader 0x%x / core 0x%x / config 0x%x\n",
+		 buf[0], buf[1], buf[2]);
+	return 0;
+}
+
+static const struct mms_chip mms114_descriptor = {
+	.name = "MMS114",
+	.event_size = MMS114_EVENT_SIZE,
+	.has_config_regs = true,
+	.get_version = mms114_get_version,
+};
+
+static const struct mms_chip mms134s_descriptor = {
+	.name = "MMS134S",
+	.event_size = MMS136_EVENT_SIZE,
+	.has_config_regs = true,
+	.get_version = mms114_get_version,
+};
+
+static const struct mms_chip mms136_descriptor = {
+	.name = "MMS136",
+	.event_size = MMS136_EVENT_SIZE,
+	.has_config_regs = true,
+	.get_version = mms114_get_version,
+};
+
+static const struct mms_chip mms152_descriptor = {
+	.name = "MMS152",
+	.event_size = MMS114_EVENT_SIZE,
+	.has_config_regs = false,
+	.get_version = mms152_get_version,
+};
+
+static const struct mms_chip mms345l_descriptor = {
+	.name = "MMS345L",
+	.event_size = MMS114_EVENT_SIZE,
+	.has_config_regs = false,
+	.get_version = mms345l_get_version,
+};
 
 static void mms114_process_mt(struct mms114_data *data, struct mms114_touch *touch)
 {
@@ -218,8 +301,8 @@ static irqreturn_t mms114_interrupt(int irq, void *dev_id)
 	struct i2c_client *client = data->client;
 	struct mms114_touch touch[MMS114_MAX_TOUCH];
 	struct mms114_touch *t;
+	int event_size = data->chip->event_size;
 	int packet_size;
-	int event_size;
 	int touch_size;
 	int index;
 	int error;
@@ -234,17 +317,10 @@ static irqreturn_t mms114_interrupt(int irq, void *dev_id)
 		goto out;
 	}
 
-	/* MMS136 has slightly different event size */
-	if (data->type == TYPE_MMS134S || data->type == TYPE_MMS136)
-		event_size = MMS136_EVENT_SIZE;
-	else
-		event_size = MMS114_EVENT_SIZE;
-
 	touch_size = packet_size / event_size;
 
-	error = __mms114_read_reg(data, MMS114_INFORMATION, packet_size,
-			(u8 *)touch);
-	if (error < 0)
+	error = __mms114_read_reg(data, MMS114_INFORMATION, packet_size, touch);
+	if (error)
 		goto out;
 
 	for (index = 0; index < touch_size; index++) {
@@ -290,65 +366,17 @@ static int mms114_set_active(struct mms114_data *data, bool active)
 	return mms114_write_reg(data, MMS114_MODE_CONTROL, val);
 }
 
-static int mms114_get_version(struct mms114_data *data)
-{
-	struct device *dev = &data->client->dev;
-	u8 buf[6];
-	int group;
-	int error;
-
-	switch (data->type) {
-	case TYPE_MMS345L:
-		error = __mms114_read_reg(data, MMS152_FW_REV, 3, buf);
-		if (error)
-			return error;
-
-		dev_info(dev, "TSP FW Rev: bootloader 0x%x / core 0x%x / config 0x%x\n",
-			 buf[0], buf[1], buf[2]);
-		break;
-
-	case TYPE_MMS152:
-		error = __mms114_read_reg(data, MMS152_FW_REV, 3, buf);
-		if (error)
-			return error;
-
-		group = i2c_smbus_read_byte_data(data->client,
-						  MMS152_COMPAT_GROUP);
-		if (group < 0)
-			return group;
-
-		dev_info(dev, "TSP FW Rev: bootloader 0x%x / core 0x%x / config 0x%x, Compat group: %c\n",
-			 buf[0], buf[1], buf[2], group);
-		break;
-
-	case TYPE_MMS114:
-	case TYPE_MMS134S:
-	case TYPE_MMS136:
-		error = __mms114_read_reg(data, MMS114_TSP_REV, 6, buf);
-		if (error)
-			return error;
-
-		dev_info(dev, "TSP Rev: 0x%x, HW Rev: 0x%x, Firmware Ver: 0x%x\n",
-			 buf[0], buf[1], buf[3]);
-		break;
-	}
-
-	return 0;
-}
-
 static int mms114_setup_regs(struct mms114_data *data)
 {
 	const struct touchscreen_properties *props = &data->props;
 	int val;
 	int error;
 
-	error = mms114_get_version(data);
-	if (error < 0)
+	error = data->chip->get_version(data);
+	if (error)
 		return error;
 
-	/* MMS114, MMS134S and MMS136 have configuration and power on registers */
-	if (data->type != TYPE_MMS114 && data->type != TYPE_MMS134S &&
-	    data->type != TYPE_MMS136)
+	if (!data->chip->has_config_regs)
 		return 0;
 
 	error = mms114_set_active(data, true);
@@ -373,14 +401,14 @@ static int mms114_setup_regs(struct mms114_data *data)
 
 	if (data->contact_threshold) {
 		error = mms114_write_reg(data, MMS114_CONTACT_THRESHOLD,
-				data->contact_threshold);
+					 data->contact_threshold);
 		if (error < 0)
 			return error;
 	}
 
 	if (data->moving_threshold) {
 		error = mms114_write_reg(data, MMS114_MOVING_THRESHOLD,
-				data->moving_threshold);
+					 data->moving_threshold);
 		if (error < 0)
 			return error;
 	}
@@ -466,9 +494,9 @@ static int mms114_parse_legacy_bindings(struct mms114_data *data)
 	}
 
 	device_property_read_u32(dev, "contact-threshold",
-				&data->contact_threshold);
+				 &data->contact_threshold);
 	device_property_read_u32(dev, "moving-threshold",
-				&data->moving_threshold);
+				 &data->moving_threshold);
 
 	if (device_property_read_bool(dev, "x-invert"))
 		props->invert_x = true;
@@ -484,7 +512,6 @@ static int mms114_probe(struct i2c_client *client)
 {
 	struct mms114_data *data;
 	struct input_dev *input_dev;
-	const void *match_data;
 	int error;
 	int i;
 
@@ -504,11 +531,9 @@ static int mms114_probe(struct i2c_client *client)
 	data->client = client;
 	data->input_dev = input_dev;
 
-	match_data = device_get_match_data(&client->dev);
-	if (!match_data)
+	data->chip = i2c_get_match_data(client);
+	if (!data->chip)
 		return -EINVAL;
-
-	data->type = (enum mms_type)match_data;
 
 	data->num_keycodes = device_property_count_u32(&client->dev,
 						       "linux,keycodes");
@@ -521,7 +546,7 @@ static int mms114_probe(struct i2c_client *client)
 		return data->num_keycodes;
 	} else if (data->num_keycodes > MMS114_MAX_TOUCHKEYS) {
 		dev_warn(&client->dev,
-			"Found %d linux,keycodes but max is %d, ignoring the rest\n",
+			 "Found %d linux,keycodes but max is %d, ignoring the rest\n",
 			 data->num_keycodes, MMS114_MAX_TOUCHKEYS);
 		data->num_keycodes = MMS114_MAX_TOUCHKEYS;
 	}
@@ -566,8 +591,7 @@ static int mms114_probe(struct i2c_client *client)
 				     0, data->props.max_y, 0, 0);
 	}
 
-	if (data->type == TYPE_MMS114 || data->type == TYPE_MMS134S ||
-	    data->type == TYPE_MMS136) {
+	if (data->chip->has_config_regs) {
 		/*
 		 * The firmware handles movement and pressure fuzz, so
 		 * don't duplicate that in software.
@@ -582,8 +606,8 @@ static int mms114_probe(struct i2c_client *client)
 	}
 
 	input_dev->name = devm_kasprintf(&client->dev, GFP_KERNEL,
-					 "MELFAS MMS%d Touchscreen",
-					 data->type);
+					 "MELFAS %s Touchscreen",
+					 data->chip->name);
 	if (!input_dev->name)
 		return -ENOMEM;
 
@@ -679,29 +703,22 @@ static int mms114_resume(struct device *dev)
 static DEFINE_SIMPLE_DEV_PM_OPS(mms114_pm_ops, mms114_suspend, mms114_resume);
 
 static const struct i2c_device_id mms114_id[] = {
-	{ .name = "mms114" },
+	{ .name = "mms114", .driver_data = (kernel_ulong_t)&mms114_descriptor },
+	{ .name = "mms134s", .driver_data = (kernel_ulong_t)&mms134s_descriptor },
+	{ .name = "mms136", .driver_data = (kernel_ulong_t)&mms136_descriptor },
+	{ .name = "mms152", .driver_data = (kernel_ulong_t)&mms152_descriptor },
+	{ .name = "mms345l", .driver_data = (kernel_ulong_t)&mms345l_descriptor },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mms114_id);
 
 #ifdef CONFIG_OF
 static const struct of_device_id mms114_dt_match[] = {
-	{
-		.compatible = "melfas,mms114",
-		.data = (void *)TYPE_MMS114,
-	}, {
-		.compatible = "melfas,mms134s",
-		.data = (void *)TYPE_MMS134S,
-	}, {
-		.compatible = "melfas,mms136",
-		.data = (void *)TYPE_MMS136,
-	}, {
-		.compatible = "melfas,mms152",
-		.data = (void *)TYPE_MMS152,
-	}, {
-		.compatible = "melfas,mms345l",
-		.data = (void *)TYPE_MMS345L,
-	},
+	{ .compatible = "melfas,mms114", .data = &mms114_descriptor },
+	{ .compatible = "melfas,mms134s", .data = &mms134s_descriptor },
+	{ .compatible = "melfas,mms136", .data = &mms136_descriptor },
+	{ .compatible = "melfas,mms152", .data = &mms152_descriptor },
+	{ .compatible = "melfas,mms345l", .data = &mms345l_descriptor },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mms114_dt_match);
@@ -722,4 +739,4 @@ module_i2c_driver(mms114_driver);
 /* Module information */
 MODULE_AUTHOR("Joonyoung Shim <jy0922.shim@samsung.com>");
 MODULE_DESCRIPTION("MELFAS mms114 Touchscreen driver");
-MODULE_LICENSE("GPL v2");
+MODULE_LICENSE("GPL");
