@@ -73,6 +73,7 @@
 #include "x86.h"
 #include "x86_ops.h"
 #include "smm.h"
+#include "tss.h"
 #include "vmx_onhyperv.h"
 #include "vmenter.h"
 #include "posted_intr.h"
@@ -1187,6 +1188,18 @@ static void vmx_remove_autostore_msr(struct vcpu_vmx *vmx, u32 msr)
 	vmx_remove_auto_msr(&vmx->msr_autostore, msr, VM_EXIT_MSR_STORE_COUNT);
 }
 
+static u16 vmx_store_ldt(void)
+{
+	u16 ldt;
+	asm("sldt %0" : "=g"(ldt));
+	return ldt;
+}
+
+static void vmx_load_ldt(u16 sel)
+{
+	asm("lldt %0" : : "rm"(sel));
+}
+
 #ifdef CONFIG_X86_32
 /*
  * On 32-bit kernels, VM exits still load the FS and GS bases from the
@@ -1204,7 +1217,7 @@ static unsigned long segment_base(u16 selector)
 	table = get_current_gdt_ro();
 
 	if ((selector & SEGMENT_TI_MASK) == SEGMENT_LDT) {
-		u16 ldt_selector = kvm_read_ldt();
+		u16 ldt_selector = vmx_store_ldt();
 
 		if (!(ldt_selector & ~SEGMENT_RPL_MASK))
 			return 0;
@@ -1359,7 +1372,7 @@ void vmx_prepare_switch_to_guest(struct kvm_vcpu *vcpu)
 	 * Set host fs and gs selectors.  Unfortunately, 22.2.3 does not
 	 * allow segment selectors with cpl > 0 or ti == 1.
 	 */
-	host_state->ldt_sel = kvm_read_ldt();
+	host_state->ldt_sel = vmx_store_ldt();
 
 #ifdef CONFIG_X86_64
 	savesegment(ds, host_state->ds_sel);
@@ -1406,7 +1419,7 @@ static void vmx_prepare_switch_to_host(struct vcpu_vmx *vmx)
 	rdmsrq(MSR_KERNEL_GS_BASE, vmx->msr_guest_kernel_gs_base);
 #endif
 	if (host_state->ldt_sel || (host_state->gs_sel & 7)) {
-		kvm_load_ldt(host_state->ldt_sel);
+		vmx_load_ldt(host_state->ldt_sel);
 #ifdef CONFIG_X86_64
 		load_gs_index(host_state->gs_sel);
 #else
@@ -5239,6 +5252,9 @@ bool vmx_interrupt_blocked(struct kvm_vcpu *vcpu)
 
 int vmx_interrupt_allowed(struct kvm_vcpu *vcpu, bool for_injection)
 {
+	if (vmx_interrupt_blocked(vcpu))
+		return 0;
+
 	if (vcpu->arch.nested_run_pending)
 		return -EBUSY;
 
@@ -5249,7 +5265,7 @@ int vmx_interrupt_allowed(struct kvm_vcpu *vcpu, bool for_injection)
 	if (for_injection && is_guest_mode(vcpu) && nested_exit_on_intr(vcpu))
 		return -EBUSY;
 
-	return !vmx_interrupt_blocked(vcpu);
+	return 1;
 }
 
 int vmx_set_tss_addr(struct kvm *kvm, unsigned int addr)
@@ -8704,7 +8720,7 @@ __init int vmx_hardware_setup(void)
 
 	/*
 	 * Setup shadow_me_value/shadow_me_mask to include MKTME KeyID
-	 * bits to shadow_zero_check.
+	 * bits into the MMU's struct kvm_page_format.
 	 */
 	vmx_setup_me_spte_mask();
 
