@@ -96,7 +96,6 @@ s32 scx_bpf_pick_any_cpu_node(const cpumask_t *cpus_allowed, int node, u64 flags
 s32 scx_bpf_pick_any_cpu(const cpumask_t *cpus_allowed, u64 flags) __ksym;
 bool scx_bpf_task_running(const struct task_struct *p) __ksym;
 s32 scx_bpf_task_cpu(const struct task_struct *p) __ksym;
-struct rq *scx_bpf_cpu_rq(s32 cpu) __ksym;
 struct rq *scx_bpf_locked_rq(void) __ksym;
 struct task_struct *scx_bpf_cpu_curr(s32 cpu) __ksym __weak;
 struct task_struct *scx_bpf_tid_to_task(u64 tid) __ksym __weak;
@@ -983,8 +982,8 @@ extern struct irqtime___local cpu_irqtime __ksym __weak;
 static inline struct rq___local *get_current_rq(u32 cpu)
 {
 	/*
-	 * This is a workaround to get an rq pointer since we decided to
-	 * deprecate scx_bpf_cpu_rq().
+	 * This is a workaround to get an rq pointer now that
+	 * scx_bpf_cpu_rq() has been removed.
 	 *
 	 * WARNING: The caller must hold the rq lock for @cpu. This is
 	 * guaranteed when called from scheduling callbacks (ops.running,

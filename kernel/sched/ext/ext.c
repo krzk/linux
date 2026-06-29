@@ -2307,12 +2307,21 @@ static void move_remote_task_to_local_dsq(struct task_struct *p, u64 enq_flags,
  *   no to the BPF scheduler initiated migrations while offline.
  *
  * The caller must ensure that @p and @rq are on different CPUs.
+ * If enforce == true, caller must hold @p's rq lock.
  */
 static bool task_can_run_on_remote_rq(struct scx_sched *sch,
 				      struct task_struct *p, struct rq *rq,
 				      bool enforce)
 {
 	s32 cpu = cpu_of(rq);
+
+	/*
+	 * To prevent races with @p still running on its old CPU while switching
+	 * out, make sure we're holding @p's rq lock so as not to risk
+	 * erroneously killing the BPF scheduler.
+	 */
+	if (enforce)
+		lockdep_assert_rq_held(task_rq(p));
 
 	WARN_ON_ONCE(task_cpu(p) == cpu);
 
@@ -2581,13 +2590,6 @@ static void dispatch_to_local_dsq(struct scx_sched *sch, struct rq *rq,
 		return;
 	}
 
-	if (src_rq != dst_rq &&
-	    unlikely(!task_can_run_on_remote_rq(sch, p, dst_rq, true))) {
-		dispatch_enqueue(sch, rq, find_global_dsq(sch, task_cpu(p)), p,
-				 enq_flags | SCX_ENQ_CLEAR_OPSS | SCX_ENQ_GDSQ_FALLBACK);
-		return;
-	}
-
 	/*
 	 * @p is on a possibly remote @src_rq which we need to lock to move the
 	 * task. If dequeue is in progress, it'd be locking @src_rq and waiting
@@ -2614,6 +2616,7 @@ static void dispatch_to_local_dsq(struct scx_sched *sch, struct rq *rq,
 	/* task_rq couldn't have changed if we're still the holding cpu */
 	if (likely(p->scx.holding_cpu == raw_smp_processor_id()) &&
 	    !WARN_ON_ONCE(src_rq != task_rq(p))) {
+		bool fallback = false;
 		/*
 		 * If @p is staying on the same rq, there's no need to go
 		 * through the full deactivate/activate cycle. Optimize by
@@ -2623,6 +2626,11 @@ static void dispatch_to_local_dsq(struct scx_sched *sch, struct rq *rq,
 			p->scx.holding_cpu = -1;
 			dispatch_enqueue(sch, dst_rq, &dst_rq->scx.local_dsq, p,
 					 enq_flags);
+		} else if (unlikely(!task_can_run_on_remote_rq(sch, p, dst_rq, true))) {
+			p->scx.holding_cpu = -1;
+			fallback = true;
+			dispatch_enqueue(sch, src_rq, find_global_dsq(sch, task_cpu(p)),
+					 p, enq_flags | SCX_ENQ_GDSQ_FALLBACK);
 		} else {
 			move_remote_task_to_local_dsq(p, enq_flags,
 						      src_rq, dst_rq);
@@ -2631,7 +2639,7 @@ static void dispatch_to_local_dsq(struct scx_sched *sch, struct rq *rq,
 		}
 
 		/* if the destination CPU is idle, wake it up */
-		if (sched_class_above(p->sched_class, dst_rq->curr->sched_class))
+		if (!fallback && sched_class_above(p->sched_class, dst_rq->curr->sched_class))
 			resched_curr(dst_rq);
 	}
 
@@ -3646,6 +3654,13 @@ static void scx_disable_task(struct scx_sched *sch, struct task_struct *p)
 	if (SCX_HAS_OP(sch, disable))
 		SCX_CALL_OP_TASK(sch, disable, rq, p);
 	scx_set_task_state(p, SCX_TASK_READY);
+
+	/*
+	 * Reset the SCX-managed fields when @p leaves the BPF scheduler's
+	 * control, after ops.disable() has observed their final values.
+	 */
+	p->scx.dsq_vtime = 0;
+	p->scx.slice = 0;
 
 	/*
 	 * Verify the task is not in BPF scheduler's custody. If flag
@@ -4838,6 +4853,8 @@ static const struct attribute_group scx_global_attr_group = {
 
 static void free_pnode(struct scx_sched_pnode *pnode);
 static void free_exit_info(struct scx_exit_info *ei);
+static const char *scx_exit_reason(enum scx_exit_kind kind);
+static bool scx_claim_exit(struct scx_sched *sch, enum scx_exit_kind kind);
 
 static s32 scx_set_cmask_scratch_alloc(struct scx_sched *sch)
 {
@@ -4894,6 +4911,7 @@ static void scx_sched_free_rcu_work(struct work_struct *work)
 	timer_shutdown_sync(&sch->bypass_lb_timer);
 	free_cpumask_var(sch->bypass_lb_donee_cpumask);
 	free_cpumask_var(sch->bypass_lb_resched_cpumask);
+	free_cpumask_var(sch->stall_cpus);
 
 #ifdef CONFIG_EXT_SUB_SCHED
 	kfree(sch->cgrp_path);
@@ -5077,6 +5095,7 @@ bool scx_allow_ttwu_queue(const struct task_struct *p)
 
 /**
  * handle_lockup - sched_ext common lockup handler
+ * @exit_cpu: CPU to record in exit_info. Pass the stalled/hung CPU, not current.
  * @fmt: format string
  *
  * Called on system stall or lockup condition and initiates abort of sched_ext
@@ -5086,7 +5105,7 @@ bool scx_allow_ttwu_queue(const struct task_struct *p)
  * resolve the lockup. %false if sched_ext is not enabled or abort was already
  * initiated by someone else.
  */
-static __printf(1, 2) bool handle_lockup(const char *fmt, ...)
+static __printf(2, 3) bool handle_lockup(int exit_cpu, const char *fmt, ...)
 {
 	struct scx_sched *sch;
 	va_list args;
@@ -5102,7 +5121,7 @@ static __printf(1, 2) bool handle_lockup(const char *fmt, ...)
 	case SCX_ENABLING:
 	case SCX_ENABLED:
 		va_start(args, fmt);
-		ret = scx_verror(sch, fmt, args);
+		ret = scx_vexit(sch, SCX_EXIT_ERROR, 0, exit_cpu, fmt, args);
 		va_end(args);
 		return ret;
 	default:
@@ -5122,9 +5141,46 @@ static __printf(1, 2) bool handle_lockup(const char *fmt, ...)
  * resolve the reported RCU stall. %false if sched_ext is not enabled or someone
  * else already initiated abort.
  */
-bool scx_rcu_cpu_stall(void)
+bool scx_rcu_cpu_stall(const struct cpumask *stalled_mask)
 {
-	return handle_lockup("RCU CPU stall detected!");
+	struct scx_sched *sch;
+	struct scx_exit_info *ei;
+	int exit_cpu;
+
+	guard(rcu)();
+
+	sch = rcu_dereference(scx_root);
+	if (unlikely(!sch))
+		return false;
+
+	switch (scx_enable_state()) {
+	case SCX_ENABLING:
+	case SCX_ENABLED:
+		break;
+	default:
+		return false;
+	}
+
+	exit_cpu = cpumask_empty(stalled_mask) ? -1 : (int)cpumask_first(stalled_mask);
+	ei = sch->exit_info;
+
+	guard(preempt)();
+
+	if (!scx_claim_exit(sch, SCX_EXIT_ERROR))
+		return false;
+
+#ifdef CONFIG_STACKTRACE
+	ei->bt_len = stack_trace_save(ei->bt, SCX_EXIT_BT_LEN, 1);
+#endif
+	scnprintf(ei->msg, SCX_EXIT_MSG_LEN, "RCU CPU stall on CPUs (%*pbl)",
+		  cpumask_pr_args(stalled_mask));
+	ei->kind = SCX_EXIT_ERROR;
+	ei->reason = scx_exit_reason(SCX_EXIT_ERROR);
+	ei->exit_cpu = exit_cpu;
+	cpumask_copy(sch->stall_cpus, stalled_mask);
+
+	irq_work_queue(&sch->disable_irq_work);
+	return true;
 }
 
 /**
@@ -5139,11 +5195,13 @@ bool scx_rcu_cpu_stall(void)
  */
 void scx_softlockup(u32 dur_s)
 {
-	if (!handle_lockup("soft lockup - CPU %d stuck for %us", smp_processor_id(), dur_s))
+	int cpu = smp_processor_id();
+
+	if (!handle_lockup(cpu, "soft lockup - CPU %d stuck for %us", cpu, dur_s))
 		return;
 
 	printk_deferred(KERN_ERR "sched_ext: Soft lockup - CPU %d stuck for %us, disabling BPF scheduler\n",
-			smp_processor_id(), dur_s);
+			cpu, dur_s);
 }
 
 /*
@@ -5158,7 +5216,7 @@ static void scx_hardlockup_irq_workfn(struct irq_work *work)
 {
 	int cpu = atomic_xchg(&scx_hardlockup_cpu, -1);
 
-	if (cpu >= 0 && handle_lockup("hard lockup - CPU %d", cpu))
+	if (cpu >= 0 && handle_lockup(cpu, "hard lockup - CPU %d", cpu))
 		printk_deferred(KERN_ERR "sched_ext: Hard lockup - CPU %d, disabling BPF scheduler\n",
 				cpu);
 }
@@ -5672,7 +5730,7 @@ static void free_kick_syncs(void)
 	int cpu;
 
 	for_each_possible_cpu(cpu) {
-		struct scx_kick_syncs **ksyncs = per_cpu_ptr(&scx_kick_syncs, cpu);
+		struct scx_kick_syncs __rcu **ksyncs = per_cpu_ptr(&scx_kick_syncs, cpu);
 		struct scx_kick_syncs *to_free;
 
 		to_free = rcu_replace_pointer(*ksyncs, NULL, true);
@@ -6569,14 +6627,23 @@ static void scx_dump_state(struct scx_sched *sch, struct scx_exit_info *ei,
 	dump_line(&s, "----------");
 
 	/*
-	 * Dump the exit CPU first so it isn't lost to dump truncation, then
-	 * walk the rest in order, skipping the one already dumped.
+	 * Dump stalled CPUs first so they aren't lost to dump truncation, then
+	 * walk the rest in order. Fall back to exit_cpu if no stall mask set.
 	 */
-	if (ei->exit_cpu >= 0)
-		scx_dump_cpu(sch, &s, &dctx, ei->exit_cpu, dump_all_tasks);
-	for_each_possible_cpu(cpu) {
-		if (cpu != ei->exit_cpu)
+	if (!cpumask_empty(sch->stall_cpus)) {
+		for_each_cpu(cpu, sch->stall_cpus)
 			scx_dump_cpu(sch, &s, &dctx, cpu, dump_all_tasks);
+		for_each_possible_cpu(cpu) {
+			if (!cpumask_test_cpu(cpu, sch->stall_cpus))
+				scx_dump_cpu(sch, &s, &dctx, cpu, dump_all_tasks);
+		}
+	} else {
+		if (ei->exit_cpu >= 0)
+			scx_dump_cpu(sch, &s, &dctx, ei->exit_cpu, dump_all_tasks);
+		for_each_possible_cpu(cpu) {
+			if (cpu != ei->exit_cpu)
+				scx_dump_cpu(sch, &s, &dctx, cpu, dump_all_tasks);
+		}
 	}
 
 	dump_newline(&s);
@@ -6653,7 +6720,7 @@ static int alloc_kick_syncs(void)
 	 * can exceed percpu allocator limits on large machines.
 	 */
 	for_each_possible_cpu(cpu) {
-		struct scx_kick_syncs **ksyncs = per_cpu_ptr(&scx_kick_syncs, cpu);
+		struct scx_kick_syncs __rcu **ksyncs = per_cpu_ptr(&scx_kick_syncs, cpu);
 		struct scx_kick_syncs *new_ksyncs;
 
 		WARN_ON_ONCE(rcu_access_pointer(*ksyncs));
@@ -6813,6 +6880,10 @@ static struct scx_sched *scx_alloc_and_add_sched(struct scx_enable_cmd *cmd,
 		ret = -ENOMEM;
 		goto err_free_lb_cpumask;
 	}
+	if (!zalloc_cpumask_var(&sch->stall_cpus, GFP_KERNEL)) {
+		ret = -ENOMEM;
+		goto err_free_lb_resched_cpumask;
+	}
 	/*
 	 * Copy ops through the right union view. For cid-form the source is
 	 * struct sched_ext_ops_cid which lacks the trailing cpu_acquire/
@@ -6896,8 +6967,10 @@ static struct scx_sched *scx_alloc_and_add_sched(struct scx_enable_cmd *cmd,
 #ifdef CONFIG_EXT_SUB_SCHED
 err_free_lb_resched:
 	RCU_INIT_POINTER(ops->priv, NULL);
-	free_cpumask_var(sch->bypass_lb_resched_cpumask);
+	free_cpumask_var(sch->stall_cpus);
 #endif
+err_free_lb_resched_cpumask:
+	free_cpumask_var(sch->bypass_lb_resched_cpumask);
 err_free_lb_cpumask:
 	free_cpumask_var(sch->bypass_lb_donee_cpumask);
 err_stop_helper:
@@ -6988,7 +7061,7 @@ static int validate_ops(struct scx_sched *sch, const struct sched_ext_ops *ops)
 	 * run past the BPF allocation. Skip for cid-form.
 	 */
 	if (!sch->is_cid_type && (ops->cpu_acquire || ops->cpu_release))
-		pr_warn("ops->cpu_acquire/release() are deprecated, use sched_switch TP instead\n");
+		pr_warn_ratelimited("ops->cpu_acquire/release() are deprecated, use sched_switch TP instead\n");
 
 	/*
 	 * Sub-scheduler support is tied to the cid-form struct_ops. A sub-sched
@@ -7806,7 +7879,7 @@ static int bpf_scx_btf_struct_access(struct bpf_verifier_log *log,
 		     off + size <= offsetofend(struct task_struct, scx.slice)) ||
 		    (off >= offsetof(struct task_struct, scx.dsq_vtime) &&
 		     off + size <= offsetofend(struct task_struct, scx.dsq_vtime))) {
-			pr_warn("sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()");
+			pr_warn_ratelimited("sched_ext: Writing directly to p->scx.slice/dsq_vtime is deprecated, use scx_bpf_task_set_slice/dsq_vtime()\n");
 			return SCALAR_VALUE;
 		}
 
@@ -10095,34 +10168,6 @@ __bpf_kfunc s32 scx_bpf_task_cid(const struct task_struct *p)
 }
 
 /**
- * scx_bpf_cpu_rq - Fetch the rq of a CPU
- * @cpu: CPU of the rq
- * @aux: implicit BPF argument to access bpf_prog_aux hidden from BPF progs
- */
-__bpf_kfunc struct rq *scx_bpf_cpu_rq(s32 cpu, const struct bpf_prog_aux *aux)
-{
-	struct scx_sched *sch;
-
-	guard(rcu)();
-
-	sch = scx_prog_sched(aux);
-	if (unlikely(!sch))
-		return NULL;
-
-	if (!scx_cpu_valid(sch, cpu, NULL))
-		return NULL;
-
-	if (!sch->warned_deprecated_rq) {
-		printk_deferred(KERN_WARNING "sched_ext: %s() is deprecated; "
-				"use scx_bpf_locked_rq() when holding rq lock "
-				"or scx_bpf_cpu_curr() to read remote curr safely.\n", __func__);
-		sch->warned_deprecated_rq = true;
-	}
-
-	return cpu_rq(cpu);
-}
-
-/**
  * scx_bpf_locked_rq - Return the rq currently locked by SCX
  * @aux: implicit BPF argument to access bpf_prog_aux hidden from BPF progs
  *
@@ -10412,7 +10457,6 @@ BTF_ID_FLAGS(func, scx_bpf_put_cpumask, KF_RELEASE)
 BTF_ID_FLAGS(func, scx_bpf_task_running, KF_RCU)
 BTF_ID_FLAGS(func, scx_bpf_task_cpu, KF_RCU)
 BTF_ID_FLAGS(func, scx_bpf_task_cid, KF_RCU)
-BTF_ID_FLAGS(func, scx_bpf_cpu_rq, KF_IMPLICIT_ARGS)
 BTF_ID_FLAGS(func, scx_bpf_locked_rq, KF_IMPLICIT_ARGS | KF_RET_NULL)
 BTF_ID_FLAGS(func, scx_bpf_cpu_curr, KF_IMPLICIT_ARGS | KF_RET_NULL | KF_RCU_PROTECTED)
 BTF_ID_FLAGS(func, scx_bpf_cid_curr, KF_IMPLICIT_ARGS | KF_RET_NULL | KF_RCU_PROTECTED)
@@ -10447,7 +10491,6 @@ static const struct btf_kfunc_id_set scx_kfunc_set_any = {
 BTF_KFUNCS_START(scx_kfunc_ids_cpu_only)
 BTF_ID_FLAGS(func, scx_bpf_kick_cpu, KF_IMPLICIT_ARGS)
 BTF_ID_FLAGS(func, scx_bpf_task_cpu, KF_RCU)
-BTF_ID_FLAGS(func, scx_bpf_cpu_rq, KF_IMPLICIT_ARGS)
 BTF_ID_FLAGS(func, scx_bpf_cpu_curr, KF_IMPLICIT_ARGS | KF_RET_NULL | KF_RCU_PROTECTED)
 BTF_ID_FLAGS(func, scx_bpf_cpu_node, KF_IMPLICIT_ARGS)
 BTF_ID_FLAGS(func, scx_bpf_cpuperf_cap, KF_IMPLICIT_ARGS)
