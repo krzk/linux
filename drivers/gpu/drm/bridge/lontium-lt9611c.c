@@ -964,7 +964,11 @@ static int lt9611c_parse_dt(struct device *dev,
 				 &lt9611c->selected_port))
 		lt9611c->selected_port = 0;
 
-	return drm_of_find_panel_or_bridge(dev->of_node, 2, -1, NULL, &lt9611c->bridge.next_bridge);
+	lt9611c->bridge.next_bridge = of_drm_get_bridge_by_endpoint(dev->of_node, 2, -1);
+	if (IS_ERR(lt9611c->bridge.next_bridge))
+		return PTR_ERR(lt9611c->bridge.next_bridge);
+
+	return 0;
 }
 
 static int lt9611c_gpio_init(struct lt9611c *lt9611c)
