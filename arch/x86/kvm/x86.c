@@ -163,6 +163,7 @@ static int sync_regs(struct kvm_vcpu *vcpu);
 static DEFINE_MUTEX(vendor_module_lock);
 
 struct kvm_x86_ops kvm_x86_ops __read_mostly;
+struct kvm_x86_nested_ops kvm_nested_ops __read_mostly;
 
 #define KVM_X86_OP(func)					     \
 	DEFINE_STATIC_CALL_NULL(kvm_x86_##func,			     \
@@ -2362,16 +2363,14 @@ int kvm_vm_ioctl_check_extension(struct kvm *kvm, long ext)
 			r &= ~KVM_X2APIC_ENABLE_SUPPRESS_EOI_BROADCAST;
 		break;
 	case KVM_CAP_NESTED_STATE:
-		r = kvm_x86_ops.nested_ops->enabled ?
-			kvm_nested_call(get_state)(NULL, NULL, 0) : 0;
+		r = kvm_nested_ops.enabled ? kvm_nested_call(get_state)(NULL, NULL, 0) : 0;
 		break;
 #ifdef CONFIG_KVM_HYPERV
 	case KVM_CAP_HYPERV_DIRECT_TLBFLUSH:
 		r = kvm_x86_ops.enable_l2_tlb_flush != NULL;
 		break;
 	case KVM_CAP_HYPERV_ENLIGHTENED_VMCS:
-		r = kvm_x86_ops.nested_ops->enabled &&
-		    kvm_x86_ops.nested_ops->enable_evmcs != NULL;
+		r = kvm_nested_ops.enabled && kvm_nested_ops.enable_evmcs != NULL;
 		break;
 #endif
 	case KVM_CAP_SMALLER_MAXPHYADDR:
@@ -3383,8 +3382,8 @@ static int kvm_vcpu_ioctl_enable_cap(struct kvm_vcpu *vcpu,
 			uint16_t vmcs_version;
 			void __user *user_ptr;
 
-			if (!kvm_x86_ops.nested_ops->enabled ||
-			    !kvm_x86_ops.nested_ops->enable_evmcs)
+			if (!kvm_nested_ops.enabled ||
+			    !kvm_nested_ops.enable_evmcs)
 				return -ENOTTY;
 			r = kvm_nested_call(enable_evmcs)(vcpu, &vmcs_version);
 			if (!r) {
@@ -3750,7 +3749,7 @@ long kvm_arch_vcpu_ioctl(struct file *filp,
 		u32 user_data_size;
 
 		r = -EINVAL;
-		if (!kvm_x86_ops.nested_ops->enabled)
+		if (!kvm_nested_ops.enabled)
 			break;
 
 		BUILD_BUG_ON(sizeof(user_data_size) != sizeof(user_kvm_nested_state->size));
@@ -3779,7 +3778,7 @@ long kvm_arch_vcpu_ioctl(struct file *filp,
 		int idx;
 
 		r = -EINVAL;
-		if (!kvm_x86_ops.nested_ops->enabled)
+		if (!kvm_nested_ops.enabled)
 			break;
 
 		r = -EFAULT;
@@ -6922,13 +6921,15 @@ static void kvm_setup_efer_caps(void)
 
 static void kvm_nested_ops_update(const struct kvm_x86_nested_ops *nested_ops)
 {
+	memcpy(&kvm_nested_ops, nested_ops, sizeof(kvm_nested_ops));
+
 #define __KVM_X86_NESTED_OP(func) \
-	static_call_update(kvm_x86_nested_##func, nested_ops->func);
+	static_call_update(kvm_x86_nested_##func, kvm_nested_ops.func);
 #define KVM_X86_NESTED_OP(func) \
-	WARN_ON(!nested_ops->func); __KVM_X86_NESTED_OP(func)
+	WARN_ON(!kvm_nested_ops.func); __KVM_X86_NESTED_OP(func)
 #define KVM_X86_NESTED_OP_OPTIONAL __KVM_X86_NESTED_OP
 #define KVM_X86_NESTED_OP_OPTIONAL_RET0(func) \
-	static_call_update(kvm_x86_nested_##func, (void *)nested_ops->func ? : \
+	static_call_update(kvm_x86_nested_##func, (void *)kvm_nested_ops.func ? : \
 						  (void *)__static_call_return0);
 #include <asm/kvm-x86-nested-ops.h>
 #undef __KVM_X86_NESTED_OP
@@ -6949,7 +6950,7 @@ static inline void kvm_ops_update(struct kvm_x86_init_ops *ops)
 #include <asm/kvm-x86-ops.h>
 #undef __KVM_X86_OP
 
-	kvm_nested_ops_update(kvm_x86_ops.nested_ops);
+	kvm_nested_ops_update(ops->nested_ops);
 
 	kvm_pmu_ops_update(ops->pmu_ops);
 }

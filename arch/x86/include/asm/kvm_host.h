@@ -1665,8 +1665,6 @@ struct kvm_x86_ops {
 
 	void (*update_cpu_dirty_logging)(struct kvm_vcpu *vcpu);
 
-	const struct kvm_x86_nested_ops *nested_ops;
-
 	void (*vcpu_blocking)(struct kvm_vcpu *vcpu);
 	void (*vcpu_unblocking)(struct kvm_vcpu *vcpu);
 
@@ -1762,6 +1760,7 @@ struct kvm_x86_init_ops {
 
 	struct kvm_x86_ops *runtime_ops;
 	struct kvm_pmu_ops *pmu_ops;
+	struct kvm_x86_nested_ops *nested_ops;
 };
 
 struct kvm_arch_async_pf {
@@ -1777,6 +1776,7 @@ extern bool __read_mostly enable_apicv;
 extern bool __read_mostly enable_ipiv;
 extern bool __read_mostly enable_device_posted_irqs;
 extern struct kvm_x86_ops kvm_x86_ops;
+extern struct kvm_x86_nested_ops kvm_nested_ops __read_mostly;
 
 #define kvm_x86_call(func) static_call(kvm_x86_##func)
 

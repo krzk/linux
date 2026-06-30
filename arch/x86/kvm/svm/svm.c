@@ -5426,8 +5426,6 @@ struct kvm_x86_ops svm_x86_ops __initdata = {
 	.check_intercept = svm_check_intercept,
 	.handle_exit_irqoff = svm_handle_exit_irqoff,
 
-	.nested_ops = &svm_nested_ops,
-
 	.deliver_interrupt = svm_deliver_interrupt,
 	.pi_update_irte = avic_pi_update_irte,
 	.setup_mce = svm_setup_mce,
@@ -5773,6 +5771,7 @@ static struct kvm_x86_init_ops svm_init_ops __initdata = {
 
 	.runtime_ops = &svm_x86_ops,
 	.pmu_ops = &amd_pmu_ops,
+	.nested_ops = &svm_nested_ops,
 };
 
 static void __svm_exit(void)

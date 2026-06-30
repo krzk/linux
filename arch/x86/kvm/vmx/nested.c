@@ -7486,7 +7486,7 @@ static gpa_t vmx_translate_nested_gpa(struct kvm_vcpu *vcpu, gpa_t gpa,
 	return w->gva_to_gpa(vcpu, w, gpa, access, exception);
 }
 
-struct kvm_x86_nested_ops vmx_nested_ops = {
+struct kvm_x86_nested_ops vmx_nested_ops __initdata = {
 	.leave_nested = vmx_leave_nested,
 	.translate_nested_gpa = vmx_translate_nested_gpa,
 	.is_exception_vmexit = nested_vmx_is_exception_vmexit,
