@@ -151,6 +151,11 @@
 };
 
 &mdss_dp0 {
+	/* TODO: l17b needed for USB DP switch */
+	pinctrl-0 = <&usb_dp_sw_active>;
+	pinctrl-1 = <&usb_dp_sw_sleep>;
+	pinctrl-names = "default", "sleep";
+
 	status = "okay";
 };
 
@@ -309,6 +314,32 @@
 		pins = "gpio58";
 		function = "gpio";
 		bias-pull-up;
+	};
+
+	usb_dp_sw_active: usb-dp-sw-active-state {
+		pins = "gpio177", "gpio178";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-high;
+	};
+
+	usb_dp_sw_sleep: usb-dp-sw-sleep-state {
+		usb-dp-sw-en-pins {
+			pins = "gpio177";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-disable;
+			output-high;
+		};
+
+		usb-dp-sw-sel-pins {
+			pins = "gpio178";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-disable;
+			output-low;
+		};
 	};
 };
 
