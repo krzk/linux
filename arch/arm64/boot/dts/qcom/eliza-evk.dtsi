@@ -12,14 +12,15 @@
 		stdout-path = "serial0:115200n8";
 	};
 
-	hdmi_earc_reg: regulator-5v0 {
+	hdmi_5p0_reg: regulator-hdmi-5v0 {
 		compatible = "regulator-fixed";
-		regulator-name = "hdmi_earc_5v0";
+		regulator-name = "hdmi_5p0";
 
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		gpio = <&tlmm 184 GPIO_ACTIVE_HIGH>;
-		pinctrl-0 = <&hdmi_earc_5v0_state>;
+		enable-active-high;
+		pinctrl-0 = <&hdmi_5p0_state>;
 		pinctrl-names = "default";
 	};
 
@@ -30,6 +31,17 @@
 		port {
 			hdmi_0_connector_in: endpoint {
 				remote-endpoint = <&lt9611_out>;
+			};
+		};
+	};
+
+	hdmi-1-connector {
+		compatible = "hdmi-connector";
+		type = "a";
+
+		port {
+			hdmi_1_connector_in: endpoint {
+				remote-endpoint = <&mdss_hdmi_out>;
 			};
 		};
 	};
@@ -185,7 +197,8 @@
 
 	pinctrl-0 = <&hdmi_ddc_default>,
 		    <&hdmi_cec_active>,
-		    <&hdmi_hpd_active>;
+		    <&hdmi_hpd_active>,
+		    <&hdmi_earc_pwr_en_state>;
 	pinctrl-1 = <&hdmi_ddc_default>,
 		    <&hdmi_cec_sleep>,
 		    <&hdmi_hpd_sleep>;
@@ -197,8 +210,12 @@
 	status = "okay";
 };
 
+&mdss_hdmi_out {
+	remote-endpoint = <&hdmi_1_connector_in>;
+};
+
 &mdss_hdmi_phy {
-	vddio-supply = <&hdmi_earc_reg>;
+	vddio-supply = <&hdmi_5p0_reg>;
 
 	status = "okay";
 };
@@ -340,6 +357,23 @@
 			bias-disable;
 			output-low;
 		};
+	};
+
+	/* TODO: based on schematics, but not downstream */
+	hdmi_earc_pwr_en_state: hdmi-earc-pwr-en-state {
+		pins = "gpio180";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-high;
+	};
+
+	hdmi_5p0_state: hdmi-5p0-state {
+		pins = "gpio184";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-high; /* FIXME: make it low */
 	};
 };
 
