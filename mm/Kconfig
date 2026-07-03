@@ -1356,7 +1356,7 @@ config MEMFD_CREATE
 config SECRETMEM
 	default y
 	bool "Enable memfd_secret() system call" if EXPERT
-	depends on ARCH_HAS_SET_DIRECT_MAP
+	depends on ARCH_HAS_SET_DIRECT_MAP && !HIGHMEM
 	help
 	  Enable the memfd_secret() system call with the ability to create
 	  memory areas visible only in the context of the owning process and
