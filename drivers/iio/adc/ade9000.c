@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/**
+/*
  * ADE9000 driver
  *
  * Copyright 2025 Analog Devices Inc.
