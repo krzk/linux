@@ -848,14 +848,8 @@ static int ads131m_parse_clock(struct ads131m_priv *priv, bool *is_xtal)
 	int ret;
 
 	clk = devm_clk_get_enabled(dev, NULL);
-	if (IS_ERR_OR_NULL(clk)) {
-		if (IS_ERR(clk))
-			ret = PTR_ERR(clk);
-		else
-			ret = -ENODEV;
-
-		return dev_err_probe(dev, ret, "clk get enabled failed\n");
-	}
+	if (IS_ERR(clk))
+		return dev_err_probe(dev, PTR_ERR(clk), "clk get enabled failed\n");
 
 	ret = device_property_match_string(dev, "clock-names", "xtal");
 	if (ret > 0)
