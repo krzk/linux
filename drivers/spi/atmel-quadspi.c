@@ -1413,20 +1413,15 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	if (aq->caps->has_qspick) {
 		/* Get the QSPI system clock */
 		aq->qspick = devm_clk_get_enabled(dev, "qspick");
-		if (IS_ERR(aq->qspick)) {
-			dev_err(&pdev->dev, "missing system clock\n");
-			err = PTR_ERR(aq->qspick);
-			return err;
-		}
-
+		if (IS_ERR(aq->qspick))
+			return dev_err_probe(dev, PTR_ERR(aq->qspick),
+					     "missing system clock\n");
 	} else if (aq->caps->has_gclk) {
 		/* Get the QSPI generic clock */
 		aq->gclk = devm_clk_get(dev, "gclk");
-		if (IS_ERR(aq->gclk)) {
-			dev_err(&pdev->dev, "missing Generic clock\n");
-			err = PTR_ERR(aq->gclk);
-			return err;
-		}
+		if (IS_ERR(aq->gclk))
+			return dev_err_probe(dev, PTR_ERR(aq->gclk),
+					     "missing Generic clock\n");
 	}
 
 	if (aq->caps->has_dma) {
