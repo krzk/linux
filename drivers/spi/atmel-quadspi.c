@@ -1347,20 +1347,21 @@ static const struct atmel_qspi_ops atmel_qspi_sama7g5_ops = {
 
 static int atmel_qspi_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct spi_controller *ctrl;
 	struct atmel_qspi *aq;
 	struct resource *res;
 	int irq, err = 0;
 
-	ctrl = devm_spi_alloc_host(&pdev->dev, sizeof(*aq));
+	ctrl = devm_spi_alloc_host(dev, sizeof(*aq));
 	if (!ctrl)
 		return -ENOMEM;
 
 	aq = spi_controller_get_devdata(ctrl);
 
-	aq->caps = of_device_get_match_data(&pdev->dev);
+	aq->caps = of_device_get_match_data(dev);
 	if (!aq->caps) {
-		dev_err(&pdev->dev, "Could not retrieve QSPI caps\n");
+		dev_err(dev, "Could not retrieve QSPI caps\n");
 		return -EINVAL;
 	}
 
@@ -1387,31 +1388,31 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	/* Map the registers */
 	aq->regs = devm_platform_ioremap_resource_byname(pdev, "qspi_base");
 	if (IS_ERR(aq->regs))
-		return dev_err_probe(&pdev->dev, PTR_ERR(aq->regs),
+		return dev_err_probe(dev, PTR_ERR(aq->regs),
 				     "missing registers\n");
 
 	/* Map the AHB memory */
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "qspi_mmap");
-	aq->mem = devm_ioremap_resource(&pdev->dev, res);
+	aq->mem = devm_ioremap_resource(dev, res);
 	if (IS_ERR(aq->mem))
-		return dev_err_probe(&pdev->dev, PTR_ERR(aq->mem),
+		return dev_err_probe(dev, PTR_ERR(aq->mem),
 				     "missing AHB memory\n");
 
 	aq->mmap_size = resource_size(res);
 	aq->mmap_phys_base = (dma_addr_t)res->start;
 
 	/* Get the peripheral clock */
-	aq->pclk = devm_clk_get_enabled(&pdev->dev, "pclk");
+	aq->pclk = devm_clk_get_enabled(dev, "pclk");
 	if (IS_ERR(aq->pclk))
-		aq->pclk = devm_clk_get_enabled(&pdev->dev, NULL);
+		aq->pclk = devm_clk_get_enabled(dev, NULL);
 
 	if (IS_ERR(aq->pclk))
-		return dev_err_probe(&pdev->dev, PTR_ERR(aq->pclk),
+		return dev_err_probe(dev, PTR_ERR(aq->pclk),
 				     "missing peripheral clock\n");
 
 	if (aq->caps->has_qspick) {
 		/* Get the QSPI system clock */
-		aq->qspick = devm_clk_get_enabled(&pdev->dev, "qspick");
+		aq->qspick = devm_clk_get_enabled(dev, "qspick");
 		if (IS_ERR(aq->qspick)) {
 			dev_err(&pdev->dev, "missing system clock\n");
 			err = PTR_ERR(aq->qspick);
@@ -1420,7 +1421,7 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 
 	} else if (aq->caps->has_gclk) {
 		/* Get the QSPI generic clock */
-		aq->gclk = devm_clk_get(&pdev->dev, "gclk");
+		aq->gclk = devm_clk_get(dev, "gclk");
 		if (IS_ERR(aq->gclk)) {
 			dev_err(&pdev->dev, "missing Generic clock\n");
 			err = PTR_ERR(aq->gclk);
@@ -1439,15 +1440,15 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	if (irq < 0)
 		return irq;
 
-	err = devm_request_irq(&pdev->dev, irq, atmel_qspi_interrupt,
-			       0, dev_name(&pdev->dev), aq);
+	err = devm_request_irq(dev, irq, atmel_qspi_interrupt,
+			       0, dev_name(dev), aq);
 	if (err)
 		return err;
 
-	pm_runtime_set_autosuspend_delay(&pdev->dev, 500);
-	pm_runtime_use_autosuspend(&pdev->dev);
-	devm_pm_runtime_set_active_enabled(&pdev->dev);
-	devm_pm_runtime_get_noresume(&pdev->dev);
+	pm_runtime_set_autosuspend_delay(dev, 500);
+	pm_runtime_use_autosuspend(dev);
+	devm_pm_runtime_set_active_enabled(dev);
+	devm_pm_runtime_get_noresume(dev);
 
 	err = atmel_qspi_init(aq);
 	if (err)
@@ -1457,7 +1458,7 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	if (err)
 		return err;
 
-	pm_runtime_put_autosuspend(&pdev->dev);
+	pm_runtime_put_autosuspend(dev);
 
 	return 0;
 }
