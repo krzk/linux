@@ -938,16 +938,18 @@ void orderly_reboot(void)
 }
 EXPORT_SYMBOL_GPL(orderly_reboot);
 
+/* DEFAULT is NULL: a sentinel, not a real action. */
+static const char *const hw_protection_action_strs[] = {
+	[HWPROT_ACT_SHUTDOWN] = "shutdown",
+	[HWPROT_ACT_REBOOT]   = "reboot",
+};
+
 static const char *hw_protection_action_str(enum hw_protection_action action)
 {
-	switch (action) {
-	case HWPROT_ACT_SHUTDOWN:
-		return "shutdown";
-	case HWPROT_ACT_REBOOT:
-		return "reboot";
-	default:
+	if (action >= ARRAY_SIZE(hw_protection_action_strs) ||
+	    !hw_protection_action_strs[action])
 		return "undefined";
-	}
+	return hw_protection_action_strs[action];
 }
 
 static enum hw_protection_action hw_failure_emergency_action;
@@ -1055,14 +1057,17 @@ EXPORT_SYMBOL_GPL(__hw_protection_trigger);
 static bool hw_protection_action_parse(const char *str,
 				       enum hw_protection_action *action)
 {
-	if (sysfs_streq(str, "shutdown"))
-		*action = HWPROT_ACT_SHUTDOWN;
-	else if (sysfs_streq(str, "reboot"))
-		*action = HWPROT_ACT_REBOOT;
-	else
-		return false;
+	unsigned int i;
 
-	return true;
+	for (i = 0; i < ARRAY_SIZE(hw_protection_action_strs); i++) {
+		if (hw_protection_action_strs[i] &&
+		    sysfs_streq(str, hw_protection_action_strs[i])) {
+			*action = i;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 static int __init hw_protection_setup(char *str)
