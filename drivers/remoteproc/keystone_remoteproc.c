@@ -317,7 +317,7 @@ static int keystone_rproc_of_get_dev_syscon(struct platform_device *pdev,
 	struct device_node *np = pdev->dev.of_node;
 	struct device *dev = &pdev->dev;
 
-	if (!of_property_read_bool(np, "ti,syscon-dev")) {
+	if (!of_property_present(np, "ti,syscon-dev")) {
 		dev_err(dev, "ti,syscon-dev property is absent\n");
 		return -EINVAL;
 	}
