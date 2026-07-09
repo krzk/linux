@@ -16,6 +16,7 @@ description: |
 
   See also:
     include/dt-bindings/clock/qcom,glymur-videocc.h
+    include/dt-bindings/clock/qcom,hawi-videocc.h
     include/dt-bindings/clock/qcom,kaanapali-videocc.h
     include/dt-bindings/clock/qcom,sm8450-videocc.h
     include/dt-bindings/clock/qcom,sm8650-videocc.h
@@ -26,6 +27,7 @@ properties:
   compatible:
     enum:
       - qcom,glymur-videocc
+      - qcom,hawi-videocc
       - qcom,kaanapali-videocc
       - qcom,sm8450-videocc
       - qcom,sm8475-videocc
@@ -68,6 +70,7 @@ allOf:
           contains:
             enum:
               - qcom,glymur-videocc
+              - qcom,hawi-videocc
               - qcom,kaanapali-videocc
               - qcom,sm8450-videocc
               - qcom,sm8550-videocc

@@ -55,6 +55,17 @@ config CLK_GLYMUR_DISPCC
 	  Say Y if you want to support display devices and functionality such as
 	  splash screen.
 
+config CLK_GLYMUR_EVACC
+	tristate "Glymur EVA Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	default m if ARCH_QCOM
+	select CLK_GLYMUR_GCC
+	help
+	  Support for the Enhanced Video Analytics (EVA) clock controller on
+	  Qualcomm Technologies, Inc. Glymur devices.
+	  Say Y if you want to support EVA devices and functionality such as
+	  vision processing.
+
 config CLK_GLYMUR_GCC
 	tristate "Glymur Global Clock Controller"
 	depends on ARM64 || COMPILE_TEST
@@ -65,11 +76,11 @@ config CLK_GLYMUR_GCC
 	  I2C, USB, UFS, SDCC, etc.
 
 config CLK_GLYMUR_GPUCC
-	tristate "GLYMUR Graphics Clock Controller"
+	tristate "Glymur Graphics Clock Controller"
 	depends on ARM64 || COMPILE_TEST
 	select CLK_GLYMUR_GCC
 	help
-	  Support for the graphics clock controller on GLYMUR devices.
+	  Support for the graphics clock controller on Glymur devices.
 	  Say Y if you want to support graphics controller devices and
 	  functionality such as 3D graphics.
 
@@ -154,6 +165,16 @@ config CLK_NORD_GCC
 	  Say Y if you want to use peripheral devices such as UART,
 	  SPI, I2C, USB, SD/UFS, PCIe etc. The clock controller is a combination
 	  of GCC, SE_GCC, NE_GCC and NW_GCC.
+
+config CLK_SHIKRA_GCC
+	tristate "Shikra Global Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	select QCOM_GDSC
+	default ARCH_QCOM
+	help
+	  Support for the global clock controller on Shikra devices.
+	  Say Y if you want to use multimedia devices or peripheral
+	  devices such as Camera, Video, UART, SPI, I2C, USB, SD/eMMC etc.
 
 config CLK_X1E80100_CAMCC
 	tristate "X1E80100 Camera Clock Controller"
@@ -333,6 +354,16 @@ config CLK_HAWI_TCSRCC
 	help
 	  Support for the TCSR clock controller on Hawi devices.
 	  Say Y if you want to use peripheral devices such as PCIe, USB, UFS.
+
+config CLK_HAWI_VIDEOCC
+	tristate "Hawi Video Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	select CLK_HAWI_GCC
+	default m if ARCH_QCOM
+	help
+	  Support for the video clock controller on Hawi devices.
+	  Say Y if you want to support video devices and functionality such as
+	  video encode/decode.
 
 config APQ_GCC_8084
 	tristate "APQ8084 Global Clock Controller"
