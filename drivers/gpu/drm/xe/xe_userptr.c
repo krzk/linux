@@ -180,7 +180,7 @@ xe_vma_userptr_invalidate_pass1(struct xe_vm *vm, struct xe_userptr_vma *uvma)
 	dma_resv_iter_begin(&cursor, xe_vm_resv(vm),
 			    DMA_RESV_USAGE_BOOKKEEP);
 	dma_resv_for_each_fence_unlocked(&cursor, fence) {
-		dma_fence_enable_sw_signaling(fence);
+		dma_fence_enable_signaling(fence);
 		if (signaled && !dma_fence_is_signaled(fence))
 			signaled = false;
 	}

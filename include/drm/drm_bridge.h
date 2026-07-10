@@ -504,31 +504,20 @@ struct drm_bridge_funcs {
 			    struct drm_connector_state *conn_state);
 
 	/**
-	 * @atomic_reset:
+	 * @atomic_create_state:
 	 *
-	 * Reset the bridge to a predefined state (or retrieve its current
-	 * state) and return a &drm_bridge_state object matching this state.
-	 * This function is called at attach time.
-	 *
-	 * The atomic_reset hook is mandatory if the bridge implements any of
-	 * the atomic hooks, and should be left unassigned otherwise. For
-	 * bridges that don't subclass &drm_bridge_state, the
-	 * drm_atomic_helper_bridge_reset() helper function shall be used to
-	 * implement this hook.
-	 *
-	 * Note that the atomic_reset() semantics is not exactly matching the
-	 * reset() semantics found on other components (connector, plane, ...).
-	 *
-	 * 1. The reset operation happens when the bridge is attached, not when
-	 *    drm_mode_config_reset() is called
-	 * 2. It's meant to be used exclusively on bridges that have been
-	 *    converted to the ATOMIC API
+	 * Allocate a pristine, initialized, state for the bridge
+	 * object and return it. This callback must have no side
+	 * effects: in particular, the returned state must not be
+	 * assigned to the object's state pointer and it must not affect
+	 * the hardware state.
 	 *
 	 * RETURNS:
-	 * A valid drm_bridge_state object in case of success, an ERR_PTR()
-	 * giving the reason of the failure otherwise.
+	 *
+	 * A new, pristine, bridge state instance or an error pointer
+	 * on failure.
 	 */
-	struct drm_bridge_state *(*atomic_reset)(struct drm_bridge *bridge);
+	struct drm_bridge_state *(*atomic_create_state)(struct drm_bridge *bridge);
 
 	/**
 	 * @detect:
@@ -1257,6 +1246,10 @@ struct drm_bridge {
 	 */
 	struct mutex hpd_mutex;
 	/**
+	 * @hpd_state_mutex: Protects the HPD en/disablement state for the bridge.
+	 */
+	struct mutex hpd_state_mutex;
+	/**
 	 * @hpd_cb: Hot plug detection callback, registered with
 	 * drm_bridge_hpd_enable().
 	 */
@@ -1371,7 +1364,7 @@ drm_bridge_get_current_state(struct drm_bridge *bridge)
 	 * drm_atomic_private_obj_init(), so we need to make sure we're
 	 * working with one before we try to use the lock.
 	 */
-	if (!bridge->funcs || !bridge->funcs->atomic_reset)
+	if (!bridge->funcs || !bridge->funcs->atomic_create_state)
 		return NULL;
 
 	drm_modeset_lock_assert_held(&bridge->base.lock);
