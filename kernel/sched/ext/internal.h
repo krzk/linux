@@ -11,6 +11,34 @@
 #include "../sched.h"
 #include "types.h"
 
+#include <trace/events/sched_ext.h>
+
+/**
+ * scx_add_event - Increase an event counter for 'name' by 'cnt'
+ * @sch: scx_sched to account events for
+ * @name: an event name defined in struct scx_event_stats
+ * @cnt: the number of the event occurred
+ *
+ * This can be used when preemption is not disabled.
+ */
+#define scx_add_event(sch, name, cnt) do {					\
+	this_cpu_add((sch)->pcpu->event_stats.name, (cnt));			\
+	trace_sched_ext_event(#name, (cnt));					\
+} while(0)
+
+/**
+ * __scx_add_event - Increase an event counter for 'name' by 'cnt'
+ * @sch: scx_sched to account events for
+ * @name: an event name defined in struct scx_event_stats
+ * @cnt: the number of the event occurred
+ *
+ * This should be used only when preemption is disabled.
+ */
+#define __scx_add_event(sch, name, cnt) do {					\
+	__this_cpu_add((sch)->pcpu->event_stats.name, (cnt));			\
+	trace_sched_ext_event(#name, cnt);					\
+} while(0)
+
 #define SCX_OP_IDX(op)		(offsetof(struct sched_ext_ops, op) / sizeof(void (*)(void)))
 #define SCX_MOFF_IDX(moff)	((moff) / sizeof(void (*)(void)))
 
@@ -1051,6 +1079,21 @@ struct scx_event_stats {
 	s64		SCX_EV_SUB_BYPASS_DISPATCH;
 };
 
+#define SCX_EVENTS_LIST(SCX_EVENT)					\
+	SCX_EVENT(SCX_EV_SELECT_CPU_FALLBACK);				\
+	SCX_EVENT(SCX_EV_DISPATCH_LOCAL_DSQ_OFFLINE);			\
+	SCX_EVENT(SCX_EV_DISPATCH_KEEP_LAST);				\
+	SCX_EVENT(SCX_EV_ENQ_SKIP_EXITING);				\
+	SCX_EVENT(SCX_EV_ENQ_SKIP_MIGRATION_DISABLED);			\
+	SCX_EVENT(SCX_EV_REENQ_IMMED);					\
+	SCX_EVENT(SCX_EV_REENQ_LOCAL_REPEAT);				\
+	SCX_EVENT(SCX_EV_REFILL_SLICE_DFL);				\
+	SCX_EVENT(SCX_EV_BYPASS_DURATION);				\
+	SCX_EVENT(SCX_EV_BYPASS_DISPATCH);				\
+	SCX_EVENT(SCX_EV_BYPASS_ACTIVATE);				\
+	SCX_EVENT(SCX_EV_INSERT_NOT_OWNED);				\
+	SCX_EVENT(SCX_EV_SUB_BYPASS_DISPATCH)
+
 struct scx_sched;
 
 enum scx_sched_pcpu_flags {
@@ -1157,7 +1200,7 @@ struct scx_sched {
 	u64			bypass_timestamp;
 	s32			bypass_depth;
 
-	/* bypass dispatch path enable state, see bypass_dsp_enabled() */
+	/* bypass dispatch path enable state, see scx_bypass_dsp_enabled() */
 	unsigned long		bypass_dsp_claim;
 	atomic_t		bypass_dsp_enable_depth;
 
@@ -1171,7 +1214,6 @@ struct scx_sched {
 	 * but it doesn't really matter.
 	 */
 	bool			warned_zero_slice:1;
-	bool			warned_deprecated_rq:1;
 	bool			warned_unassoc_progs:1;
 
 	struct list_head	all;
@@ -1206,6 +1248,7 @@ struct scx_sched {
 	struct timer_list	bypass_lb_timer;
 	cpumask_var_t		bypass_lb_donee_cpumask;
 	cpumask_var_t		bypass_lb_resched_cpumask;
+	cpumask_var_t		stall_cpus;
 	struct rcu_work		rcu_work;
 
 	/* all ancestors including self */
@@ -1469,21 +1512,24 @@ static const char *scx_enable_state_str[] = {
  * The sched_ext core uses a "lock dancing" protocol coordinated by
  * p->scx.holding_cpu. When moving a task to a different rq:
  *
- *   1. Verify task can be moved (CPU affinity, migration_disabled, etc.)
- *   2. Set p->scx.holding_cpu to the current CPU
- *   3. Set task state to %SCX_OPSS_NONE; dequeue waits while DISPATCHING
+ *   1. Set p->scx.holding_cpu to the current CPU
+ *   2. Set task state to %SCX_OPSS_NONE; dequeue waits while DISPATCHING
  *      is set, so clearing DISPATCHING first prevents the circular wait
  *      (safe to lock the rq we need)
- *   4. Unlock the current CPU's rq
- *   5. Lock src_rq (where the task currently lives)
- *   6. Verify p->scx.holding_cpu == current CPU, if not, dequeue won the
+ *   3. Unlock the current CPU's rq
+ *   4. Lock src_rq (where the task currently lives)
+ *   5. Verify p->scx.holding_cpu == current CPU, if not, dequeue won the
  *      race (dequeue clears holding_cpu to -1 when it takes the task), in
  *      this case migration is aborted
- *   7. If src_rq == dst_rq: clear holding_cpu and enqueue directly
+ *   6. If src_rq == dst_rq: clear holding_cpu and enqueue directly
  *      into dst_rq's local DSQ (no lock swap needed)
- *   8. Otherwise: call move_remote_task_to_local_dsq(), which releases
- *      src_rq, locks dst_rq, and performs the deactivate/activate
- *      migration cycle (dst_rq is held on return)
+ *   7. Otherwise, verify under src_rq lock that the task can be moved to dst_rq
+ *      (CPU affinity, migration_disabled, etc.). If not, clear holding_cpu,
+ *      leave the task on src_rq, and enqueue it on the fallback DSQ.
+ *   8. Otherwise (i.e. if the task can be moved to dst_rq), call
+ *      move_remote_task_to_local_dsq(), which releases src_rq, locks dst_rq,
+ *      and performs the deactivate/activate migration cycle
+ *      (dst_rq is held on return)
  *   9. Unlock dst_rq and re-lock the current CPU's rq to restore
  *      the lock state expected by the caller
  *
@@ -1517,6 +1563,41 @@ enum scx_ops_state {
 #define SCX_OPSS_STATE_MASK	((1LU << SCX_OPSS_QSEQ_SHIFT) - 1)
 #define SCX_OPSS_QSEQ_MASK	(~SCX_OPSS_STATE_MASK)
 
+/*
+ * SCX task iterator.
+ */
+struct scx_task_iter {
+	struct sched_ext_entity		cursor;
+	struct task_struct		*locked_task;
+	struct rq			*rq;
+	struct rq_flags			rf;
+	u32				cnt;
+	bool				list_locked;
+#ifdef CONFIG_EXT_SUB_SCHED
+	struct cgroup			*cgrp;
+	struct cgroup_subsys_state	*css_pos;
+	struct css_task_iter		css_iter;
+#endif
+};
+
+/*
+ * scx_enable() is offloaded to a dedicated system-wide RT kthread to avoid
+ * starvation. During the READY -> ENABLED task switching loop, the calling
+ * thread's sched_class gets switched from fair to ext. As fair has higher
+ * priority than ext, the calling thread can be indefinitely starved under
+ * fair-class saturation, leading to a system hang.
+ */
+struct scx_enable_cmd {
+	struct kthread_work	work;
+	union {
+		struct sched_ext_ops		*ops;
+		struct sched_ext_ops_cid	*ops_cid;
+	};
+	bool			is_cid_type;
+	struct bpf_map		*arena_map;	/* arena ref to transfer to sch */
+	int			ret;
+};
+
 extern struct scx_sched __rcu *scx_root;
 DECLARE_PER_CPU(struct rq *, scx_locked_rq_state);
 
@@ -1537,12 +1618,112 @@ __printf(5, 0) bool scx_vexit(struct scx_sched *sch, enum scx_exit_kind kind,
 __printf(5, 6) bool __scx_exit(struct scx_sched *sch, enum scx_exit_kind kind,
 			       s64 exit_code, s32 exit_cpu, const char *fmt, ...);
 
+u32 scx_get_task_state(const struct task_struct *p);
+void scx_set_task_state(struct task_struct *p, u32 state);
+void scx_task_iter_start(struct scx_task_iter *iter, struct cgroup *cgrp);
+void scx_task_iter_unlock(struct scx_task_iter *iter);
+void scx_task_iter_stop(struct scx_task_iter *iter);
+struct task_struct *scx_task_iter_next_locked(struct scx_task_iter *iter);
+bool scx_consume_dispatch_q(struct scx_sched *sch, struct rq *rq,
+			    struct scx_dispatch_q *dsq, u64 enq_flags);
+bool scx_consume_global_dsq(struct scx_sched *sch, struct rq *rq);
+bool scx_rq_online(struct rq *rq);
+void scx_flush_dispatch_buf(struct scx_sched *sch, struct rq *rq);
+void scx_kick_cpu(struct scx_sched *sch, s32 cpu, u64 flags);
+void schedule_dsq_reenq(struct scx_sched *sch, struct scx_dispatch_q *dsq,
+			u64 reenq_flags, struct rq *locked_rq);
+int __scx_init_task(struct scx_sched *sch, struct task_struct *p, bool fork);
+void scx_enable_task(struct scx_sched *sch, struct task_struct *p);
+void __scx_disable_and_exit_task(struct scx_sched *sch, struct task_struct *p);
+void scx_sub_init_cancel_task(struct scx_sched *sch, struct task_struct *p);
+void scx_disable_and_exit_task(struct scx_sched *sch, struct task_struct *p);
+#if defined(CONFIG_EXT_GROUP_SCHED) || defined(CONFIG_EXT_SUB_SCHED)
+void scx_cgroup_lock(void);
+void scx_cgroup_unlock(void);
+#endif
+s32 scx_set_cmask_scratch_alloc(struct scx_sched *sch);
+void scx_disable_bypass_dsp(struct scx_sched *sch);
+void scx_bypass(struct scx_sched *sch, bool bypass);
+s32 scx_link_sched(struct scx_sched *sch);
+void scx_unlink_sched(struct scx_sched *sch);
+void scx_disable_dump(struct scx_sched *sch);
+void scx_log_sched_disable(struct scx_sched *sch);
+void scx_flush_disable_work(struct scx_sched *sch);
+struct scx_sched *scx_alloc_and_add_sched(struct scx_enable_cmd *cmd,
+					  struct cgroup *cgrp,
+					  struct scx_sched *parent);
+int scx_validate_ops(struct scx_sched *sch, const struct sched_ext_ops *ops);
+
+extern raw_spinlock_t scx_sched_lock;
+extern struct mutex scx_enable_mutex;
+extern struct percpu_rw_semaphore scx_fork_rwsem;
+#ifdef CONFIG_EXT_SUB_SCHED
+extern const struct rhashtable_params scx_sched_hash_params;
+extern struct rhashtable scx_sched_hash;
+extern struct scx_sched *scx_enabling_sub_sched;
+#endif
+
 #define scx_exit(sch, kind, exit_code, fmt, args...)				\
 	__scx_exit(sch, kind, exit_code, raw_smp_processor_id(), fmt, ##args)
 #define scx_error(sch, fmt, args...)						\
 	scx_exit((sch), SCX_EXIT_ERROR, 0, fmt, ##args)
-#define scx_verror(sch, fmt, args)						\
-	scx_vexit((sch), SCX_EXIT_ERROR, 0, raw_smp_processor_id(), fmt, args)
+
+static inline struct scx_dispatch_q *scx_bypass_dsq(struct scx_sched *sch, s32 cpu)
+{
+	return &per_cpu_ptr(sch->pcpu, cpu)->bypass_dsq;
+}
+
+/**
+ * scx_bypass_dsp_enabled - Check if bypass dispatch path is enabled
+ * @sch: scheduler to check
+ *
+ * When a descendant scheduler enters bypass mode, bypassed tasks are scheduled
+ * by the nearest non-bypassing ancestor, or the root scheduler if all ancestors
+ * are bypassing. In the former case, the ancestor is not itself bypassing but
+ * its bypass DSQs will be populated with bypassed tasks from descendants. Thus,
+ * the ancestor's bypass dispatch path must be active even though its own
+ * bypass_depth remains zero.
+ *
+ * This function checks bypass_dsp_enable_depth which is managed separately from
+ * bypass_depth to enable this decoupling. See enable_bypass_dsp() and
+ * scx_disable_bypass_dsp().
+ */
+static inline bool scx_bypass_dsp_enabled(struct scx_sched *sch)
+{
+	return unlikely(atomic_read(&sch->bypass_dsp_enable_depth));
+}
+
+/**
+ * scx_ops_sanitize_err - Sanitize a -errno value
+ * @sch: scx_sched to error out on error
+ * @ops_name: operation to blame on failure
+ * @err: -errno value to sanitize
+ *
+ * Verify @err is a valid -errno. If not, trigger scx_error() and return
+ * -%EPROTO. This is necessary because returning a rogue -errno up the chain can
+ * cause misbehaviors. For an example, a large negative return from
+ * ops.init_task() triggers an oops when passed up the call chain because the
+ * value fails IS_ERR() test after being encoded with ERR_PTR() and then is
+ * handled as a pointer.
+ */
+static inline int scx_ops_sanitize_err(struct scx_sched *sch, const char *ops_name, s32 err)
+{
+	if (err < 0 && err >= -MAX_ERRNO)
+		return err;
+
+	scx_error(sch, "ops.%s() returned an invalid errno %d", ops_name, err);
+	return -EPROTO;
+}
+
+static inline void scx_schedule_reenq_local(struct rq *rq, u64 reenq_flags)
+{
+	struct scx_sched *root = rcu_dereference_sched(scx_root);
+
+	if (WARN_ON_ONCE(!root))
+		return;
+
+	schedule_dsq_reenq(root, &rq->scx.local_dsq, reenq_flags, rq);
+}
 
 /*
  * Return the rq currently locked from an scx callback, or NULL if no rq is
@@ -1570,8 +1751,11 @@ static inline void update_locked_rq(struct rq *rq)
 /*
  * SCX ops can recurse via scx_bpf_sub_dispatch() - the inner call must not
  * clobber the outer's scx_locked_rq_state. Save it on entry, restore on exit.
+ *
+ * @ops is the ops table to dispatch through: ops for the cpu form, ops_cid
+ * for the cid form.
  */
-#define SCX_CALL_OP(sch, op, locked_rq, args...)				\
+#define __SCX_CALL_OP(sch, ops, op, locked_rq, args...)				\
 do {										\
 	struct rq *__prev_locked_rq;						\
 										\
@@ -1583,6 +1767,9 @@ do {										\
 	if (locked_rq)								\
 		update_locked_rq(__prev_locked_rq);				\
 } while (0)
+
+#define SCX_CALL_OP(sch, op, locked_rq, args...)				\
+	__SCX_CALL_OP(sch, ops, op, locked_rq, ##args)
 
 #define SCX_CALL_OP_RET(sch, op, locked_rq, args...)				\
 ({										\
@@ -1615,13 +1802,24 @@ do {										\
  * WARN_ON_ONCE() in each macro catches a re-entry of any of the three variants
  * while a previous one is still in progress.
  */
-#define SCX_CALL_OP_TASK(sch, op, locked_rq, task, args...)			\
+#define __SCX_CALL_OP_TASK(sch, ops, op, locked_rq, task, args...)		\
 do {										\
 	WARN_ON_ONCE(current->scx.kf_tasks[0]);					\
 	current->scx.kf_tasks[0] = task;					\
-	SCX_CALL_OP((sch), op, locked_rq, task, ##args);			\
+	__SCX_CALL_OP((sch), ops, op, locked_rq, task, ##args);			\
 	current->scx.kf_tasks[0] = NULL;					\
 } while (0)
+
+#define SCX_CALL_OP_TASK(sch, op, locked_rq, task, args...)			\
+	__SCX_CALL_OP_TASK(sch, ops, op, locked_rq, task, ##args)
+
+/*
+ * Dispatch a task op through the cid-form ops_cid table. Only set_cmask() needs
+ * this: it takes an arena cmask address instead of a cpumask, so it cannot be
+ * invoked via its cpu-form set_cpumask() slot.
+ */
+#define SCX_CALL_CID_OP_TASK(sch, op, locked_rq, task, args...)			\
+	__SCX_CALL_OP_TASK(sch, ops_cid, op, locked_rq, task, ##args)
 
 #define SCX_CALL_OP_TASK_RET(sch, op, locked_rq, task, args...)			\
 ({										\

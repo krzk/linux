@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 {
 	struct scx_simple *skel;
 	struct bpf_link *link;
-	__u32 opt;
+	__s32 opt;
 	__u64 ecode;
 
 	libbpf_set_print(libbpf_print_fn);

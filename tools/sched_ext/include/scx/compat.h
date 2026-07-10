@@ -28,7 +28,7 @@ static inline bool __COMPAT_read_enum(const char *type, const char *name, u64 *v
 	const struct btf_type *t;
 	const char *n;
 	s32 tid;
-	int i;
+	__u32 i;
 
 	__COMPAT_load_vmlinux_btf();
 
@@ -42,7 +42,7 @@ static inline bool __COMPAT_read_enum(const char *type, const char *name, u64 *v
 	if (btf_is_enum(t)) {
 		struct btf_enum *e = btf_enum(t);
 
-		for (i = 0; i < BTF_INFO_VLEN(t->info); i++) {
+		for (i = 0; i < btf_vlen(t); i++) {
 			n = btf__name_by_offset(__COMPAT_vmlinux_btf, e[i].name_off);
 			SCX_BUG_ON(!n, "btf__name_by_offset()");
 			if (!strcmp(n, name)) {
@@ -53,7 +53,7 @@ static inline bool __COMPAT_read_enum(const char *type, const char *name, u64 *v
 	} else if (btf_is_enum64(t)) {
 		struct btf_enum64 *e = btf_enum64(t);
 
-		for (i = 0; i < BTF_INFO_VLEN(t->info); i++) {
+		for (i = 0; i < btf_vlen(t); i++) {
 			n = btf__name_by_offset(__COMPAT_vmlinux_btf, e[i].name_off);
 			SCX_BUG_ON(!n, "btf__name_by_offset()");
 			if (!strcmp(n, name)) {
@@ -85,7 +85,7 @@ static inline bool __COMPAT_struct_has_field(const char *type, const char *field
 	const struct btf_member *m;
 	const char *n;
 	s32 tid;
-	int i;
+	__u32 i;
 
 	__COMPAT_load_vmlinux_btf();
 	tid = btf__find_by_name_kind(__COMPAT_vmlinux_btf, type, BTF_KIND_STRUCT);
@@ -97,7 +97,7 @@ static inline bool __COMPAT_struct_has_field(const char *type, const char *field
 
 	m = btf_members(t);
 
-	for (i = 0; i < BTF_INFO_VLEN(t->info); i++) {
+	for (i = 0; i < btf_vlen(t); i++) {
 		n = btf__name_by_offset(__COMPAT_vmlinux_btf, m[i].name_off);
 		SCX_BUG_ON(!n, "btf__name_by_offset()");
 			if (!strcmp(n, field))

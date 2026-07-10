@@ -67,8 +67,8 @@ int main(int argc, char **argv)
 	struct scx_qmap *skel;
 	struct bpf_link *link;
 	struct qmap_arena *qa;
-	__u32 test_error_cnt = 0;
-	__u64 ecode;
+	u32 test_error_cnt = 0;
+	u64 ecode;
 	int opt;
 
 	libbpf_set_print(libbpf_print_fn);
@@ -202,15 +202,16 @@ restart:
 
 		printf("stats  : enq=%lu dsp=%lu delta=%ld reenq/cid0=%llu/%llu deq=%llu core=%llu enq_ddsp=%llu\n",
 		       nr_enqueued, nr_dispatched, nr_enqueued - nr_dispatched,
-		       qa->nr_reenqueued, qa->nr_reenqueued_cid0,
-		       qa->nr_dequeued,
-		       qa->nr_core_sched_execed,
-		       qa->nr_ddsp_from_enq);
+		       (unsigned long long)qa->nr_reenqueued,
+		       (unsigned long long)qa->nr_reenqueued_cid0,
+		       (unsigned long long)qa->nr_dequeued,
+		       (unsigned long long)qa->nr_core_sched_execed,
+		       (unsigned long long)qa->nr_ddsp_from_enq);
 		printf("         exp_local=%llu exp_remote=%llu exp_timer=%llu exp_lost=%llu\n",
-		       qa->nr_expedited_local,
-		       qa->nr_expedited_remote,
-		       qa->nr_expedited_from_timer,
-		       qa->nr_expedited_lost);
+		       (unsigned long long)qa->nr_expedited_local,
+		       (unsigned long long)qa->nr_expedited_remote,
+		       (unsigned long long)qa->nr_expedited_from_timer,
+		       (unsigned long long)qa->nr_expedited_lost);
 		if (__COMPAT_has_ksym("scx_bpf_cidperf_cur"))
 			printf("cpuperf: cur min/avg/max=%u/%u/%u target min/avg/max=%u/%u/%u\n",
 			       qa->cpuperf_min,

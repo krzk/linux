@@ -28,10 +28,10 @@
 #define SCX_QMAP_MAX_CPUS	1024
 
 struct cpu_ctx {
-	__u64 dsp_idx;		/* dispatch index */
-	__u64 dsp_cnt;		/* remaining count */
-	__u32 avg_weight;
-	__u32 cpuperf_target;
+	u64 dsp_idx;		/* dispatch index */
+	u64 dsp_cnt;		/* remaining count */
+	u32 avg_weight;
+	u32 cpuperf_target;
 };
 
 /* Opaque to userspace; defined in scx_qmap.bpf.c. */
@@ -40,25 +40,25 @@ struct task_ctx;
 struct qmap_fifo {
 	struct task_ctx __arena *head;
 	struct task_ctx __arena *tail;
-	__s32 idx;
+	s32 idx;
 };
 
 struct qmap_arena {
 	/* userspace-visible stats */
-	__u64 nr_enqueued, nr_dispatched, nr_reenqueued, nr_reenqueued_cid0;
-	__u64 nr_dequeued, nr_ddsp_from_enq;
-	__u64 nr_core_sched_execed;
-	__u64 nr_expedited_local, nr_expedited_remote;
-	__u64 nr_expedited_lost, nr_expedited_from_timer;
-	__u64 nr_highpri_queued;
-	__u32 test_error_cnt;
-	__u32 cpuperf_min, cpuperf_avg, cpuperf_max;
-	__u32 cpuperf_target_min, cpuperf_target_avg, cpuperf_target_max;
+	u64 nr_enqueued, nr_dispatched, nr_reenqueued, nr_reenqueued_cid0;
+	u64 nr_dequeued, nr_ddsp_from_enq;
+	u64 nr_core_sched_execed;
+	u64 nr_expedited_local, nr_expedited_remote;
+	u64 nr_expedited_lost, nr_expedited_from_timer;
+	u64 nr_highpri_queued;
+	u32 test_error_cnt;
+	u32 cpuperf_min, cpuperf_avg, cpuperf_max;
+	u32 cpuperf_target_min, cpuperf_target_avg, cpuperf_target_max;
 
 	/* kernel-side runtime state */
-	__u64 sub_sched_cgroup_ids[MAX_SUB_SCHEDS];
-	__u64 core_sched_head_seqs[5];
-	__u64 core_sched_tail_seqs[5];
+	u64 sub_sched_cgroup_ids[MAX_SUB_SCHEDS];
+	u64 core_sched_head_seqs[5];
+	u64 core_sched_tail_seqs[5];
 
 	struct cpu_ctx cpu_ctxs[SCX_QMAP_MAX_CPUS];
 

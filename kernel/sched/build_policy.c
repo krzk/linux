@@ -66,10 +66,12 @@
 # include "ext/cid.h"
 # include "ext/arena.h"
 # include "ext/idle.h"
+# include "ext/sub.h"
 # include "ext/ext.c"
 # include "ext/cid.c"
 # include "ext/arena.c"
 # include "ext/idle.c"
+# include "ext/sub.c"
 #endif
 
 #include "syscalls.c"
