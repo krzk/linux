@@ -5998,6 +5998,7 @@ B:	https://tracker.ceph.com/
 T:	git https://github.com/ceph/ceph-client.git
 F:	Documentation/filesystems/ceph.rst
 F:	fs/ceph/
+F:	tools/testing/selftests/filesystems/ceph/
 
 CERTIFICATE HANDLING
 M:	David Howells <dhowells@redhat.com>
@@ -9501,11 +9502,6 @@ M:	Peter Jones <pjones@redhat.com>
 L:	linux-fbdev@vger.kernel.org
 S:	Maintained
 F:	drivers/video/fbdev/efifb.c
-
-EFS FILESYSTEM
-S:	Orphan
-W:	http://aeschi.ch.eu.org/efs/
-F:	fs/efs/
 
 EHEA (IBM pSeries eHEA 10Gb ethernet adapter) DRIVER
 L:	netdev@vger.kernel.org

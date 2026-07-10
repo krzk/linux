@@ -83,8 +83,6 @@ static struct fscrypt_mode *
 select_encryption_mode(const union fscrypt_policy *policy,
 		       const struct inode *inode)
 {
-	BUILD_BUG_ON(ARRAY_SIZE(fscrypt_modes) != FSCRYPT_MODE_MAX + 1);
-
 	if (S_ISREG(inode->i_mode))
 		return &fscrypt_modes[fscrypt_policy_contents_mode(policy)];
 
@@ -229,9 +227,6 @@ static int setup_per_mode_enc_key(struct fscrypt_inode_info *ci,
 	bool use_hw_wrapped_key = false;
 	int err;
 
-	if (WARN_ON_ONCE(mode_num > FSCRYPT_MODE_MAX))
-		return -EINVAL;
-
 	if (mk->mk_secret.is_hw_wrapped && S_ISREG(inode->i_mode)) {
 		/* Using a hardware-wrapped key for file contents encryption */
 		if (!fscrypt_using_inline_encryption(ci)) {
@@ -349,18 +344,17 @@ static int fscrypt_setup_iv_ino_lblk_32_key(struct fscrypt_inode_info *ci,
 
 	/* pairs with smp_store_release() below */
 	if (!smp_load_acquire(&mk->mk_ino_hash_key_initialized)) {
+		guard(mutex)(&fscrypt_mode_key_setup_mutex);
 
-		mutex_lock(&fscrypt_mode_key_setup_mutex);
-
-		if (mk->mk_ino_hash_key_initialized)
-			goto unlock;
-
-		fscrypt_derive_siphash_key(mk, HKDF_CONTEXT_INODE_HASH_KEY,
-					   NULL, 0, &mk->mk_ino_hash_key);
-		/* pairs with smp_load_acquire() above */
-		smp_store_release(&mk->mk_ino_hash_key_initialized, true);
-unlock:
-		mutex_unlock(&fscrypt_mode_key_setup_mutex);
+		if (!mk->mk_ino_hash_key_initialized) {
+			fscrypt_derive_siphash_key(mk,
+						   HKDF_CONTEXT_INODE_HASH_KEY,
+						   NULL, 0,
+						   &mk->mk_ino_hash_key);
+			/* pairs with smp_load_acquire() above */
+			smp_store_release(&mk->mk_ino_hash_key_initialized,
+					  true);
+		}
 	}
 
 	/*

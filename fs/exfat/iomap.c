@@ -175,10 +175,28 @@ static int exfat_write_iomap_end(struct inode *inode, loff_t pos, loff_t length,
 
 	if (ei->valid_size < end) {
 		ei->valid_size = end;
-		if (ei->zeroed_size < end)
-			ei->zeroed_size = end;
 		dirtied = true;
 	}
+
+	/*
+	 * If the tail of the last block was zeroed (IOMAP_F_ZERO_TAIL),
+	 * that block is now fully valid (written data followed by zeroes)
+	 * and has been dirtied, so it will be written back as zeroes. Record
+	 * it as zeroed up to the block boundary.
+	 *
+	 * This mirrors the block-granular valid_size advance that the
+	 * pre-iomap exfat_get_block() performed. Without it, the sub-block
+	 * tail between the byte-granular valid_size and the block boundary is
+	 * treated as not-yet-zeroed, and a later valid_size extension
+	 * (exfat_extend_valid_size()) or mmap gap fill would re-zero it -
+	 * clobbering a marker that an mmap store wrote into that tail through
+	 * a fault-around writable PTE (no page_mkwrite, so valid_size was
+	 * never advanced to cover it).
+	 */
+	if (iomap->flags & IOMAP_F_ZERO_TAIL)
+		end = round_up(end, i_blocksize(inode));
+	if (ei->zeroed_size < end)
+		ei->zeroed_size = end;
 
 	if (dirtied || iomap->flags & IOMAP_F_SIZE_CHANGED)
 		mark_inode_dirty(inode);

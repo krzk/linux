@@ -2420,7 +2420,7 @@ mft_rec_already_initialized:
 		 * record.
 		 */
 
-		(*ni)->mrec = kmalloc(vol->mft_record_size, GFP_NOFS);
+		(*ni)->mrec = kmemdup(m, vol->mft_record_size, GFP_NOFS);
 		if (!(*ni)->mrec) {
 			folio_unlock(folio);
 			kunmap_local(m);
@@ -2429,7 +2429,6 @@ mft_rec_already_initialized:
 			goto undo_mftbmp_alloc;
 		}
 
-		memcpy((*ni)->mrec, m, vol->mft_record_size);
 		post_read_mst_fixup((struct ntfs_record *)(*ni)->mrec, vol->mft_record_size);
 		ntfs_mft_mark_dirty(folio);
 		folio_unlock(folio);
@@ -2637,7 +2636,6 @@ static int ntfs_write_mft_block(struct folio *folio, struct writeback_control *w
 	s64 vcn = ntfs_pidx_to_cluster(vol, folio->index);
 	s64 end_vcn = ntfs_bytes_to_cluster(vol, ni->allocated_size);
 	unsigned int folio_sz;
-	struct runlist_element *rl = NULL;
 	loff_t i_size = i_size_read(vi);
 
 	ntfs_debug("Entering for inode 0x%llx, attribute type 0x%x, folio index 0x%lx.",
@@ -2682,6 +2680,7 @@ static int ntfs_write_mft_block(struct folio *folio, struct writeback_control *w
 					&tni, &ref_inos[nr_ref_inos])) {
 			unsigned int mft_record_off = 0;
 			s64 vcn_off = vcn;
+			s64 rl_len = 0;
 
 			/*
 			 * The record should be written.  If a locked ntfs
@@ -2701,8 +2700,12 @@ flush_bio:
 			}
 
 			if (vol->cluster_size < folio_size(folio)) {
+				struct runlist_element *rl;
+
 				down_write(&ni->runlist.lock);
 				rl = ntfs_attr_vcn_to_rl(ni, vcn_off, &lcn);
+				if (!IS_ERR(rl))
+					rl_len = rl->length - (vcn_off - rl->vcn);
 				up_write(&ni->runlist.lock);
 				if (IS_ERR(rl) || lcn < 0) {
 					err = -EIO;
@@ -2733,7 +2736,7 @@ flush_bio:
 
 			if (vol->cluster_size == NTFS_BLOCK_SIZE &&
 			    (mft_record_off ||
-			     (rl && rl->length - (vcn_off - rl->vcn) == 1) ||
+			     rl_len == 1 ||
 			     mft_ofs + NTFS_BLOCK_SIZE >= PAGE_SIZE))
 				folio_sz = NTFS_BLOCK_SIZE;
 			else
