@@ -65,8 +65,14 @@ const_cpu_current_top_of_stack = cpu_current_top_of_stack;
 		__end_rodata_hpage_align = .;			\
 		__end_rodata_aligned = .;
 
+#if defined(CONFIG_MITIGATION_PAGE_TABLE_ISOLATION) || defined(CONFIG_MITIGATION_SRSO)
 #define ALIGN_ENTRY_TEXT_BEGIN	. = ALIGN(PMD_SIZE);
 #define ALIGN_ENTRY_TEXT_END	. = ALIGN(PMD_SIZE);
+#else
+#define ALIGN_ENTRY_TEXT_BEGIN
+#define ALIGN_ENTRY_TEXT_END
+#endif
+
 #else
 
 #define X86_ALIGN_RODATA_BEGIN
@@ -221,7 +227,7 @@ SECTIONS
 	 * references to such code must be patched out by alternatives, normally
 	 * by using X86_FEATURE_ALWAYS CPU feature bit.
 	 *
-	 * See static_cpu_has() for an example.
+	 * See cpu_feature_enabled() for an example.
 	 */
 	.altinstr_aux : AT(ADDR(.altinstr_aux) - LOAD_OFFSET) {
 		*(.altinstr_aux)

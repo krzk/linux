@@ -114,6 +114,16 @@ config GENERIC_ENTRY
 	select GENERIC_IRQ_ENTRY
 	select GENERIC_SYSCALL
 
+config SYSCALL_USER_DISPATCH
+	bool "Syscall User Dispatch"
+	depends on GENERIC_ENTRY
+	default y
+	help
+	  Syscall User Dispatch lets a thread have its own system calls
+	  intercepted and redirected to a userspace signal handler based
+	  on a prctl() configured instruction pointer range.
+	  If unsure, say Y.
+
 config KPROBES
 	bool "Kprobes"
 	depends on HAVE_KPROBES

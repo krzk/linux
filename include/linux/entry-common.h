@@ -9,6 +9,7 @@
 #include <linux/resume_user_mode.h>
 #include <linux/seccomp.h>
 #include <linux/sched.h>
+#include <linux/syscall_user_dispatch.h>
 
 #include <asm/entry-common.h>
 #include <asm/syscall.h>
@@ -55,7 +56,6 @@ static __always_inline int arch_ptrace_report_syscall_entry(struct pt_regs *regs
 }
 #endif
 
-bool syscall_user_dispatch(struct pt_regs *regs);
 long trace_syscall_enter(struct pt_regs *regs, long syscall);
 void trace_syscall_exit(struct pt_regs *regs, long ret);
 
@@ -232,10 +232,8 @@ static __always_inline void syscall_exit_work(struct pt_regs *regs, unsigned lon
 	 * of these syscalls is unknown.
 	 */
 	if (work & SYSCALL_WORK_SYSCALL_USER_DISPATCH) {
-		if (unlikely(current->syscall_dispatch.on_dispatch)) {
-			current->syscall_dispatch.on_dispatch = false;
+		if (syscall_user_dispatch_clear_on_dispatch())
 			return;
-		}
 	}
 
 	audit_syscall_exit(regs);
