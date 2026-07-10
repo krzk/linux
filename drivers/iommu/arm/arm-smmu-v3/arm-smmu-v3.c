@@ -2956,8 +2956,13 @@ static void arm_smmu_enable_ats(struct arm_smmu_master *master)
 	 * ATC invalidation of PASID 0 causes the entire ATC to be flushed.
 	 */
 	arm_smmu_atc_inv_master(master, IOMMU_NO_PASID);
-	if (pci_enable_ats(pdev, stu))
-		dev_err(master->dev, "Failed to enable ATS (STU %zu)\n", stu);
+
+	 /*
+	  * Since pci_prepare_ats() has already verified the HW capability
+	  * and programmed the STE, pci_enable_ats() should not fail here.
+	  */
+	WARN(pci_enable_ats(pdev, stu),
+	     "%s: Failed to enable ATS (STU %zu)\n", dev_name(master->dev), stu);
 }
 
 static int arm_smmu_enable_pasid(struct arm_smmu_master *master)
