@@ -535,6 +535,17 @@ test_stat_delay() {
   echo "stat -D test [Success]"
 }
 
+test_csv_json_fail() {
+  echo "stat -x <sep> -j test"
+  if perf stat -x , -j true > /dev/null 2>&1
+  then
+    echo "stat -x <sep> -j test [Failed - command should have errored]"
+    err=1
+  else
+    echo "stat -x <sep> -j test [Success]"
+  fi
+}
+
 test_default_stat
 test_null_stat
 test_offline_cpu_stat
@@ -551,6 +562,7 @@ test_stat_detailed
 test_stat_repeat
 test_stat_pid
 test_stat_delay
+test_csv_json_fail
 
 cleanup
 exit $err
