@@ -10117,7 +10117,8 @@ static void ath12k_mac_update_vif_offload(struct ath12k_link_vif *arvif)
 	if (vif->type != NL80211_IFTYPE_STATION &&
 	    vif->type != NL80211_IFTYPE_AP)
 		vif->offload_flags &= ~(IEEE80211_OFFLOAD_ENCAP_ENABLED |
-					IEEE80211_OFFLOAD_DECAP_ENABLED);
+					IEEE80211_OFFLOAD_DECAP_ENABLED |
+					IEEE80211_OFFLOAD_ENCAP_MCAST);
 
 	if (vif->offload_flags & IEEE80211_OFFLOAD_ENCAP_ENABLED) {
 		ahvif->dp_vif.tx_encap_type = ATH12K_HW_TXRX_ETHERNET;
@@ -10135,6 +10136,9 @@ static void ath12k_mac_update_vif_offload(struct ath12k_link_vif *arvif)
 			    arvif->vdev_id, ret);
 		vif->offload_flags &= ~IEEE80211_OFFLOAD_ENCAP_ENABLED;
 	}
+
+	if (vif->offload_flags & IEEE80211_OFFLOAD_ENCAP_ENABLED)
+		vif->offload_flags |= IEEE80211_OFFLOAD_ENCAP_MCAST;
 
 	param_id = WMI_VDEV_PARAM_RX_DECAP_TYPE;
 	if (vif->offload_flags & IEEE80211_OFFLOAD_DECAP_ENABLED)
@@ -11253,6 +11257,8 @@ ath12k_mac_mlo_get_vdev_args(struct ath12k_link_vif *arvif,
 
 	ml_arg->assoc_link = arvif->is_sta_assoc_link;
 
+	ml_arg->ieee_link_id = arvif->link_id;
+
 	partner_info = ml_arg->partner_info;
 
 	links = ahvif->links_map;
@@ -11276,6 +11282,7 @@ ath12k_mac_mlo_get_vdev_args(struct ath12k_link_vif *arvif,
 
 		partner_info->vdev_id = arvif_p->vdev_id;
 		partner_info->hw_link_id = arvif_p->ar->pdev->hw_link_id;
+		partner_info->ieee_link_id = arvif_p->link_id;
 		ether_addr_copy(partner_info->addr, link_conf->addr);
 		ml_arg->num_partner_links++;
 		partner_info++;
