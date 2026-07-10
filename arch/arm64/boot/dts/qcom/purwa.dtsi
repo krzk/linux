@@ -6,6 +6,8 @@
 /* X1P42100 is heavily based on hamoa, with some meaningful differences */
 #include "hamoa.dtsi"
 
+#include <dt-bindings/clock/qcom,x1p42100-videocc.h>
+
 /delete-node/ &bwmon_cluster0;
 /delete-node/ &cluster_pd2;
 /delete-node/ &cpu_map_cluster2;
@@ -36,6 +38,10 @@
 /delete-node/ &thermal_gpuss_6;
 /delete-node/ &thermal_gpuss_7;
 
+&camcc {
+	compatible = "qcom,x1p42100-camcc";
+};
+
 &gcc {
 	compatible = "qcom,x1p42100-gcc", "qcom,x1e80100-gcc";
 };
@@ -46,6 +52,8 @@
 
 &gpu {
 	compatible = "qcom,adreno-43030c00", "qcom,adreno";
+
+	iommus = <&adreno_smmu 0 0x0>;
 
 	nvmem-cells = <&gpu_speed_bin>;
 	nvmem-cell-names = "speed_bin";
@@ -255,4 +263,8 @@
 /* While physically present, this controller is left unconfigured and unused */
 &tsens3 {
 	status = "disabled";
+};
+
+&videocc {
+	compatible = "qcom,x1p42100-videocc";
 };

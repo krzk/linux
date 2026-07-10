@@ -27,7 +27,7 @@ config QCOM_COMMAND_DB
 	  SoC specific identifier and information for the shared resources.
 
 config QCOM_GENI_SE
-	tristate "QCOM GENI Serial Engine Driver"
+	tristate "Qualcomm GENI Serial Engine Driver"
 	depends on ARCH_QCOM || COMPILE_TEST
 	help
 	  This driver is used to manage Generic Interface (GENI) firmware based
@@ -36,7 +36,7 @@ config QCOM_GENI_SE
 	  Engines present in the QUP.
 
 config QCOM_GSBI
-	tristate "QCOM General Serial Bus Interface"
+	tristate "Qualcomm General Serial Bus Interface"
 	depends on ARCH_QCOM || COMPILE_TEST
 	select MFD_SYSCON
 	help
@@ -45,7 +45,7 @@ config QCOM_GSBI
 	  devices to the output pins.
 
 config QCOM_LLCC
-	tristate "Qualcomm Technologies, Inc. LLCC driver"
+	tristate "Qualcomm LLCC driver"
 	depends on ARCH_QCOM || COMPILE_TEST
 	select REGMAP_MMIO
 	help
@@ -237,7 +237,7 @@ config QCOM_SPM
 	  Adaptive Voltage Scaler parameters, where supported.
 
 config QCOM_STATS
-	tristate "Qualcomm Technologies, Inc. (QTI) Sleep stats driver"
+	tristate "Qualcomm Sleep stats driver"
 	depends on (ARCH_QCOM && DEBUG_FS) || COMPILE_TEST
 	depends on QCOM_SMEM
 	depends on QCOM_AOSS_QMP || QCOM_AOSS_QMP=n
@@ -268,7 +268,7 @@ config QCOM_APR
 	  ASM, ADM and AFE modules.
 
 config QCOM_ICC_BWMON
-	tristate "QCOM Interconnect Bandwidth Monitor driver"
+	tristate "Qualcomm Interconnect Bandwidth Monitor driver"
 	depends on ARCH_QCOM || COMPILE_TEST
 	select PM_OPP
 	select REGMAP_MMIO
@@ -287,7 +287,7 @@ config QCOM_INLINE_CRYPTO_ENGINE
 	select QCOM_SCM
 
 config QCOM_PBS
-	tristate "PBS trigger support for Qualcomm Technologies, Inc. PMICS"
+	tristate "PBS trigger support for Qualcomm PMICs"
 	depends on SPMI
 	help
 	  This driver supports configuring software programmable boot sequencer (PBS)
