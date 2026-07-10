@@ -595,17 +595,6 @@ static const struct export_operations erofs_export_ops = {
 	.get_parent = erofs_get_parent,
 };
 
-static void erofs_set_sysfs_name(struct super_block *sb)
-{
-	struct erofs_sb_info *sbi = EROFS_SB(sb);
-
-	if (erofs_is_fileio_mode(sbi))
-		super_set_sysfs_name_generic(sb, "%s",
-					     bdi_dev_name(sb->s_bdi));
-	else
-		super_set_sysfs_name_id(sb);
-}
-
 static int erofs_fc_fill_super(struct super_block *sb, struct fs_context *fc)
 {
 	struct inode *inode;
@@ -657,12 +646,14 @@ static int erofs_fc_fill_super(struct super_block *sb, struct fs_context *fc)
 		err = super_setup_bdi(sb);
 		if (err)
 			return err;
+
+		snprintf(sb->s_id, sizeof(sb->s_id),
+			 "%u:%u", MAJOR(sb->s_dev), MINOR(sb->s_dev));
 	} else {
 		if (!sb_set_blocksize(sb, PAGE_SIZE)) {
 			errorfc(fc, "failed to set initial blksize");
 			return -EINVAL;
 		}
-
 		sbi->dif0.dax_dev = fs_dax_get_by_bdev(sb->s_bdev,
 				&sbi->dif0.dax_part_off, NULL, NULL);
 	}
@@ -740,7 +731,7 @@ static int erofs_fc_fill_super(struct super_block *sb, struct fs_context *fc)
 	if (err)
 		return err;
 
-	erofs_set_sysfs_name(sb);
+	super_set_sysfs_name_id(sb);
 	err = erofs_register_sysfs(sb);
 	if (err)
 		return err;
