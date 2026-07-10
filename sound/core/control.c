@@ -55,9 +55,7 @@ static int snd_ctl_open(struct inode *inode, struct file *file)
 	struct snd_ctl_file *ctl;
 	int i, err;
 
-	err = stream_open(inode, file);
-	if (err < 0)
-		return err;
+	stream_open(inode, file);
 
 	card = snd_lookup_minor_data(iminor(inode), SNDRV_DEVICE_TYPE_CONTROL);
 	if (!card) {
@@ -65,12 +63,10 @@ static int snd_ctl_open(struct inode *inode, struct file *file)
 		goto __error1;
 	}
 	err = snd_card_file_add(card, file);
-	if (err < 0) {
-		err = -ENODEV;
+	if (err < 0)
 		goto __error1;
-	}
 	if (!try_module_get(card->module)) {
-		err = -EFAULT;
+		err = -ENODEV;
 		goto __error2;
 	}
 	ctl = kzalloc(sizeof(*ctl), GFP_KERNEL);
