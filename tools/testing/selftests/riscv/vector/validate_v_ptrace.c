@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <sys/ptrace.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/uio.h>
@@ -25,9 +26,9 @@ TEST(ptrace_v_not_enabled)
 		SKIP(return, "Vector not supported");
 
 	chld_lock = 1;
-	pid = fork();
+	pid = (pid_t)syscall(SYS_clone, SIGCHLD, 0, NULL, 0, NULL);
 	ASSERT_LE(0, pid)
-		TH_LOG("fork: %m");
+		TH_LOG("clone: %m");
 
 	if (pid == 0) {
 		while (chld_lock == 1)
