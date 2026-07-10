@@ -614,6 +614,7 @@ static int tx_macro_mclk_enable(struct tx_macro *tx,
 				bool mclk_enable)
 {
 	struct regmap *regmap = tx->regmap;
+	int ret;
 
 	if (mclk_enable) {
 		if (tx->tx_mclk_users == 0) {
@@ -626,7 +627,9 @@ static int tx_macro_mclk_enable(struct tx_macro *tx,
 					   CDC_TX_FS_CNT_EN_MASK,
 					   CDC_TX_FS_CNT_ENABLE);
 			regcache_mark_dirty(regmap);
-			regcache_sync(regmap);
+			ret = regcache_sync(regmap);
+			if (ret)
+				return ret;
 		}
 		tx->tx_mclk_users++;
 	} else {
@@ -739,11 +742,9 @@ static int tx_macro_mclk_event(struct snd_soc_dapm_widget *w,
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
-		tx_macro_mclk_enable(tx, true);
-		break;
+		return tx_macro_mclk_enable(tx, true);
 	case SND_SOC_DAPM_POST_PMD:
-		tx_macro_mclk_enable(tx, false);
-		break;
+		return tx_macro_mclk_enable(tx, false);
 	default:
 		break;
 	}
@@ -2155,7 +2156,11 @@ static int swclk_gate_enable(struct clk_hw *hw)
 		return ret;
 	}
 
-	tx_macro_mclk_enable(tx, true);
+	ret = tx_macro_mclk_enable(tx, true);
+	if (ret) {
+		clk_disable_unprepare(tx->mclk);
+		return ret;
+	}
 
 	regmap_update_bits(regmap, CDC_TX_CLK_RST_CTRL_SWR_CONTROL,
 			   CDC_TX_SWR_CLK_EN_MASK,
@@ -2437,9 +2442,15 @@ static int tx_macro_runtime_resume(struct device *dev)
 	}
 
 	regcache_cache_only(tx->regmap, false);
-	regcache_sync(tx->regmap);
+	ret = regcache_sync(tx->regmap);
+	if (ret)
+		goto err_sync;
 
 	return 0;
+err_sync:
+	regcache_cache_only(tx->regmap, true);
+	regcache_mark_dirty(tx->regmap);
+	clk_disable_unprepare(tx->fsgen);
 err_fsgen:
 	clk_disable_unprepare(tx->npl);
 err_npl:
