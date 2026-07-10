@@ -95,8 +95,7 @@ static int hook_ptrace_access_check(struct task_struct *const child,
 	if (!parent_subject)
 		return 0;
 
-	scoped_guard(rcu)
-	{
+	scoped_guard(rcu) {
 		const struct landlock_ruleset *const child_dom =
 			landlock_get_task_domain(child);
 		err = domain_ptrace(parent_subject->domain, child_dom);
@@ -243,6 +242,17 @@ static bool sock_is_scoped(struct sock *const other,
 
 	/* The credentials will not change. */
 	lockdep_assert_held(&unix_sk(other)->lock);
+
+	/*
+	 * A live kernel socket (e.g. from sock_create_kern()) has no backing
+	 * file, hence no Landlock domain, so treat it as unscoped.  The
+	 * sk_socket check only guards that dereference; sk_socket is NULL
+	 * solely for a dead peer, which the caller already excludes under the
+	 * held lock, so no separate SOCK_DEAD check is needed.
+	 */
+	if (unlikely(!other->sk_socket || !other->sk_socket->file))
+		return false;
+
 	dom_other = landlock_cred(other->sk_socket->file->f_cred)->domain;
 	return domain_is_scoped(domain, dom_other,
 				LANDLOCK_SCOPE_ABSTRACT_UNIX_SOCKET);
@@ -370,8 +380,7 @@ static int hook_task_kill(struct task_struct *const p,
 	if (!subject)
 		return 0;
 
-	scoped_guard(rcu)
-	{
+	scoped_guard(rcu) {
 		is_scoped = domain_is_scoped(subject->domain,
 					     landlock_get_task_domain(p),
 					     signal_scope.scope);
@@ -422,8 +431,7 @@ static int hook_file_send_sigiotask(struct task_struct *tsk,
 	if (task_tgid(tsk) == landlock_file(fown->file)->fown_tg)
 		return 0;
 
-	scoped_guard(rcu)
-	{
+	scoped_guard(rcu) {
 		is_scoped = domain_is_scoped(subject->domain,
 					     landlock_get_task_domain(tsk),
 					     signal_scope.scope);
