@@ -2488,7 +2488,7 @@ static void ata_dev_config_sense_reporting(struct ata_device *dev)
 	}
 }
 
-static void ata_dev_config_zac(struct ata_device *dev)
+static void ata_dev_config_zoned(struct ata_device *dev)
 {
 	unsigned int err_mask;
 	u8 *identify_buf = dev->sector_buf;
@@ -2497,7 +2497,7 @@ static void ata_dev_config_zac(struct ata_device *dev)
 	dev->zac_zones_optimal_nonseq = U32_MAX;
 	dev->zac_zones_max_open = U32_MAX;
 
-	if (!ata_dev_is_zac(dev))
+	if (!ata_dev_is_zoned(dev))
 		return;
 
 	if (!ata_identify_page_supported(dev, ATA_LOG_ZONED_INFORMATION)) {
@@ -3111,7 +3111,7 @@ int ata_dev_configure(struct ata_device *dev)
 		ata_dev_config_fua(dev);
 		ata_dev_config_devslp(dev);
 		ata_dev_config_sense_reporting(dev);
-		ata_dev_config_zac(dev);
+		ata_dev_config_zoned(dev);
 		ata_dev_config_trusted(dev);
 		ata_dev_config_cpr(dev);
 		ata_dev_config_cdl(dev);
