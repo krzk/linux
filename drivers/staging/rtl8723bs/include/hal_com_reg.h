@@ -20,7 +20,7 @@
 #define REG_RSV_CTRL					0x001C
 #define REG_RF_CTRL						0x001F
 #define REG_AFE_XTAL_CTRL				0x0024
-#define REG_MAC_PHY_CTRL				0x002c /* for 92d, DMDP, SMSP, DMSP contrl */
+#define REG_MAC_PHY_CTRL				0x002c /* for 92d, DMDP, SMSP, DMSP control */
 #define REG_EFUSE_CTRL					0x0030
 #define REG_EFUSE_TEST					0x0034
 #define REG_PWR_DATA					0x0038
@@ -186,7 +186,7 @@
 
 /*  */
 /*  */
-/* 	Redifine 8192C register definition for compatibility */
+/* 	Redefine 8192C register definition for compatibility */
 /*  */
 /*  */
 #define EFUSE_CTRL				REG_EFUSE_CTRL		/*  E-Fuse Control. */
@@ -273,7 +273,7 @@
 /*  */
 /*        8192C (RCR) Receive Configuration Register	(Offset 0x608, 32 bits) */
 /*  */
-#define RCR_APPFCS				BIT(31)	/*  WMAC append FCS after pauload */
+#define RCR_APPFCS				BIT(31)	/*  WMAC append FCS after payload */
 #define RCR_APP_MIC				BIT(30)	/*  MACRX will retain the MIC at the bottom of the packet. */
 #define RCR_APP_ICV				BIT(29)	/*  MACRX will retain the ICV at the bottom of the packet. */
 #define RCR_APP_PHYST_RXFF		BIT(28)	/*  PHY Status is appended before RX packet in RXFF */

@@ -187,7 +187,6 @@ struct hal_com_data {
 	/* rf_ctrl */
 	u8 rf_chip;
 	u8 PackageType;
-	u8 NumTotalRFPath;
 
 	u8 InterfaceSel;
 	u8 framesync;
@@ -209,7 +208,6 @@ struct hal_com_data {
 	u8 EEPROMBluetoothAntIsolation;
 	u8 EEPROMBluetoothRadioShared;
 	u8 bTXPowerDataReadFromEEPORM;
-	u8 bAPKThermalMeterIgnore;
 	u8 bDisableSWChannelPlan; /*  flag of disable software change channel plan */
 
 	bool		EepromOrEfuse;
@@ -392,7 +390,6 @@ struct hal_com_data {
 };
 
 #define GET_HAL_DATA(__padapter)	((struct hal_com_data *)((__padapter)->HalData))
-#define GET_HAL_RFPATH_NUM(__padapter) (((struct hal_com_data *)((__padapter)->HalData))->NumTotalRFPath)
 #define RT_GetInterfaceSelection(_Adapter)	(GET_HAL_DATA(_Adapter)->InterfaceSel)
 
 #endif /* __HAL_DATA_H__ */
