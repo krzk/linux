@@ -8,6 +8,8 @@
 
 #include <linux/types.h>
 
+#include "intel_dp_link_caps.h"
+
 enum intel_output_format;
 enum pipe;
 enum port;
@@ -22,11 +24,11 @@ struct intel_crtc_state;
 struct intel_digital_port;
 struct intel_display;
 struct intel_dp;
+struct intel_dp_link_config;
 struct intel_encoder;
 
 struct link_config_limits {
-	int min_rate, max_rate;
-	int min_lane_count, max_lane_count;
+	struct intel_dp_link_caps_filter link_config_filter;
 	struct {
 		/* Uncompressed DSC input or link output bpp in 1 bpp units */
 		int min_bpp, max_bpp;
@@ -103,8 +105,6 @@ void intel_dp_mst_suspend(struct intel_display *display);
 void intel_dp_mst_resume(struct intel_display *display);
 int intel_dp_rate_limit_len(const int *rates, int len, int max_rate);
 int intel_dp_max_source_lane_count(struct intel_digital_port *dig_port);
-int intel_dp_max_link_rate(struct intel_dp *intel_dp);
-int intel_dp_max_lane_count(struct intel_dp *intel_dp);
 int intel_dp_config_required_rate(const struct intel_crtc_state *crtc_state);
 int intel_dp_rate_select(struct intel_dp *intel_dp, int rate);
 int intel_dp_rate_index(const int *rates, int len, int rate);
@@ -144,6 +144,9 @@ int intel_dp_dsc_compute_max_bpp(const struct intel_connector *connector,
 				 u8 dsc_max_bpc);
 int intel_dp_compute_min_compressed_bpp_x16(struct intel_connector *connector,
 					    enum intel_output_format output_format);
+bool intel_dp_get_connector_max_link_config(struct intel_connector *connector,
+					    const struct link_config_limits *limits,
+					    struct intel_dp_link_config *max_link_config);
 bool intel_dp_mode_valid_with_dsc(struct intel_connector *connector,
 				  int link_clock, int lane_count,
 				  int mode_clock, int mode_hdisplay,
