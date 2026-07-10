@@ -2219,10 +2219,11 @@ config KCOV_INSTRUMENT_ALL
 config KCOV_IRQ_AREA_SIZE
 	hex "Size of interrupt coverage collection area in words"
 	depends on KCOV
+	range 0x80 0x1000000
 	default 0x40000
 	help
-	  KCOV uses preallocated per-cpu areas to collect coverage from
-	  soft interrupts. This specifies the size of those areas in the
+	  KCOV uses preallocated areas to collect coverage from soft
+	  interrupts. This specifies the size of those areas in the
 	  number of unsigned long words.
 
 config KCOV_SELFTEST
@@ -2232,6 +2233,13 @@ config KCOV_SELFTEST
 	  Run short KCOV coverage collection selftests on boot.
 	  On test failure, causes the kernel to panic. Recommended to be
 	  enabled, ensuring critical functionality works as intended.
+
+config DEBUG_AID_FOR_SYZBOT
+       bool "Additional debug code for syzbot"
+       default n
+       select PREEMPT_RT if EXPERT && ARCH_SUPPORTS_RT && !COMPILE_TEST
+       help
+         This option is intended for testing by syzbot.
 
 menuconfig RUNTIME_TESTING_MENU
 	bool "Runtime Testing"

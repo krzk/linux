@@ -2,6 +2,7 @@
 config SECURITY_APPARMOR
 	bool "AppArmor support"
 	depends on SECURITY && NET
+	depends on !DEBUG_AID_FOR_SYZBOT
 	select AUDIT
 	select SECURITY_PATH
 	select SECURITYFS

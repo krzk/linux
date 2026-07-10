@@ -1893,6 +1893,8 @@ static int do_umount(struct mount *mnt, int flags)
 		 */
 		lock_mount_hash();
 		if (!list_empty(&mnt->mnt_mounts) || mnt_get_count(mnt) != 2) {
+			printk("%s: task=%s[%d] !list_empty(&mnt->mnt_mounts)=%d mnt_get_count(mnt)=%d\n", __func__,
+			       current->comm, current->pid, !list_empty(&mnt->mnt_mounts), mnt_get_count(mnt));
 			unlock_mount_hash();
 			return -EBUSY;
 		}
@@ -1960,6 +1962,9 @@ static int do_umount(struct mount *mnt, int flags)
 		if (!propagate_mount_busy(mnt, 2)) {
 			umount_tree(mnt, UMOUNT_PROPAGATE|UMOUNT_SYNC);
 			retval = 0;
+		} else {
+			printk("%s: task=%s[%d] propagate_mount_busy()!=0\n", __func__,
+			       current->comm, current->pid);
 		}
 	}
 out:
