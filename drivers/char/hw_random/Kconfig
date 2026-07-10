@@ -636,6 +636,17 @@ config HW_RANDOM_XILINX
 	  To compile this driver as a module, choose M here: the module
 	  will be called xilinx-trng.
 
+config HW_RANDOM_QCOM
+	tristate "Qualcomm True Random Number Generator Driver"
+	depends on ARCH_QCOM || COMPILE_TEST
+	depends on HW_RANDOM
+	help
+	  This driver provides support for the True Random Number
+	  Generator hardware found on some Qualcomm SoCs.
+
+	  To compile this driver as a module, choose M here. The
+	  module will be called qcom-rng. If unsure, say N.
+
 endif # HW_RANDOM
 
 config UML_RANDOM
