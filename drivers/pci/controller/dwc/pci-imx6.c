@@ -1318,6 +1318,18 @@ static void imx_pcie_assert_perst(struct imx_pcie *imx_pcie, bool assert)
 	}
 }
 
+static bool imx_pcie_perst_found(struct pci_host_bridge *bridge)
+{
+	struct pci_host_port *port;
+
+	list_for_each_entry(port, &bridge->ports, list) {
+		if (!list_empty(&port->perst))
+			return true;
+	}
+
+	return false;
+}
+
 static int imx_pcie_host_init(struct dw_pcie_rp *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
@@ -1330,15 +1342,12 @@ static int imx_pcie_host_init(struct dw_pcie_rp *pp)
 		/* Parse Root Port nodes if present */
 		ret = pci_host_common_parse_ports(dev, bridge);
 		if (ret) {
-			if (ret != -ENODEV) {
-				dev_err(dev, "Failed to parse Root Port nodes: %d\n", ret);
-				return ret;
-			}
+			dev_err(dev, "Failed to parse Root Port nodes: %d\n", ret);
+			return ret;
+		}
 
-			/*
-			 * Fall back to legacy binding for DT backwards
-			 * compatibility
-			 */
+		/* Fall back to legacy binding for DT backwards compatibility */
+		if (!imx_pcie_perst_found(bridge)) {
 			ret = imx_pcie_parse_legacy_binding(imx_pcie);
 			if (ret)
 				return ret;
