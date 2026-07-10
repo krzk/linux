@@ -2470,9 +2470,7 @@ void __ieee80211_tx_skb_tid_band(struct ieee80211_sub_if_data *sdata,
 static inline bool ieee80211_require_encrypted_assoc(__le16 fc,
 						     struct sta_info *sta)
 {
-	return (sta && sta->sta.epp_peer &&
-		(ieee80211_is_assoc_req(fc) || ieee80211_is_reassoc_req(fc) ||
-		 ieee80211_is_assoc_resp(fc) || ieee80211_is_reassoc_resp(fc)));
+	return sta && sta->sta.epp_peer && ieee80211_is_assoc(fc);
 }
 
 /* sta_out needs to be checked for ERR_PTR() before using */
