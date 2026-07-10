@@ -20,3 +20,5 @@ conhecimento profundo de programação de kernel para ser compreendida.
    1.Intro
    2.Process
    3.Early-stage
+   4.Coding
+   5.Posting
