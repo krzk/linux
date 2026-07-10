@@ -85,7 +85,7 @@ pub type DriverAllocImpl<T, Ctx = Registered> =
     <<T as DriverObject>::Driver as drm::Driver>::Object<Ctx>;
 
 /// GEM object functions, which must be implemented by drivers.
-pub trait DriverObject: Sync + Send + Sized {
+pub trait DriverObject: Sync + Send + Sized + 'static {
     /// Parent `Driver` for this object.
     type Driver: drm::Driver;
 

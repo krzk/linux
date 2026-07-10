@@ -102,7 +102,7 @@ macro_rules! drm_legacy_fields {
 /// what stage of the process the [`Device`] is currently in. This means for instance that a
 /// `&Device<T, Uninit>` may actually be registered with userspace, it just wasn't known to be
 /// registered at the time the reference was taken.
-pub trait DeviceContext: Sealed + Send + Sync {}
+pub trait DeviceContext: Sealed + Send + Sync + 'static {}
 
 /// The [`DeviceContext`] of a [`Device`] that was registered with userspace at some point.
 ///
