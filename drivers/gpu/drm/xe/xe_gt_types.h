@@ -145,6 +145,11 @@ struct xe_gt {
 		/** @info.has_indirect_ring_state: GT has indirect ring state support */
 		u8 has_indirect_ring_state:1;
 		/**
+		 * @info.has_uncorrectable_error_reporting: GT has uncorrectable
+		 * error reporting support
+		 */
+		u8 has_uncorrectable_error_reporting:1;
+		/**
 		 * @info.has_xe2_blt_instructions: GT supports Xe2-style MEM_SET
 		 * and MEM_COPY blitter functionality.  Note that despite the
 		 * name, some Xe1 platforms may also support this "Xe2-style"

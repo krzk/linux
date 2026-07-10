@@ -120,6 +120,7 @@ static const struct xe_graphics_desc graphics_xe2 = {
 static const struct xe_graphics_desc graphics_xe3p_lpg = {
 	XE2_GFX_FEATURES,
 	.has_indirect_ring_state = 1,
+	.has_uncorrectable_error_reporting = 1,
 	.multi_queue_engine_class_mask = BIT(XE_ENGINE_CLASS_COPY) | BIT(XE_ENGINE_CLASS_COMPUTE),
 	.num_geometry_xecore_fuse_regs = 3,
 	.num_compute_xecore_fuse_regs = 3,
@@ -129,6 +130,7 @@ static const struct xe_graphics_desc graphics_xe3p_xpc = {
 	XE2_GFX_FEATURES,
 	.has_access_counter = 0,
 	.has_indirect_ring_state = 1,
+	.has_uncorrectable_error_reporting = 1,
 	.hw_engine_mask =
 		GENMASK(XE_HW_ENGINE_BCS8, XE_HW_ENGINE_BCS1) |
 		GENMASK(XE_HW_ENGINE_CCS3, XE_HW_ENGINE_CCS0),
@@ -145,6 +147,14 @@ static const struct xe_media_desc media_xem = {
 };
 
 static const struct xe_media_desc media_xelpmp = {
+	.hw_engine_mask =
+		GENMASK(XE_HW_ENGINE_VCS7, XE_HW_ENGINE_VCS0) |
+		GENMASK(XE_HW_ENGINE_VECS3, XE_HW_ENGINE_VECS0) |
+		BIT(XE_HW_ENGINE_GSCCS0)
+};
+
+static const struct xe_media_desc media_xe3p_hpm = {
+	.has_uncorrectable_error_reporting = 1,
 	.hw_engine_mask =
 		GENMASK(XE_HW_ENGINE_VCS7, XE_HW_ENGINE_VCS0) |
 		GENMASK(XE_HW_ENGINE_VECS3, XE_HW_ENGINE_VECS0) |
@@ -186,7 +196,7 @@ static const struct xe_ip media_ips[] = {
 	{ 3000, "Xe3_LPM", &media_xelpmp },
 	{ 3002, "Xe3_LPM", &media_xelpmp },
 	{ 3500, "Xe3p_LPM", &media_xelpmp },
-	{ 3503, "Xe3p_HPM", &media_xelpmp },
+	{ 3503, "Xe3p_HPM", &media_xe3p_hpm },
 };
 
 #define MULTI_LRC_MASK \
@@ -875,6 +885,8 @@ static struct xe_gt *alloc_primary_gt(struct xe_tile *tile,
 	gt->info.type = XE_GT_TYPE_MAIN;
 	gt->info.id = tile->id * xe->info.max_gt_per_tile;
 	gt->info.has_indirect_ring_state = graphics_desc->has_indirect_ring_state;
+	gt->info.has_uncorrectable_error_reporting =
+		graphics_desc->has_uncorrectable_error_reporting;
 	gt->info.multi_queue_engine_class_mask = graphics_desc->multi_queue_engine_class_mask;
 	gt->info.engine_mask = graphics_desc->hw_engine_mask;
 	gt->info.num_geometry_xecore_fuse_regs = graphics_desc->num_geometry_xecore_fuse_regs;
@@ -920,6 +932,7 @@ static struct xe_gt *alloc_media_gt(struct xe_tile *tile,
 	gt->info.type = XE_GT_TYPE_MEDIA;
 	gt->info.id = tile->id * xe->info.max_gt_per_tile + 1;
 	gt->info.has_indirect_ring_state = media_desc->has_indirect_ring_state;
+	gt->info.has_uncorrectable_error_reporting = media_desc->has_uncorrectable_error_reporting;
 	gt->info.engine_mask = media_desc->hw_engine_mask;
 
 	return gt;

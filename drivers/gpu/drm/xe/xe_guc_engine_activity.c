@@ -473,7 +473,7 @@ void xe_guc_engine_activity_enable_stats(struct xe_guc *guc)
 
 	ret = enable_engine_activity_stats(guc);
 	if (ret)
-		xe_gt_err(guc_to_gt(guc), "failed to enable activity stats%d\n", ret);
+		xe_gt_err(guc_to_gt(guc), "failed to enable activity stats: %pe\n", ERR_PTR(ret));
 	else
 		engine_activity_set_cpu_ts(guc, 0);
 }
