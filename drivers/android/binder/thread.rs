@@ -673,9 +673,9 @@ impl Thread {
                 let strong = obj.hdr.type_ == BINDER_TYPE_BINDER;
                 // SAFETY: `binder` is a `binder_uintptr_t`; any bit pattern is a valid
                 // representation.
-                let ptr = unsafe { obj.__bindgen_anon_1.binder } as _;
-                let cookie = obj.cookie as _;
-                let flags = obj.flags as _;
+                let ptr = unsafe { obj.__bindgen_anon_1.binder };
+                let cookie = obj.cookie;
+                let flags = obj.flags;
                 let node = self
                     .process
                     .as_arc_borrow()
@@ -686,7 +686,7 @@ impl Thread {
             BinderObjectRef::Handle(obj) => {
                 let strong = obj.hdr.type_ == BINDER_TYPE_HANDLE;
                 // SAFETY: `handle` is a `u32`; any bit pattern is a valid representation.
-                let handle = unsafe { obj.__bindgen_anon_1.handle } as _;
+                let handle = unsafe { obj.__bindgen_anon_1.handle };
                 let node = self.process.get_node_from_handle(handle, strong)?;
                 security::binder_transfer_binder(&self.process.cred, &view.alloc.process.cred)?;
                 view.transfer_binder_object(offset, obj, strong, node)?;
@@ -743,7 +743,7 @@ impl Thread {
                     ScatterGatherEntry {
                         obj_index,
                         offset: alloc_offset,
-                        sender_uaddr: obj.buffer as _,
+                        sender_uaddr: obj.buffer as usize,
                         length: obj_length,
                         pointer_fixups: KVec::new(),
                         fixup_min_offset: 0,
@@ -850,7 +850,7 @@ impl Thread {
                     .ok_or(EINVAL)?;
 
                 let mut fda_bytes = KVec::new();
-                UserSlice::new(UserPtr::from_addr(fda_uaddr as _), fds_len)
+                UserSlice::new(UserPtr::from_addr(fda_uaddr as usize), fds_len)
                     .read_all(&mut fda_bytes, GFP_KERNEL)?;
 
                 if fds_len != fda_bytes.len() {
@@ -1392,7 +1392,7 @@ impl Thread {
         let write_start = req.write_buffer.wrapping_add(req.write_consumed);
         let write_len = req.write_size.saturating_sub(req.write_consumed);
         let mut reader =
-            UserSlice::new(UserPtr::from_addr(write_start as _), write_len as _).reader();
+            UserSlice::new(UserPtr::from_addr(write_start as usize), write_len as usize).reader();
 
         while reader.len() >= size_of::<u32>() && self.inner.lock().return_work.is_unused() {
             let before = reader.len();
@@ -1463,7 +1463,7 @@ impl Thread {
         let read_start = req.read_buffer.wrapping_add(req.read_consumed);
         let read_len = req.read_size.saturating_sub(req.read_consumed);
         let mut writer = BinderReturnWriter::new(
-            UserSlice::new(UserPtr::from_addr(read_start as _), read_len as _).writer(),
+            UserSlice::new(UserPtr::from_addr(read_start as usize), read_len as usize).writer(),
             self,
         );
         let (in_pool, has_transaction, thread_todo, use_proc_queue) = {
@@ -1527,9 +1527,11 @@ impl Thread {
 
         // Write BR_SPAWN_LOOPER if the process needs more threads for its pool.
         if has_noop_placeholder && in_pool && self.process.needs_thread() {
-            let mut writer =
-                UserSlice::new(UserPtr::from_addr(req.read_buffer as _), req.read_size as _)
-                    .writer();
+            let mut writer = UserSlice::new(
+                UserPtr::from_addr(req.read_buffer as usize),
+                req.read_size as usize,
+            )
+            .writer();
             writer.write(&BR_SPAWN_LOOPER)?;
         }
         Ok(())

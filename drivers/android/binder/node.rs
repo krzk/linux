@@ -9,6 +9,7 @@ use kernel::{
     seq_print,
     sync::lock::{spinlock::SpinLockBackend, Guard},
     sync::{Arc, LockedBy, SpinLock},
+    uapi,
 };
 
 use crate::{
@@ -21,6 +22,7 @@ use crate::{
 };
 
 use core::mem;
+use core::ptr;
 
 mod wrapper;
 pub(crate) use self::wrapper::CritIncrWrapper;
@@ -321,7 +323,7 @@ impl Node {
     /// An id that is unique across all binder nodes on the system. Used as the key in the
     /// `by_node` map.
     pub(crate) fn global_id(&self) -> usize {
-        self as *const Node as usize
+        ptr::from_ref(self).addr()
     }
 
     pub(crate) fn get_id(&self) -> (u64, u64) {
@@ -464,7 +466,7 @@ impl Node {
         owner_inner: &mut ProcessInner,
     ) -> Option<DLArc<dyn DeliverToRead>> {
         match self.incr_refcount_allow_zero2one(strong, owner_inner) {
-            Ok(Some(node)) => Some(node as _),
+            Ok(Some(node)) => Some(node as DLArc<dyn DeliverToRead>),
             Ok(None) => None,
             Err(CouldNotDeliverCriticalIncrement) => {
                 assert!(strong);
@@ -489,8 +491,8 @@ impl Node {
         guard: &Guard<'_, ProcessInner, SpinLockBackend>,
     ) {
         let inner = self.inner.access(guard);
-        out.strong_count = inner.strong.count as _;
-        out.weak_count = inner.weak.count as _;
+        out.strong_count = inner.strong.count as u32;
+        out.weak_count = inner.weak.count as u32;
     }
 
     pub(crate) fn populate_debug_info(
@@ -498,8 +500,8 @@ impl Node {
         out: &mut BinderNodeDebugInfo,
         guard: &Guard<'_, ProcessInner, SpinLockBackend>,
     ) {
-        out.ptr = self.ptr as _;
-        out.cookie = self.cookie as _;
+        out.ptr = self.ptr as uapi::binder_uintptr_t;
+        out.cookie = self.cookie as uapi::binder_uintptr_t;
         let inner = self.inner.access(guard);
         if inner.strong.has_count {
             out.has_strong_ref = 1;

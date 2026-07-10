@@ -127,7 +127,7 @@ impl DeliverToRead for FreezeMessage {
             }
 
             let mut state_info = BinderFrozenStateInfo::default();
-            state_info.is_frozen = is_frozen as u32;
+            state_info.is_frozen = u32::from(is_frozen);
             state_info.cookie = freeze.cookie.0;
             freeze.is_pending = true;
             freeze.last_is_frozen = Some(is_frozen);

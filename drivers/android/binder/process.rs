@@ -32,7 +32,7 @@ use kernel::{
         lock::{spinlock::SpinLockBackend, Guard},
         Arc, ArcBorrow, CondVar, CondVarTimeoutResult, Mutex, SpinLock, UniqueArc,
     },
-    task::Task,
+    task::{Pid, Task},
     uaccess::{UserSlice, UserSliceReader},
     uapi,
     workqueue::{self, Work},
@@ -259,7 +259,7 @@ impl ProcessInner {
         let push = match wrapper {
             None => node
                 .incr_refcount_allow_zero2one(strong, self)?
-                .map(|node| node as _),
+                .map(|node| node as DLArc<dyn DeliverToRead>),
             Some(wrapper) => node.incr_refcount_allow_zero2one_with_wrapper(strong, wrapper, self),
         };
         if let Some(node) = push {
@@ -741,7 +741,7 @@ impl Process {
         } else {
             (0, 0, 0)
         };
-        let node_ref = self.get_node(ptr, cookie, flags as _, true, thread)?;
+        let node_ref = self.get_node(ptr, cookie, flags, true, thread)?;
         let node = node_ref.node.clone();
         self.ctx.set_manager_node(node_ref)?;
         self.inner.lock().is_manager = true;
@@ -1536,13 +1536,13 @@ fn get_frozen_status(data: UserSlice) -> Result {
 
     for ctx in crate::context::get_all_contexts()? {
         ctx.for_each_proc(|proc| {
-            if proc.task.pid() == info.pid as _ {
+            if proc.task.pid() == info.pid as Pid {
                 found = true;
                 let inner = proc.inner.lock();
                 let txns_pending = inner.txns_pending_locked();
-                info.async_recv |= inner.async_recv as u32;
-                info.sync_recv |= inner.sync_recv as u32;
-                info.sync_recv |= (txns_pending as u32) << 1;
+                info.async_recv |= u32::from(inner.async_recv);
+                info.sync_recv |= u32::from(inner.sync_recv);
+                info.sync_recv |= u32::from(txns_pending) << 1;
             }
         });
     }
