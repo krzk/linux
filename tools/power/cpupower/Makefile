@@ -131,7 +131,7 @@ override CFLAGS += -DVERSION=\"$(VERSION)\" -DPACKAGE=\"$(PACKAGE)\" \
 
 UTIL_OBJS =  utils/helpers/amd.o utils/helpers/msr.o \
 	utils/helpers/sysfs.o utils/helpers/misc.o utils/helpers/cpuid.o \
-	utils/helpers/pci.o utils/helpers/bitmask.o \
+	utils/helpers/pci.o utils/helpers/bitmask.o utils/helpers/cppc.o \
 	utils/idle_monitor/nhm_idle.o utils/idle_monitor/snb_idle.o \
 	utils/idle_monitor/hsw_ext_idle.o \
 	utils/idle_monitor/amd_fam14h_idle.o utils/idle_monitor/cpuidle_sysfs.o \
