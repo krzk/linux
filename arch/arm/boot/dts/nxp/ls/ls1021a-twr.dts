@@ -190,7 +190,7 @@
 };
 
 &esdhc {
-        status = "okay";
+	status = "okay";
 };
 
 &qspi {
