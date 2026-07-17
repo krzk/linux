@@ -1108,6 +1108,10 @@ intel_primary_plane_create(struct intel_display *display, enum pipe pipe)
 						   DRM_MODE_ROTATE_0,
 						   supported_rotations);
 
+	if (display->platform.valleyview || display->platform.cherryview)
+		drm_plane_create_blend_mode_property(&plane->base,
+						     BIT(DRM_MODE_BLEND_PREMULTI));
+
 	zpos = 0;
 	drm_plane_create_zpos_immutable_property(&plane->base, zpos);
 

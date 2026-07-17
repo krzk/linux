@@ -45,6 +45,7 @@
 #include <drm/drm_probe_helper.h>
 #include <drm/drm_rect.h>
 #include <drm/drm_vblank.h>
+#include <drm/intel/step.h>
 
 #include "g4x_dp.h"
 #include "g4x_hdmi.h"
@@ -2737,6 +2738,10 @@ void intel_set_transcoder_timings(const struct intel_crtc_state *crtc_state,
 		       HSYNC_START(adjusted_mode->crtc_hsync_start - 1) |
 		       HSYNC_END(adjusted_mode->crtc_hsync_end - 1));
 
+	if (display->platform.novalake &&
+	    IS_DISPLAY_STEP(display, STEP_A0, STEP_C0))
+		crtc_vtotal = 1;
+
 	intel_de_write(display, TRANS_VTOTAL(display, transcoder),
 		       VACTIVE(crtc_vdisplay - 1) |
 		       VTOTAL(crtc_vtotal - 1));
@@ -2830,6 +2835,10 @@ void intel_set_transcoder_timings_lrr(const struct intel_crtc_state *crtc_state,
 	 * The double buffer latch point for TRANS_VTOTAL
 	 * is the transcoder's undelayed vblank.
 	 */
+	if (display->platform.novalake &&
+	    IS_DISPLAY_STEP(display, STEP_A0, STEP_C0))
+		crtc_vtotal = 1;
+
 	intel_de_write(display, TRANS_VTOTAL(display, transcoder),
 		       VACTIVE(crtc_vdisplay - 1) |
 		       VTOTAL(crtc_vtotal - 1));
@@ -3758,9 +3767,9 @@ static void enabled_joiner_pipes(struct intel_display *display,
 	}
 }
 
-static u8 hsw_panel_transcoders(struct intel_display *display)
+static u16 hsw_panel_transcoders(struct intel_display *display)
 {
-	u8 panel_transcoder_mask = BIT(TRANSCODER_EDP);
+	u16 panel_transcoder_mask = BIT(TRANSCODER_EDP);
 
 	if (DISPLAY_VER(display) >= 11)
 		panel_transcoder_mask |= BIT(TRANSCODER_DSI_0) | BIT(TRANSCODER_DSI_1);
@@ -3768,13 +3777,13 @@ static u8 hsw_panel_transcoders(struct intel_display *display)
 	return panel_transcoder_mask;
 }
 
-static u8 hsw_enabled_transcoders(struct intel_crtc *crtc)
+static u16 hsw_enabled_transcoders(struct intel_crtc *crtc)
 {
 	struct intel_display *display = to_intel_display(crtc);
-	u8 panel_transcoder_mask = hsw_panel_transcoders(display);
+	u16 panel_transcoder_mask = hsw_panel_transcoders(display);
 	enum transcoder cpu_transcoder;
 	u8 primary_pipe, secondary_pipes;
-	u8 enabled_transcoders = 0;
+	u16 enabled_transcoders = 0;
 
 	/*
 	 * XXX: Do intel_display_power_get_if_enabled before reading this (for
@@ -3835,18 +3844,18 @@ static u8 hsw_enabled_transcoders(struct intel_crtc *crtc)
 	return enabled_transcoders;
 }
 
-static bool has_edp_transcoders(u8 enabled_transcoders)
+static bool has_edp_transcoders(u16 enabled_transcoders)
 {
 	return enabled_transcoders & BIT(TRANSCODER_EDP);
 }
 
-static bool has_dsi_transcoders(u8 enabled_transcoders)
+static bool has_dsi_transcoders(u16 enabled_transcoders)
 {
 	return enabled_transcoders & (BIT(TRANSCODER_DSI_0) |
 				      BIT(TRANSCODER_DSI_1));
 }
 
-static bool has_pipe_transcoders(u8 enabled_transcoders)
+static bool has_pipe_transcoders(u16 enabled_transcoders)
 {
 	return enabled_transcoders & ~(BIT(TRANSCODER_EDP) |
 				       BIT(TRANSCODER_DSI_0) |
@@ -3854,7 +3863,7 @@ static bool has_pipe_transcoders(u8 enabled_transcoders)
 }
 
 static void assert_enabled_transcoders(struct intel_display *display,
-				       u8 enabled_transcoders)
+				       u16 enabled_transcoders)
 {
 	/* Only one type of transcoder please */
 	drm_WARN_ON(display->drm,
@@ -5871,7 +5880,7 @@ static int intel_atomic_check_crtcs(struct intel_atomic_state *state)
 }
 
 static bool intel_cpu_transcoders_need_modeset(struct intel_atomic_state *state,
-					       u8 transcoders)
+					       u16 transcoders)
 {
 	const struct intel_crtc_state *new_crtc_state;
 	struct intel_crtc *crtc;
@@ -6507,7 +6516,7 @@ int intel_atomic_check(struct drm_device *dev,
 		}
 
 		if (is_trans_port_sync_mode(new_crtc_state)) {
-			u8 trans = new_crtc_state->sync_mode_slaves_mask;
+			u16 trans = new_crtc_state->sync_mode_slaves_mask;
 
 			if (new_crtc_state->master_transcoder != INVALID_TRANSCODER)
 				trans |= BIT(new_crtc_state->master_transcoder);
