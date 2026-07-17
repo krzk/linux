@@ -619,7 +619,7 @@ static const struct drm_bridge_funcs lt9211_funcs = {
 	.atomic_duplicate_state = drm_atomic_helper_bridge_duplicate_state,
 	.atomic_destroy_state	= drm_atomic_helper_bridge_destroy_state,
 	.atomic_get_input_bus_fmts = lt9211_atomic_get_input_bus_fmts,
-	.atomic_reset		= drm_atomic_helper_bridge_reset,
+	.atomic_create_state		= drm_atomic_helper_bridge_create_state,
 };
 
 static int lt9211_parse_dt(struct lt9211 *ctx)
