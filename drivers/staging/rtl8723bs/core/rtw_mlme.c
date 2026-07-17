@@ -51,8 +51,8 @@ int	rtw_init_mlme_priv(struct adapter *padapter)
 
 	pmlmepriv->pscanned = NULL;
 	pmlmepriv->fw_state = WIFI_STATION_STATE; /*  Must sync with rtw_wdev_alloc() */
-	pmlmepriv->cur_network.network.infrastructure_mode = Ndis802_11AutoUnknown;
-	pmlmepriv->scan_mode = SCAN_ACTIVE;/*  1: active, 0: passive. Maybe someday we should rename this varable to "active_mode" (Jeff) */
+	pmlmepriv->cur_network.network.infrastructure_mode = NL80211_IFTYPE_UNSPECIFIED;
+	pmlmepriv->scan_mode = SCAN_ACTIVE;/*  1: active, 0: passive. Maybe someday we should rename this variable to "active_mode" (Jeff) */
 
 	spin_lock_init(&pmlmepriv->lock);
 	INIT_LIST_HEAD(&pmlmepriv->free_bss_pool.queue);
@@ -265,7 +265,7 @@ void rtw_free_network_queue(struct adapter *padapter, u8 isfreeall)
 bool rtw_if_up(struct adapter *padapter)
 {
 	if (padapter->bDriverStopped || padapter->bSurpriseRemoved ||
-		!check_fwstate(&padapter->mlmepriv, _FW_LINKED))
+	    !check_fwstate(&padapter->mlmepriv, _FW_LINKED))
 		return false;
 
 	return true;
@@ -330,10 +330,10 @@ bool rtw_is_same_ibss(struct adapter *adapter, struct wlan_network *pnetwork)
 {
 	struct security_priv *psecuritypriv = &adapter->securitypriv;
 
-	if ((psecuritypriv->dot11PrivacyAlgrthm != _NO_PRIVACY_) &&
-		    (pnetwork->network.privacy == 0))
+	if ((psecuritypriv->dot11_privacy_algrthm != _NO_PRIVACY_) &&
+	    (pnetwork->network.privacy == 0))
 		return false;
-	else if ((psecuritypriv->dot11PrivacyAlgrthm == _NO_PRIVACY_) &&
+	else if ((psecuritypriv->dot11_privacy_algrthm == _NO_PRIVACY_) &&
 		 (pnetwork->network.privacy == 1))
 		return false;
 
@@ -406,7 +406,7 @@ struct	wlan_network	*rtw_get_oldest_wlan_network(struct __queue *scanned_queue)
 }
 
 void update_network(struct wlan_bssid_ex *dst, struct wlan_bssid_ex *src,
-	struct adapter *padapter, bool update_ie)
+		    struct adapter *padapter, bool update_ie)
 {
 	long rssi_ori = dst->rssi;
 
@@ -631,11 +631,6 @@ static bool rtw_is_desired_network(struct adapter *adapter, struct wlan_network 
 	}
 
 	return bselected;
-}
-
-/* TODO: Perry : For Power Management */
-void rtw_atimdone_event_callback(struct adapter	*adapter, u8 *pbuf)
-{
 }
 
 void rtw_survey_event_callback(struct adapter	*adapter, u8 *pbuf)
@@ -900,7 +895,6 @@ void rtw_indicate_disconnect(struct adapter *padapter)
 
 		rtw_cfg80211_indicate_disconnect(padapter);
 
-		/* modify for CONFIG_IEEE80211W, none 11w also can use the same command */
 		rtw_reset_securitypriv_cmd(padapter);
 
 		/* set ips_deny_time to avoid enter IPS before LPS leave */
@@ -978,13 +972,13 @@ static struct sta_info *rtw_joinbss_update_stainfo(struct adapter *padapter, str
 		rtw_hal_set_odm_var(padapter, HAL_ODM_STA_INFO, psta, true);
 
 		/* security related */
-		if (padapter->securitypriv.dot11AuthAlgrthm == dot11AuthAlgrthm_8021X) {
+		if (padapter->securitypriv.dot11_auth_algrthm == dot11AuthAlgrthm_8021X) {
 			padapter->securitypriv.binstallGrpkey = false;
 			padapter->securitypriv.busetkipkey = false;
 			padapter->securitypriv.bgrpkey_handshake = false;
 
 			psta->ieee8021x_blocked = true;
-			psta->dot118021XPrivacy = padapter->securitypriv.dot11PrivacyAlgrthm;
+			psta->dot118021XPrivacy = padapter->securitypriv.dot11_privacy_algrthm;
 
 			memset((u8 *)&psta->dot118021x_UncstKey, 0, sizeof(union Keytype));
 
@@ -1056,7 +1050,7 @@ static void rtw_joinbss_update_network(struct adapter *padapter, struct wlan_net
 
 	/* update fw_state will clr _FW_UNDER_LINKING here indirectly */
 	switch (pnetwork->network.infrastructure_mode) {
-	case Ndis802_11Infrastructure:
+	case NL80211_IFTYPE_STATION:
 
 			if (pmlmepriv->fw_state & WIFI_UNDER_WPS)
 				pmlmepriv->fw_state = WIFI_STATION_STATE | WIFI_UNDER_WPS;
@@ -1064,7 +1058,7 @@ static void rtw_joinbss_update_network(struct adapter *padapter, struct wlan_net
 				pmlmepriv->fw_state = WIFI_STATION_STATE;
 
 			break;
-	case Ndis802_11IBSS:
+	case NL80211_IFTYPE_ADHOC:
 			pmlmepriv->fw_state = WIFI_ADHOC_STATE;
 			break;
 	default:
@@ -1087,12 +1081,11 @@ void rtw_reset_securitypriv(struct adapter *adapter)
 	u8 backupPMKIDIndex = 0;
 	u8 backupTKIPCountermeasure = 0x00;
 	u32 backupTKIPcountermeasure_time = 0;
-	/*  add for CONFIG_IEEE80211W, none 11w also can use */
 	struct mlme_ext_priv *pmlmeext = &adapter->mlmeextpriv;
 
 	spin_lock_bh(&adapter->security_key_mutex);
 
-	if (adapter->securitypriv.dot11AuthAlgrthm == dot11AuthAlgrthm_8021X) {
+	if (adapter->securitypriv.dot11_auth_algrthm == dot11AuthAlgrthm_8021X) {
 		/* 802.1x */
 		/*  Added by Albert 2009/02/18 */
 		/*  We have to backup the PMK information for WiFi PMK Caching test item. */
@@ -1126,8 +1119,8 @@ void rtw_reset_securitypriv(struct adapter *adapter)
 		/*  */
 		struct security_priv *psec_priv = &adapter->securitypriv;
 
-		psec_priv->dot11AuthAlgrthm = dot11AuthAlgrthm_Open;  /* open system */
-		psec_priv->dot11PrivacyAlgrthm = _NO_PRIVACY_;
+		psec_priv->dot11_auth_algrthm = dot11AuthAlgrthm_Open;  /* open system */
+		psec_priv->dot11_privacy_algrthm = _NO_PRIVACY_;
 		psec_priv->dot11PrivacyKeyIndex = 0;
 
 		psec_priv->dot118021XGrpPrivacy = _NO_PRIVACY_;
@@ -1137,7 +1130,6 @@ void rtw_reset_securitypriv(struct adapter *adapter)
 		psec_priv->ndisencryptstatus = Ndis802_11WEPDisabled;
 		/*  */
 	}
-	/*  add for CONFIG_IEEE80211W, none 11w also can use */
 	spin_unlock_bh(&adapter->security_key_mutex);
 }
 
@@ -1342,8 +1334,8 @@ void rtw_stassoc_event_callback(struct adapter *adapter, u8 *pbuf)
 
 	rtw_sta_media_status_rpt(adapter, psta, 1);
 
-	if (adapter->securitypriv.dot11AuthAlgrthm == dot11AuthAlgrthm_8021X)
-		psta->dot118021XPrivacy = adapter->securitypriv.dot11PrivacyAlgrthm;
+	if (adapter->securitypriv.dot11_auth_algrthm == dot11AuthAlgrthm_8021X)
+		psta->dot118021XPrivacy = adapter->securitypriv.dot11_privacy_algrthm;
 
 	psta->ieee8021x_blocked = false;
 
@@ -1444,7 +1436,7 @@ void rtw_stadel_event_callback(struct adapter *adapter, u8 *pbuf)
 	}
 
 	if (check_fwstate(pmlmepriv, WIFI_ADHOC_MASTER_STATE) ||
-	      check_fwstate(pmlmepriv, WIFI_ADHOC_STATE)) {
+	    check_fwstate(pmlmepriv, WIFI_ADHOC_STATE)) {
 		rtw_free_stainfo(adapter,  psta);
 
 		if (adapter->stapriv.asoc_sta_count == 1) {/* a sta + bc/mc_stainfo (not Ibss_stainfo) */
@@ -1865,9 +1857,9 @@ signed int rtw_set_auth(struct adapter *adapter, struct security_priv *psecurity
 		goto exit;
 	}
 
-	psetauthparm->mode = (unsigned char)psecuritypriv->dot11AuthAlgrthm;
+	psetauthparm->mode = (unsigned char)psecuritypriv->dot11_auth_algrthm;
 
-	pcmd->cmdcode = _SetAuth_CMD_;
+	pcmd->cmdcode = SET_AUTH_CMD;
 	pcmd->parmbuf = (unsigned char *)psetauthparm;
 	pcmd->cmdsz =  (sizeof(struct setauth_parm));
 	pcmd->rsp = NULL;
@@ -1895,10 +1887,10 @@ signed int rtw_set_key(struct adapter *adapter, struct security_priv *psecurityp
 		goto exit;
 	}
 
-	if (psecuritypriv->dot11AuthAlgrthm == dot11AuthAlgrthm_8021X)
+	if (psecuritypriv->dot11_auth_algrthm == dot11AuthAlgrthm_8021X)
 		psetkeyparm->algorithm = (unsigned char)psecuritypriv->dot118021XGrpPrivacy;
 	else
-		psetkeyparm->algorithm = (u8)psecuritypriv->dot11PrivacyAlgrthm;
+		psetkeyparm->algorithm = (u8)psecuritypriv->dot11_privacy_algrthm;
 
 	psetkeyparm->keyid = (u8)keyid;/* 0~3 */
 	psetkeyparm->set_tx = set_tx;
@@ -1938,7 +1930,7 @@ signed int rtw_set_key(struct adapter *adapter, struct security_priv *psecurityp
 			goto exit;
 		}
 
-		pcmd->cmdcode = _SetKey_CMD_;
+		pcmd->cmdcode = SET_KEY_CMD;
 		pcmd->parmbuf = (u8 *)psetkeyparm;
 		pcmd->cmdsz =  (sizeof(struct setkey_parm));
 		pcmd->rsp = NULL;
@@ -2003,7 +1995,7 @@ static int SecIsInPMKIDList(struct adapter *Adapter, u8 *bssid)
 
 	for (i = 0; i < NUM_PMKID_CACHE; i++)
 		if ((p->PMKIDList[i].bUsed) &&
-				(!memcmp(p->PMKIDList[i].Bssid, bssid, ETH_ALEN)))
+		    (!memcmp(p->PMKIDList[i].Bssid, bssid, ETH_ALEN)))
 			return i;
 	return -1;
 }
@@ -2128,29 +2120,13 @@ void rtw_update_registrypriv_dev_network(struct adapter *adapter)
 	struct	security_priv *psecuritypriv = &adapter->securitypriv;
 	struct	wlan_network	*cur_network = &adapter->mlmepriv.cur_network;
 
-	pdev_network->privacy = (psecuritypriv->dot11PrivacyAlgrthm > 0 ? 1 : 0) ; /*  adhoc no 802.1x */
+	pdev_network->privacy = (psecuritypriv->dot11_privacy_algrthm > 0 ? 1 : 0) ; /*  adhoc no 802.1x */
 
 	pdev_network->rssi = 0;
 
-	switch (pregistrypriv->wireless_mode) {
-	case WIRELESS_11B:
-		pdev_network->network_type_in_use = (Ndis802_11DS);
-		break;
-	case WIRELESS_11G:
-	case WIRELESS_11BG:
-	case WIRELESS_11_24N:
-	case WIRELESS_11G_24N:
-	case WIRELESS_11BG_24N:
-		pdev_network->network_type_in_use = (Ndis802_11OFDM24);
-		break;
-	default:
-		/*  TODO */
-		break;
-	}
-
 	pdev_network->configuration.ds_config = (pregistrypriv->channel);
 
-	if (cur_network->network.infrastructure_mode == Ndis802_11IBSS)
+	if (cur_network->network.infrastructure_mode == NL80211_IFTYPE_ADHOC)
 		pdev_network->configuration.atim_window = (0);
 
 	pdev_network->infrastructure_mode = (cur_network->network.infrastructure_mode);
@@ -2369,7 +2345,7 @@ unsigned int rtw_restructure_ht_ie(struct adapter *padapter, u8 *in_ie, u8 *out_
 
 	ht_capie.ampdu_params_info = (max_rx_ampdu_factor & 0x03);
 
-	if (padapter->securitypriv.dot11PrivacyAlgrthm == _AES_)
+	if (padapter->securitypriv.dot11_privacy_algrthm == _AES_)
 		ht_capie.ampdu_params_info |= (IEEE80211_HT_CAP_AMPDU_DENSITY & (0x07 << 2));
 	else
 		ht_capie.ampdu_params_info |= (IEEE80211_HT_CAP_AMPDU_DENSITY & 0x00);
