@@ -383,27 +383,6 @@ static void xe_migrate_suballoc_manager_init(struct xe_migrate *m, u32 map_ofs)
 				  NUM_VMUSA_UNIT_PER_PAGE, 0);
 }
 
-/*
- * Including the reserved copy engine is required to avoid deadlocks due to
- * migrate jobs servicing the faults gets stuck behind the job that faulted.
- */
-static u32 xe_migrate_usm_logical_mask(struct xe_gt *gt)
-{
-	u32 logical_mask = 0;
-	struct xe_hw_engine *hwe;
-	enum xe_hw_engine_id id;
-
-	for_each_hw_engine(hwe, gt, id) {
-		if (hwe->class != XE_ENGINE_CLASS_COPY)
-			continue;
-
-		if (xe_gt_is_usm_hwe(gt, hwe))
-			logical_mask |= BIT(hwe->logical_instance);
-	}
-
-	return logical_mask;
-}
-
 static bool xe_migrate_needs_ccs_emit(struct xe_device *xe)
 {
 	return xe_device_has_flat_ccs(xe) && !(GRAPHICS_VER(xe) >= 20 && IS_DGFX(xe));
@@ -479,13 +458,10 @@ int xe_migrate_init(struct xe_migrate *m)
 		goto err_out;
 
 	if (xe->info.has_usm) {
-		struct xe_hw_engine *hwe = xe_gt_hw_engine(primary_gt,
-							   XE_ENGINE_CLASS_COPY,
-							   primary_gt->usm.reserved_bcs_instance,
-							   false);
-		u32 logical_mask = xe_migrate_usm_logical_mask(primary_gt);
+		struct xe_hw_engine *hwe0 = primary_gt->usm.paging_hwe0;
+		u32 logical_mask = primary_gt->usm.paging_logical_mask;
 
-		if (!hwe || !logical_mask) {
+		if (!hwe0 || !logical_mask) {
 			err = -EINVAL;
 			goto err_out;
 		}
@@ -494,7 +470,7 @@ int xe_migrate_init(struct xe_migrate *m)
 		 * XXX: Currently only reserving 1 (likely slow) BCS instance on
 		 * PVC, may want to revisit if performance is needed.
 		 */
-		m->q = xe_exec_queue_create(xe, vm, logical_mask, 1, hwe,
+		m->q = xe_exec_queue_create(xe, vm, logical_mask, 1, hwe0,
 					    EXEC_QUEUE_FLAG_KERNEL |
 					    EXEC_QUEUE_FLAG_PERMANENT |
 					    EXEC_QUEUE_FLAG_HIGH_PRIORITY |
@@ -1166,6 +1142,8 @@ static int emit_flush_invalidate(u32 *dw, int i, u32 flags)
  * @tile: Tile whose migration context to be used.
  * @q : Execution to be used along with migration context.
  * @src_bo: The buffer object @src is currently bound to.
+ * @new_mem: The (not yet committed) destination resource @src_bo is being
+ *          moved into; src_bo->ttm.resource is still the old resource.
  * @read_write : Creates BB commands for CCS read/write.
  *
  * Creates batch buffer instructions to copy CCS metadata from CCS pool to
@@ -1177,12 +1155,13 @@ static int emit_flush_invalidate(u32 *dw, int i, u32 flags)
  */
 int xe_migrate_ccs_rw_copy(struct xe_tile *tile, struct xe_exec_queue *q,
 			   struct xe_bo *src_bo,
+			   struct ttm_resource *new_mem,
 			   enum xe_sriov_vf_ccs_rw_ctxs read_write)
 
 {
 	bool src_is_pltt = read_write == XE_SRIOV_VF_CCS_READ_CTX;
 	bool dst_is_pltt = read_write == XE_SRIOV_VF_CCS_WRITE_CTX;
-	struct ttm_resource *src = src_bo->ttm.resource;
+	struct ttm_resource *src = new_mem;
 	struct xe_migrate *m = tile->migrate;
 	struct xe_gt *gt = tile->primary_gt;
 	u32 batch_size, batch_size_allocated;
