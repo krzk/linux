@@ -9,6 +9,7 @@ use kernel::{
     seq_print,
     sync::lock::{spinlock::SpinLockBackend, Guard},
     sync::{Arc, LockedBy, SpinLock},
+    uapi,
 };
 
 use crate::{
@@ -21,6 +22,7 @@ use crate::{
 };
 
 use core::mem;
+use core::ptr;
 
 mod wrapper;
 pub(crate) use self::wrapper::CritIncrWrapper;
@@ -321,7 +323,7 @@ impl Node {
     /// An id that is unique across all binder nodes on the system. Used as the key in the
     /// `by_node` map.
     pub(crate) fn global_id(&self) -> usize {
-        self as *const Node as usize
+        ptr::from_ref(self).addr()
     }
 
     pub(crate) fn get_id(&self) -> (u64, u64) {
@@ -464,7 +466,7 @@ impl Node {
         owner_inner: &mut ProcessInner,
     ) -> Option<DLArc<dyn DeliverToRead>> {
         match self.incr_refcount_allow_zero2one(strong, owner_inner) {
-            Ok(Some(node)) => Some(node as _),
+            Ok(Some(node)) => Some(node as DLArc<dyn DeliverToRead>),
             Ok(None) => None,
             Err(CouldNotDeliverCriticalIncrement) => {
                 assert!(strong);
@@ -489,8 +491,8 @@ impl Node {
         guard: &Guard<'_, ProcessInner, SpinLockBackend>,
     ) {
         let inner = self.inner.access(guard);
-        out.strong_count = inner.strong.count as _;
-        out.weak_count = inner.weak.count as _;
+        out.strong_count = inner.strong.count as u32;
+        out.weak_count = inner.weak.count as u32;
     }
 
     pub(crate) fn populate_debug_info(
@@ -498,8 +500,8 @@ impl Node {
         out: &mut BinderNodeDebugInfo,
         guard: &Guard<'_, ProcessInner, SpinLockBackend>,
     ) {
-        out.ptr = self.ptr as _;
-        out.cookie = self.cookie as _;
+        out.ptr = self.ptr as uapi::binder_uintptr_t;
+        out.cookie = self.cookie as uapi::binder_uintptr_t;
         let inner = self.inner.access(guard);
         if inner.strong.has_count {
             out.has_strong_ref = 1;
@@ -657,29 +659,26 @@ impl Node {
     pub(crate) fn add_freeze_listener(
         &self,
         process: &Arc<Process>,
-        flags: kernel::alloc::Flags,
-    ) -> Result {
-        let mut vec_alloc = KVVec::<Arc<Process>>::new();
-        loop {
-            let mut guard = self.owner.inner.lock();
-            // Do not check for `guard.dead`. The `dead` flag that matters here is the owner of the
-            // listener, no the target.
-            let inner = self.inner.access_mut(&mut guard);
-            let len = inner.freeze_list.len();
-            if len >= inner.freeze_list.capacity() {
-                if len >= vec_alloc.capacity() {
-                    drop(guard);
-                    vec_alloc = KVVec::with_capacity((1 + len).next_power_of_two(), flags)?;
-                    continue;
-                }
-                mem::swap(&mut inner.freeze_list, &mut vec_alloc);
-                for elem in vec_alloc.drain_all() {
-                    inner.freeze_list.push_within_capacity(elem)?;
-                }
+        // If the vector needs to be resized, it's done via this argument.
+        vec_alloc: &mut KVVec<Arc<Process>>,
+    ) -> Result<Result<(), usize>> {
+        let mut guard = self.owner.inner.lock();
+        // Do not check for `guard.dead`. The `dead` flag that matters here is the owner of the
+        // listener, not the target.
+        let inner = self.inner.access_mut(&mut guard);
+        let len = inner.freeze_list.len();
+        if len == inner.freeze_list.capacity() {
+            if len >= vec_alloc.capacity() {
+                // Request the caller to reallocate.
+                return Ok(Err((1 + len).next_power_of_two()));
             }
-            inner.freeze_list.push_within_capacity(process.clone())?;
-            return Ok(());
+            mem::swap(&mut inner.freeze_list, vec_alloc);
+            for elem in vec_alloc.drain_all() {
+                inner.freeze_list.push_within_capacity(elem)?;
+            }
         }
+        inner.freeze_list.push_within_capacity(process.clone())?;
+        Ok(Ok(()))
     }
 
     pub(crate) fn remove_freeze_listener(&self, p: &Process) -> KVVec<Arc<Process>> {
@@ -695,6 +694,8 @@ impl Node {
                 p.pid_in_current_ns()
             );
         }
+        // If the vector is empty it needs to be freed. However, we can't free it here because that
+        // might sleep, so return it to the caller.
         if inner.freeze_list.is_empty() {
             return mem::take(&mut inner.freeze_list);
         }

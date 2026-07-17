@@ -127,7 +127,7 @@ impl DeliverToRead for FreezeMessage {
             }
 
             let mut state_info = BinderFrozenStateInfo::default();
-            state_info.is_frozen = is_frozen as u32;
+            state_info.is_frozen = u32::from(is_frozen);
             state_info.cookie = freeze.cookie.0;
             freeze.is_pending = true;
             freeze.last_is_frozen = Some(is_frozen);
@@ -180,36 +180,58 @@ impl Process {
         let msg = FreezeMessage::new(GFP_KERNEL)?;
         let alloc = RBTreeNodeReservation::new(GFP_KERNEL)?;
 
+        let mut afl_vec_alloc = KVVec::new();
+        let mut info;
+        let mut freeze_entry;
         let mut node_refs_guard = self.node_refs.lock();
-        let node_refs = &mut *node_refs_guard;
-        let Some(info) = node_refs.by_handle.get_mut(&handle) else {
-            pr_warn!("BC_REQUEST_FREEZE_NOTIFICATION invalid ref {}\n", handle);
-            return Err(EINVAL);
-        };
-        if info.freeze().is_some() {
-            pr_warn!("BC_REQUEST_FREEZE_NOTIFICATION already set\n");
-            return Err(EINVAL);
-        }
-        let node_ref = info.node_ref();
-        let freeze_entry = node_refs.freeze_listeners.entry(cookie);
-
-        if let rbtree::Entry::Occupied(ref dupe) = freeze_entry {
-            if !dupe.get().allow_duplicate(&node_ref.node) {
-                pr_warn!("BC_REQUEST_FREEZE_NOTIFICATION duplicate cookie\n");
+        loop {
+            let node_refs = &mut *node_refs_guard;
+            info = match node_refs.by_handle.get_mut(&handle) {
+                Some(info) => info,
+                None => {
+                    pr_warn!("BC_REQUEST_FREEZE_NOTIFICATION invalid ref {}\n", handle);
+                    return Err(EINVAL);
+                }
+            };
+            if info.freeze().is_some() {
+                pr_warn!("BC_REQUEST_FREEZE_NOTIFICATION already set\n");
                 return Err(EINVAL);
             }
-        }
+            let node_ref = info.node_ref();
+            freeze_entry = node_refs.freeze_listeners.entry(cookie);
 
-        // All failure paths must come before this call, and all modifications must come after this
-        // call.
-        node_ref.node.add_freeze_listener(self, GFP_KERNEL)?;
+            if let rbtree::Entry::Occupied(ref dupe) = freeze_entry {
+                if !dupe.get().allow_duplicate(&node_ref.node) {
+                    pr_warn!("BC_REQUEST_FREEZE_NOTIFICATION duplicate cookie\n");
+                    return Err(EINVAL);
+                }
+            }
+
+            // Now we add to the node's freeze listener list, with retry and re-allocate if the
+            // vector is full.
+            //
+            // To ensure that the node is added atomically, this is the first time we modify any
+            // state. When this call succeeds, all other modifications must occur without the
+            // possibility for any failure paths.
+            match node_ref
+                .node
+                .add_freeze_listener(self, &mut afl_vec_alloc)?
+            {
+                Ok(()) => break,
+                Err(resize_target) => {
+                    drop(node_refs_guard);
+                    afl_vec_alloc = KVVec::with_capacity(resize_target, GFP_KERNEL)?;
+                    node_refs_guard = self.node_refs.lock();
+                }
+            }
+        }
 
         match freeze_entry {
             rbtree::Entry::Vacant(entry) => {
                 entry.insert(
                     FreezeListener {
                         cookie,
-                        node: node_ref.node.clone(),
+                        node: info.node_ref().node.clone(),
                         last_is_frozen: None,
                         is_pending: false,
                         is_clearing: false,
@@ -280,6 +302,7 @@ impl Process {
         let handle = hc.handle;
         let cookie = FreezeCookie(hc.cookie);
 
+        let _to_free_fl;
         let alloc = FreezeMessage::new(GFP_KERNEL)?;
         let mut node_refs_guard = self.node_refs.lock();
         let node_refs = &mut *node_refs_guard;
@@ -300,7 +323,7 @@ impl Process {
             return Err(EINVAL);
         };
         listener.is_clearing = true;
-        listener.node.remove_freeze_listener(self);
+        _to_free_fl = listener.node.remove_freeze_listener(self);
         *info.freeze() = None;
         let mut msg = None;
         if !listener.is_pending {
