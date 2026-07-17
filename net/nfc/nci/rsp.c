@@ -50,6 +50,7 @@ static u8 nci_core_init_rsp_packet_v1(struct nci_dev *ndev,
 	const struct nci_core_init_rsp_1 *rsp_1 = (void *)skb->data;
 	const struct nci_core_init_rsp_2 *rsp_2;
 
+	/* Ensure that the status field can be accessed. */
 	if (skb->len < sizeof(*rsp_1))
 		return NCI_STATUS_SYNTAX_ERROR;
 
@@ -114,6 +115,12 @@ static u8 nci_core_init_rsp_packet_v2(struct nci_dev *ndev,
 	if (rsp->status != NCI_STATUS_OK)
 		return rsp->status;
 
+	/* Success response must contain the full fixed-size header */
+	if (skb_headlen(skb) < sizeof(*rsp))
+		return NCI_STATUS_SYNTAX_ERROR;
+
+	supported_rf_interface = rsp->supported_rf_interfaces;
+
 	ndev->nfcc_features = __le32_to_cpu(rsp->nfcc_features);
 	ndev->num_supported_rf_interfaces = rsp->num_supported_rf_interfaces;
 
@@ -134,6 +141,8 @@ static u8 nci_core_init_rsp_packet_v2(struct nci_dev *ndev,
 			return NCI_STATUS_SYNTAX_ERROR;
 		supported_rf_interface += rf_extension_cnt;
 	}
+
+	ndev->num_supported_rf_interfaces = rf_interface_idx;
 
 	ndev->max_logical_connections = rsp->max_logical_connections;
 	ndev->max_routing_table_size =
