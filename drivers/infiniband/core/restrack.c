@@ -61,7 +61,7 @@ void rdma_restrack_clean(struct ib_device *dev)
  * @type: actual type of object to operate
  * @show_details: count driver specific objects
  */
-int rdma_restrack_count(struct ib_device *dev, enum rdma_restrack_type type,
+u32 rdma_restrack_count(struct ib_device *dev, enum rdma_restrack_type type,
 			bool show_details)
 {
 	struct rdma_restrack_root *rt = &dev->res[type];

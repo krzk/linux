@@ -118,8 +118,6 @@ int qedr_query_device(struct ib_device *ibdev,
 	if (rc)
 		return rc;
 
-	memset(attr, 0, sizeof(*attr));
-
 	attr->fw_ver = qattr->fw_ver;
 	attr->sys_image_guid = qattr->sys_image_guid;
 	attr->max_mr_size = qattr->max_mr_size;
@@ -148,7 +146,7 @@ int qedr_query_device(struct ib_device *ibdev,
 	attr->max_qp_init_rd_atom =
 	    1 << (fls(qattr->max_qp_req_rd_atomic_resc) - 1);
 	attr->max_qp_rd_atom =
-	    min(1 << (fls(qattr->max_qp_resp_rd_atomic_resc) - 1),
+	    min(1U << (fls(qattr->max_qp_resp_rd_atomic_resc) - 1),
 		attr->max_qp_init_rd_atom);
 
 	attr->max_srq = qattr->max_srq;

@@ -193,7 +193,6 @@ int bnxt_re_query_device(struct ib_device *ibdev,
 	if (rc)
 		return rc;
 
-	memset(ib_attr, 0, sizeof(*ib_attr));
 	memcpy(&ib_attr->fw_ver, dev_attr->fw_ver,
 	       min(sizeof(dev_attr->fw_ver),
 		   sizeof(ib_attr->fw_ver)));

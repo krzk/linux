@@ -227,8 +227,6 @@ static int hns_roce_query_device(struct ib_device *ib_dev,
 	if (ret)
 		return ret;
 
-	memset(props, 0, sizeof(*props));
-
 	props->fw_ver = hr_dev->caps.fw_ver;
 	props->sys_image_guid = cpu_to_be64(hr_dev->sys_image_guid);
 	props->max_mr_size = (u64)(~(0ULL));

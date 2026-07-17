@@ -222,7 +222,6 @@ int efa_query_device(struct ib_device *ibdev,
 
 	dev_attr = &dev->dev_attr;
 
-	memset(props, 0, sizeof(*props));
 	props->max_mr_size = dev_attr->max_mr_pages * PAGE_SIZE;
 	props->page_size_cap = dev_attr->page_size_cap;
 	props->vendor_id = dev->pdev->vendor;
@@ -2054,10 +2053,11 @@ int efa_mmap(struct ib_ucontext *ibucontext,
 
 static int efa_ah_destroy(struct efa_dev *dev, struct efa_ah *ah)
 {
-	struct efa_com_destroy_ah_params params = {
-		.ah = ah->ah,
-		.pdn = to_epd(ah->ibah.pd)->pdn,
-	};
+	struct efa_com_destroy_ah_params params = {};
+
+	params.ah = ah->ah;
+	memcpy(params.gid, ah->id, sizeof(params.gid));
+	params.pdn = to_epd(ah->ibah.pd)->pdn;
 
 	return efa_com_destroy_ah(&dev->edev, &params);
 }

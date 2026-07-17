@@ -136,8 +136,6 @@ int siw_query_device(struct ib_device *base_dev, struct ib_device_attr *attr,
 	if (rv)
 		return rv;
 
-	memset(attr, 0, sizeof(*attr));
-
 	/* Revisit atomic caps if RFC 7306 gets supported */
 	attr->atomic_cap = 0;
 	attr->device_cap_flags = IB_DEVICE_MEM_MGT_EXTENSIONS;

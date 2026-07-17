@@ -579,7 +579,6 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
 	if (err)
 		return err;
 
-	memset(props, 0, sizeof(*props));
 	props->vendor_id = pdev->vendor;
 	props->vendor_part_id = dev->gdma_dev->dev_id.type;
 	props->max_mr_size = MANA_IB_MAX_MR_SIZE;
