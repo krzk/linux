@@ -24,11 +24,8 @@ use crate::{
 };
 use core::{
     marker::PhantomData,
-    mem::{
-        offset_of,
-        MaybeUninit, //
-    },
-    ptr::NonNull,
+    mem::offset_of,
+    ptr::NonNull, //
 };
 
 /// An adapter for the registration of USB drivers.
@@ -130,8 +127,7 @@ impl DeviceId {
             match_flags: bindings::USB_DEVICE_ID_MATCH_DEVICE as u16,
             idVendor: vendor,
             idProduct: product,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -143,8 +139,7 @@ impl DeviceId {
             idProduct: product,
             bcdDevice_lo: bcd_lo,
             bcdDevice_hi: bcd_hi,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -155,8 +150,7 @@ impl DeviceId {
             bDeviceClass: class,
             bDeviceSubClass: subclass,
             bDeviceProtocol: protocol,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -167,8 +161,7 @@ impl DeviceId {
             bInterfaceClass: class,
             bInterfaceSubClass: subclass,
             bInterfaceProtocol: protocol,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -180,8 +173,7 @@ impl DeviceId {
             idVendor: vendor,
             idProduct: product,
             bInterfaceClass: class,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -193,8 +185,7 @@ impl DeviceId {
             idVendor: vendor,
             idProduct: product,
             bInterfaceProtocol: protocol,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -206,8 +197,7 @@ impl DeviceId {
             idVendor: vendor,
             idProduct: product,
             bInterfaceNumber: number,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 
@@ -227,8 +217,7 @@ impl DeviceId {
             bInterfaceClass: class,
             bInterfaceSubClass: subclass,
             bInterfaceProtocol: protocol,
-            // SAFETY: It is safe to use all zeroes for the other fields of `usb_device_id`.
-            ..unsafe { MaybeUninit::zeroed().assume_init() }
+            ..pin_init::zeroed()
         })
     }
 }

@@ -1744,7 +1744,7 @@ static int tps6598x_probe(struct i2c_client *client)
 	struct tps6598x *tps;
 	struct fwnode_handle *fwnode;
 	u32 status;
-	u32 vid;
+	u32 vid = 0;
 	int ret;
 
 	data = i2c_get_match_data(client);
@@ -1772,8 +1772,11 @@ static int tps6598x_probe(struct i2c_client *client)
 
 	if (!device_is_compatible(tps->dev, "ti,tps25750")) {
 		ret = tps6598x_read32(tps, TPS_REG_VID, &vid);
-		if (ret < 0 || !vid)
+		if (ret < 0 || !vid) {
+			dev_err(tps->dev, "failed to read vendor ID: %d, vid: %#x\n",
+				ret, vid);
 			return -ENODEV;
+		}
 	}
 
 	/*
@@ -1851,7 +1854,7 @@ static int tps6598x_probe(struct i2c_client *client)
 						IRQF_SHARED | IRQF_ONESHOT,
 						dev_name(&client->dev), tps);
 	} else {
-		dev_warn(tps->dev, "Unable to find the interrupt, switching to polling\n");
+		dev_dbg(tps->dev, "no IRQ specified, using polling mode\n");
 		INIT_DELAYED_WORK(&tps->wq_poll, tps6598x_poll_work);
 		queue_delayed_work(system_power_efficient_wq, &tps->wq_poll,
 				   msecs_to_jiffies(POLL_INTERVAL));
