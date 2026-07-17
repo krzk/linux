@@ -764,7 +764,7 @@ static int unregister_fprobe_event(struct trace_fprobe *tf)
 	return trace_probe_unregister_event_call(&tf->tp);
 }
 
-static int __regsiter_tracepoint_fprobe(struct trace_fprobe *tf)
+static int __register_tracepoint_fprobe(struct trace_fprobe *tf)
 {
 	struct tracepoint_user *tuser __free(tuser_put) = NULL;
 	struct module *mod __free(module_put) = NULL;
@@ -836,7 +836,7 @@ static int __register_trace_fprobe(struct trace_fprobe *tf)
 	tf->fp.flags &= ~FPROBE_FL_DISABLED;
 
 	if (trace_fprobe_is_tracepoint(tf))
-		return __regsiter_tracepoint_fprobe(tf);
+		return __register_tracepoint_fprobe(tf);
 
 	/* TODO: handle filter, nofilter or symbol list */
 	return register_fprobe(&tf->fp, tf->symbol, NULL);
@@ -1448,6 +1448,8 @@ static int trace_fprobe_show(struct seq_file *m, struct dyn_event *ev)
 	for (i = 0; i < tf->tp.nr_args; i++)
 		seq_printf(m, " %s=%s", tf->tp.args[i].name, tf->tp.args[i].comm);
 	seq_putc(m, '\n');
+
+	trace_probe_dump_args(m, &tf->tp);
 
 	return 0;
 }

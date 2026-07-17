@@ -83,38 +83,48 @@ static nokprobe_inline u32 update_data_loc(u32 loc, int consumed)
 /* Printing function type */
 typedef int (*print_type_func_t)(struct trace_seq *, void *, void *);
 
-enum fetch_op {
-	FETCH_OP_NOP = 0,
-	// Stage 1 (load) ops
-	FETCH_OP_REG,		/* Register : .param = offset */
-	FETCH_OP_STACK,		/* Stack : .param = index */
-	FETCH_OP_STACKP,	/* Stack pointer */
-	FETCH_OP_RETVAL,	/* Return value */
-	FETCH_OP_IMM,		/* Immediate : .immediate */
-	FETCH_OP_COMM,		/* Current comm */
-	FETCH_OP_ARG,		/* Function argument : .param */
-	FETCH_OP_FOFFS,		/* File offset: .immediate */
-	FETCH_OP_DATA,		/* Allocated data: .data */
-	FETCH_OP_EDATA,		/* Entry data: .offset */
-	// Stage 2 (dereference) op
-	FETCH_OP_DEREF,		/* Dereference: .offset */
-	FETCH_OP_UDEREF,	/* User-space Dereference: .offset */
-	// Stage 3 (store) ops
-	FETCH_OP_ST_RAW,	/* Raw: .size */
-	FETCH_OP_ST_MEM,	/* Mem: .offset, .size */
-	FETCH_OP_ST_UMEM,	/* Mem: .offset, .size */
-	FETCH_OP_ST_STRING,	/* String: .offset, .size */
-	FETCH_OP_ST_USTRING,	/* User String: .offset, .size */
-	FETCH_OP_ST_SYMSTR,	/* Kernel Symbol String: .offset, .size */
-	FETCH_OP_ST_EDATA,	/* Store Entry Data: .offset */
-	// Stage 4 (modify) op
-	FETCH_OP_MOD_BF,	/* Bitfield: .basesize, .lshift, .rshift */
-	// Stage 5 (loop) op
-	FETCH_OP_LP_ARRAY,	/* Array: .param = loop count */
-	FETCH_OP_TP_ARG,	/* Trace Point argument */
-	FETCH_OP_END,
-	FETCH_NOP_SYMBOL,	/* Unresolved Symbol holder */
-};
+#define FETCH_OP_LIST	{						\
+	/* Stage 1 (load) ops */					\
+	FETCH_OP(NOP, none),		/* NOP */			\
+	FETCH_OP(REG, param),		/* Register: .param = offset */	\
+	FETCH_OP(STACK, param),		/* Stack: .param = index */	\
+	FETCH_OP(STACKP, none),		/* Stack pointer */		\
+	FETCH_OP(RETVAL, none),		/* Return value */		\
+	FETCH_OP(IMM, imm),		/* Immediate: .immediate */	\
+	FETCH_OP(COMM, none),		/* Current comm */		\
+	FETCH_OP(CURRENT, none),	/* Current task_struct address */\
+	FETCH_OP(ARG, param),		/* Argument: .param = index */	\
+	FETCH_OP(FOFFS, imm),		/* File offset: .immediate */	\
+	FETCH_OP(IMMSTR, string),	/* Allocated string: .data */	\
+	FETCH_OP(EDATA, offset),	/* Entry data: .offset */	\
+	FETCH_OP(TP_ARG, tp_arg),	/* Tracepoint argument: .data */\
+	/* Stage 2 (dereference) ops */					\
+	FETCH_OP(DEREF, offset),	/* Dereference: .offset */	\
+	FETCH_OP(UDEREF, offset),	/* User-space dereference: .offset */\
+	FETCH_OP(CPU_PTR, none),	/* Per-CPU pointer: .offset */	\
+	/* Stage 3 (store) ops */					\
+	FETCH_OP(ST_RAW, store),	/* Raw value: .size */		\
+	FETCH_OP(ST_MEM, store),	/* Memory: .offset, .size */	\
+	FETCH_OP(ST_UMEM, store),	/* User memory: .offset, .size */\
+	FETCH_OP(ST_STRING, store),	/* String: .offset, .size */	\
+	FETCH_OP(ST_USTRING, store),	/* User string: .offset, .size */\
+	FETCH_OP(ST_SYMSTR, store),	/* Symbol name: .offset, .size */\
+	FETCH_OP(ST_EDATA, offset),	/* Entry data: .offset */	\
+	/* Stage 4 (modify) op */					\
+	FETCH_OP(MOD_BF, bf),		/* Bitfield: .basesize, .lshift, .rshift*/\
+	/* Stage 5 (loop) op */						\
+	FETCH_OP(LP_ARRAY, param),	/* Loop array: .param = count */\
+	/* End */							\
+	FETCH_OP(END, none),						\
+	/* Unresolved Symbol holder */					\
+	FETCH_OP(NOP_SYMBOL, symbol),	/* Non loaded symbol: .data = symbol name */\
+}
+
+#define FETCH_OP(opname, decode_fn) FETCH_OP_##opname
+enum fetch_op FETCH_OP_LIST;
+#undef FETCH_OP
+
+#define FETCH_NOP_SYMBOL FETCH_OP_NOP_SYMBOL
 
 struct fetch_insn {
 	enum fetch_op op;
@@ -370,6 +380,13 @@ bool trace_probe_match_command_args(struct trace_probe *tp,
 int trace_probe_create(const char *raw_command, int (*createfn)(int, const char **));
 int trace_probe_print_args(struct trace_seq *s, struct probe_arg *args, int nr_args,
 		 u8 *data, void *field);
+#ifdef CONFIG_PROBE_EVENTS_DUMP_FETCHARG
+void trace_probe_dump_args(struct seq_file *m, struct trace_probe *tp);
+#else
+static inline void trace_probe_dump_args(struct seq_file *m, struct trace_probe *tp)
+{
+}
+#endif
 
 #ifdef CONFIG_HAVE_FUNCTION_ARG_ACCESS_API
 int traceprobe_get_entry_data_size(struct trace_probe *tp);
@@ -414,6 +431,11 @@ static inline bool tparg_is_function_return(unsigned int flags)
 	return (flags & TPARG_FL_LOC_MASK) == (TPARG_FL_KERNEL | TPARG_FL_RETURN);
 }
 
+static inline bool tparg_is_event_probe(unsigned int flags)
+{
+	return !!(flags & TPARG_FL_TEVENT);
+}
+
 struct traceprobe_parse_context {
 	struct trace_event_call *event;
 	/* BTF related parameters */
@@ -430,7 +452,12 @@ struct traceprobe_parse_context {
 	struct trace_probe *tp;
 	unsigned int flags;
 	int offset;
+	int nested_level;
+	int prefix_byteoffs;	/* The byte offset of the prefix field of typecast */
 };
+
+/* Each typecast consumes nested level. So the max number of typecast is 3. */
+#define TRACEPROBE_MAX_NESTED_LEVEL 3
 
 extern int traceprobe_parse_probe_arg(struct trace_probe *tp, int i,
 				      const char *argv,
@@ -516,7 +543,7 @@ extern int traceprobe_define_arg_fields(struct trace_event_call *event_call,
 	C(BAD_MEM_ADDR,		"Invalid memory address"),		\
 	C(BAD_IMM,		"Invalid immediate value"),		\
 	C(IMMSTR_NO_CLOSE,	"String is not closed with '\"'"),	\
-	C(FILE_ON_KPROBE,	"File offset is not available with kprobe"), \
+	C(FILE_ON_KPROBE,	"File offset is not available for kernel probes"), \
 	C(BAD_FILE_OFFS,	"Invalid file offset value"),		\
 	C(SYM_ON_UPROBE,	"Symbol is not available with uprobe"),	\
 	C(TOO_MANY_OPS,		"Dereference is too much nested"), 	\
@@ -559,6 +586,7 @@ extern int traceprobe_define_arg_fields(struct trace_event_call *event_call,
 	C(NO_PTR_STRCT,		"This is not a pointer to union/structure."),	\
 	C(NOSUP_DAT_ARG,	"Non pointer structure/union argument is not supported."),\
 	C(BAD_HYPHEN,		"Failed to parse single hyphen. Forgot '>'?"),	\
+	C(NO_EVENT_FIELD,	"This event field is not found."),	\
 	C(NO_BTF_FIELD,		"This field is not found."),	\
 	C(BAD_BTF_TID,		"Failed to get BTF type info."),\
 	C(BAD_TYPE4STR,		"This type does not fit for string."),\
@@ -566,7 +594,13 @@ extern int traceprobe_define_arg_fields(struct trace_event_call *event_call,
 	C(TOO_MANY_ARGS,	"Too many arguments are specified"),	\
 	C(TOO_MANY_EARGS,	"Too many entry arguments specified"),	\
 	C(EVENT_TOO_BIG,	"Event too big (too many fields?)"),  \
-	C(TYPECAST_NOT_EVENT,	"Typecasts are only for eprobe fields"),
+	C(TYPECAST_NOT_EVENT,	"Typecasts are only for eprobe fields"), \
+	C(TYPECAST_REQ_FIELD,	"Typecast requires a field access"),	\
+	C(TOO_MANY_NESTED,	"Too many nested typecasts/dereferences"), \
+	C(TYPECAST_SYM_OFFSET,	"@SYM+/-OFFSET with typecast needs parentheses"), \
+	C(TYPECAST_NOT_ALIGNED,	"Typecast field option is not byte-aligned"), \
+	C(TYPECAST_BAD_ARROW,	"Typecast field option does not support -> operator"), \
+	C(NOSUP_PERCPU,		"Per-cpu variable access is only for kernel probes"),
 
 #undef C
 #define C(a, b)		TP_ERR_##a
