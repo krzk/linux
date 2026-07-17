@@ -66,9 +66,6 @@
 #define FSCRYPT_CONTEXT_V1	1
 #define FSCRYPT_CONTEXT_V2	2
 
-/* Keep this in sync with include/uapi/linux/fscrypt.h */
-#define FSCRYPT_MODE_MAX	FSCRYPT_MODE_AES_256_HCTR2
-
 struct fscrypt_context_v1 {
 	u8 version; /* FSCRYPT_CONTEXT_V1 */
 	u8 contents_encryption_mode;
@@ -718,7 +715,7 @@ int fscrypt_add_test_dummy_key(struct super_block *sb,
 int fscrypt_verify_key_added(struct super_block *sb,
 			     const u8 identifier[FSCRYPT_KEY_IDENTIFIER_SIZE]);
 
-int __init fscrypt_init_keyring(void);
+void __init fscrypt_init_keyring(void);
 
 /* keysetup.c */
 
