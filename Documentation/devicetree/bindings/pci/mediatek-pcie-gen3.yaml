@@ -51,6 +51,7 @@ properties:
               - mediatek,mt7981-pcie
               - mediatek,mt7986-pcie
               - mediatek,mt8188-pcie
+              - mediatek,mt8189-pcie
               - mediatek,mt8195-pcie
           - const: mediatek,mt8192-pcie
       - items:
@@ -193,6 +194,7 @@ allOf:
           contains:
             enum:
               - mediatek,mt8188-pcie
+              - mediatek,mt8189-pcie
               - mediatek,mt8195-pcie
     then:
       properties:
