@@ -13,18 +13,22 @@
 /*
  * cid tables.
  *
- * Pointers are published once on first enable and never revoked. The default
- * mapping is populated before ops.init() runs; scx_bpf_cid_override() commits
- * before it returns. As long as the BPF scheduler only uses the tables from
- * those points onward, it sees a consistent view.
+ * Pointers are allocated on first enable and never freed. During root enable,
+ * the default mapping is populated and then ops.init_cids() is called which can
+ * use scx_bpf_cid_override() to change the mapping. The mapping stays stable
+ * until the root is disabled.
  */
+u32 scx_nr_cid_shards;
 s16 *scx_cid_to_cpu_tbl;
 s16 *scx_cpu_to_cid_tbl;
+s32 *scx_cid_to_shard;
+s32 *scx_shard_node;
+struct scx_cid_shard *scx_cid_shard_ranges;
 struct scx_cid_topo *scx_cid_topo;
 
 #define SCX_CID_TOPO_NEG	(struct scx_cid_topo) {				\
 	.core_cid = -1, .core_idx = -1, .llc_cid = -1, .llc_idx = -1,		\
-	.node_cid = -1, .node_idx = -1,						\
+	.node_cid = -1, .node_idx = -1, .shard_cid = -1, .shard_idx = -1,	\
 }
 
 /*
@@ -43,11 +47,40 @@ static const struct cpumask *cpu_llc_mask(int cpu, struct cpumask *fallbacks)
 	return &ci->info_list[ci->num_leaves - 1].shared_cpu_map;
 }
 
+/*
+ * Compute per-LLC shard layout. Each shard holds at most @shard_size cids, and
+ * in any case no more than SCX_CID_SHARD_MAX_CPUS. Cores are spread as evenly
+ * as possible across shards so cpu count is balanced: the first *@nr_large_p
+ * shards get (*@cores_per_shard_p + 1) cores, the rest get *@cores_per_shard_p.
+ */
+static void calc_shard_layout(const struct cpumask *llc_cpus, u32 shard_size,
+			      u32 *cores_per_shard_p, u32 *nr_large_p)
+{
+	u32 nr_cores = 0, nr_cpus = 0, nr_shards;
+	int cpu;
+
+	for_each_cpu(cpu, llc_cpus) {
+		nr_cpus++;
+		if (cpumask_first(topology_sibling_cpumask(cpu)) == cpu)
+			nr_cores++;
+	}
+
+	nr_shards = max_t(u32, 1, DIV_ROUND_UP(nr_cpus, shard_size));
+	nr_shards = max_t(u32, nr_shards,
+			  DIV_ROUND_UP(nr_cpus, SCX_CID_SHARD_MAX_CPUS));
+
+	*cores_per_shard_p = nr_cores / nr_shards;
+	*nr_large_p = nr_cores % nr_shards;
+}
+
 /* Allocate the cid tables once on first enable; never freed. */
 static s32 scx_cid_arrays_alloc(void)
 {
 	u32 npossible = num_possible_cpus();
 	s16 *cid_to_cpu, *cpu_to_cid;
+	s32 *cid_to_shard;
+	s32 *shard_node;
+	struct scx_cid_shard *cid_shard_ranges;
 	struct scx_cid_topo *cid_topo;
 
 	if (scx_cid_to_cpu_tbl)
@@ -55,17 +88,27 @@ static s32 scx_cid_arrays_alloc(void)
 
 	cid_to_cpu = kzalloc_objs(*scx_cid_to_cpu_tbl, npossible, GFP_KERNEL);
 	cpu_to_cid = kzalloc_objs(*scx_cpu_to_cid_tbl, nr_cpu_ids, GFP_KERNEL);
+	cid_to_shard = kzalloc_objs(*scx_cid_to_shard, npossible, GFP_KERNEL);
+	shard_node = kmalloc_objs(*scx_shard_node, npossible, GFP_KERNEL);
+	cid_shard_ranges = kzalloc_objs(*scx_cid_shard_ranges, npossible, GFP_KERNEL);
 	cid_topo = kmalloc_objs(*scx_cid_topo, npossible, GFP_KERNEL);
 
-	if (!cid_to_cpu || !cpu_to_cid || !cid_topo) {
+	if (!cid_to_cpu || !cpu_to_cid || !cid_to_shard || !shard_node ||
+	    !cid_shard_ranges || !cid_topo) {
 		kfree(cid_to_cpu);
 		kfree(cpu_to_cid);
+		kfree(cid_to_shard);
+		kfree(shard_node);
+		kfree(cid_shard_ranges);
 		kfree(cid_topo);
 		return -ENOMEM;
 	}
 
 	WRITE_ONCE(scx_cid_to_cpu_tbl, cid_to_cpu);
 	WRITE_ONCE(scx_cpu_to_cid_tbl, cpu_to_cid);
+	WRITE_ONCE(scx_cid_to_shard, cid_to_shard);
+	WRITE_ONCE(scx_shard_node, shard_node);
+	WRITE_ONCE(scx_cid_shard_ranges, cid_shard_ranges);
 	WRITE_ONCE(scx_cid_topo, cid_topo);
 	return 0;
 }
@@ -90,16 +133,28 @@ s32 scx_cid_init(struct scx_sched *sch)
 	cpumask_var_t online_no_topo __free(free_cpumask_var) = CPUMASK_VAR_NULL;
 	u32 next_cid = 0;
 	s32 next_node_idx = 0, next_llc_idx = 0, next_core_idx = 0;
-	s32 cpu, ret;
+	s32 next_shard_idx = 0;
+	u32 shard_size, max_cids;
+	u32 notopo_in_shard;
+	s32 notopo_shard_cid, notopo_shard_idx;
+	s32 cpu, cid, si, ret;
 
 	/* CMASK_MAX_WORDS in cid.bpf.h covers NR_CPUS up to 8192 */
 	BUILD_BUG_ON(NR_CPUS > 8192);
 
 	lockdep_assert_cpus_held();
 
+	shard_size = sch->ops.cid_shard_size ?: SCX_CID_SHARD_SIZE_DFL;
+	max_cids = min_t(u32, shard_size, SCX_CID_SHARD_MAX_CPUS);
+
 	ret = scx_cid_arrays_alloc();
 	if (ret)
 		return ret;
+
+	/* clear shard ranges and reset shard_node for repopulate */
+	memset(scx_cid_shard_ranges, 0, num_possible_cpus() * sizeof(*scx_cid_shard_ranges));
+	for (si = 0; si < num_possible_cpus(); si++)
+		scx_shard_node[si] = NUMA_NO_NODE;
 
 	if (!zalloc_cpumask_var(&to_walk, GFP_KERNEL) ||
 	    !zalloc_cpumask_var(&node_scratch, GFP_KERNEL) ||
@@ -142,11 +197,19 @@ s32 scx_cid_init(struct scx_sched *sch)
 			const struct cpumask *llc_mask = cpu_llc_mask(ncpu, llc_fallback);
 			s32 llc_cid = next_cid;
 			s32 llc_idx = next_llc_idx++;
+			u32 cores_per_shard, nr_large;
+			u32 shard_local = 0, cores_in_shard = 0, cids_in_shard = 0;
+			s32 shard_cid, shard_idx;
 
 			/* llc_scratch = node_scratch & this llc */
 			cpumask_and(llc_scratch, node_scratch, llc_mask);
 			if (WARN_ON_ONCE(!cpumask_test_cpu(ncpu, llc_scratch)))
 				return -EINVAL;
+
+			calc_shard_layout(llc_scratch, shard_size, &cores_per_shard, &nr_large);
+			shard_cid = next_cid;
+			shard_idx = next_shard_idx++;
+			scx_shard_node[shard_idx] = nid;
 
 			while (!cpumask_empty(llc_scratch)) {
 				s32 lcpu = cpumask_first(llc_scratch);
@@ -154,17 +217,40 @@ s32 scx_cid_init(struct scx_sched *sch)
 				s32 core_cid = next_cid;
 				s32 core_idx = next_core_idx++;
 				s32 ccpu;
+				u32 max_cores, cids_in_core;
 
 				/* core_scratch = llc_scratch & this core */
 				cpumask_and(core_scratch, llc_scratch, sib);
 				if (WARN_ON_ONCE(!cpumask_test_cpu(lcpu, core_scratch)))
 					return -EINVAL;
 
+				/*
+				 * Advance to a new shard when either core or
+				 * cid count reaches max. The latter bounds
+				 * shard sizes under uneven SMT. Never start an
+				 * empty shard.
+				 */
+				cids_in_core = cpumask_weight(core_scratch);
+				max_cores = cores_per_shard + (shard_local < nr_large ? 1 : 0);
+				if (cores_in_shard &&
+				    (cores_in_shard >= max_cores ||
+				     cids_in_shard + cids_in_core > max_cids)) {
+					shard_local++;
+					cores_in_shard = 0;
+					cids_in_shard = 0;
+					shard_cid = next_cid;
+					shard_idx = next_shard_idx++;
+					scx_shard_node[shard_idx] = nid;
+				}
+				cores_in_shard++;
+				cids_in_shard += cids_in_core;
+
 				for_each_cpu(ccpu, core_scratch) {
 					s32 cid = next_cid++;
 
 					scx_cid_to_cpu_tbl[cid] = ccpu;
 					scx_cpu_to_cid_tbl[ccpu] = cid;
+					scx_cid_to_shard[cid] = shard_idx;
 					scx_cid_topo[cid] = (struct scx_cid_topo){
 						.core_cid = core_cid,
 						.core_idx = core_idx,
@@ -172,6 +258,8 @@ s32 scx_cid_init(struct scx_sched *sch)
 						.llc_idx = llc_idx,
 						.node_cid = node_cid,
 						.node_idx = node_idx,
+						.shard_cid = shard_cid,
+						.shard_idx = shard_idx,
 					};
 
 					cpumask_clear_cpu(ccpu, llc_scratch);
@@ -184,12 +272,17 @@ s32 scx_cid_init(struct scx_sched *sch)
 
 	/*
 	 * No-topo section: any possible cpu without a cid - normally just the
-	 * not-online ones. Collect any currently-online cpus that land here in
-	 * @online_no_topo so we can warn about them at the end.
+	 * not-online ones. Pack into shards of up to min(@shard_size,
+	 * SCX_CID_SHARD_MAX_CPUS) cids so that every cid has a valid shard
+	 * assignment and the hard cap holds even with a large @shard_size.
+	 * Collect any currently-online cpus that land here in @online_no_topo
+	 * so we can warn about them at the end.
 	 */
-	for_each_cpu(cpu, cpu_possible_mask) {
-		s32 cid;
+	notopo_in_shard = min_t(u32, shard_size, SCX_CID_SHARD_MAX_CPUS);
+	notopo_shard_cid = -1;
+	notopo_shard_idx = -1;
 
+	for_each_cpu(cpu, cpu_possible_mask) {
 		if (__scx_cpu_to_cid(cpu) != -1)
 			continue;
 		if (cpu_online(cpu))
@@ -198,7 +291,18 @@ s32 scx_cid_init(struct scx_sched *sch)
 		cid = next_cid++;
 		scx_cid_to_cpu_tbl[cid] = cpu;
 		scx_cpu_to_cid_tbl[cpu] = cid;
+
+		if (notopo_in_shard >= min_t(u32, shard_size, SCX_CID_SHARD_MAX_CPUS)) {
+			notopo_shard_cid = cid;
+			notopo_shard_idx = next_shard_idx++;
+			notopo_in_shard = 0;
+		}
+		notopo_in_shard++;
+
+		scx_cid_to_shard[cid] = notopo_shard_idx;
 		scx_cid_topo[cid] = SCX_CID_TOPO_NEG;
+		scx_cid_topo[cid].shard_cid = notopo_shard_cid;
+		scx_cid_topo[cid].shard_idx = notopo_shard_idx;
 	}
 
 	if (!cpumask_empty(llc_fallback))
@@ -208,6 +312,20 @@ s32 scx_cid_init(struct scx_sched *sch)
 		pr_warn("scx_cid: online cpus with no usable topology: %*pbl\n",
 			cpumask_pr_args(online_no_topo));
 
+	/*
+	 * Fill cid_shard_ranges[] from cid_to_shard[]. Shards are contiguous
+	 * cid ranges by construction: base_cid is the first cid landing in a
+	 * shard, nr_cids is the count.
+	 */
+	for (cid = 0; cid < next_cid; cid++) {
+		s32 sidx = scx_cid_to_shard[cid];
+
+		if (scx_cid_shard_ranges[sidx].nr_cids == 0)
+			scx_cid_shard_ranges[sidx].base_cid = cid;
+		scx_cid_shard_ranges[sidx].nr_cids++;
+	}
+
+	scx_nr_cid_shards = next_shard_idx;
 	return 0;
 }
 
@@ -274,29 +392,66 @@ void scx_cpumask_to_cmask(const struct cpumask *src, struct scx_cmask *dst)
 	}
 }
 
+/*
+ * Return the index of the largest entry in @counts, or NUMA_NO_NODE if all
+ * entries are zero. Ties resolve to the lowest index.
+ */
+static s32 pick_max_node(const u32 *counts, u32 n)
+{
+	s32 best = NUMA_NO_NODE;
+	u32 best_count = 0, i;
+
+	for (i = 0; i < n; i++) {
+		if (counts[i] > best_count) {
+			best_count = counts[i];
+			best = i;
+		}
+	}
+	return best;
+}
+
 __bpf_kfunc_start_defs();
 
 /**
- * scx_bpf_cid_override - Install an explicit cpu->cid mapping
- * @cpu_to_cid: array of nr_cpu_ids s32 entries (cid for each cpu)
- * @cpu_to_cid__sz: must be nr_cpu_ids * sizeof(s32) bytes
+ * scx_bpf_cid_override - Install an explicit cpu->cid mapping with shard info
+ * @cpu_to_cid_src: array of nr_cpu_ids s32 entries (cid for each cpu)
+ * @cpu_to_cid_src__sz: must be nr_cpu_ids * sizeof(s32) bytes
+ * @shard_start_src: array of first-cid-of-each-shard, strictly increasing from 0
+ * @shard_start_src__sz: nr_shards * sizeof(s32) bytes
  * @aux: implicit BPF argument to access bpf_prog_aux hidden from BPF progs
  *
- * May only be called from ops.init() of the root scheduler. Replace the
- * topology-probed cid mapping with the caller-provided one. Each possible cpu
- * must map to a unique cid in [0, num_possible_cpus()). Topo info is cleared.
- * On invalid input, trigger scx_error() to abort the scheduler.
+ * May only be called from ops.init_cids() of the root scheduler. Replace the
+ * topology-probed cid mapping and shard layout with caller-provided ones. Each
+ * possible cpu must map to a unique cid in [0, num_possible_cpus()). The shard
+ * starts must be strictly increasing with the first entry 0 and all values <
+ * num_possible_cpus(). The last shard extends to num_possible_cpus() and no
+ * shard may span more than SCX_CID_SHARD_MAX_CPUS cids. Topo info
+ * (core/LLC/node) is cleared and the shard layout is set from the input. On
+ * invalid input, abort the scheduler.
  */
-__bpf_kfunc void scx_bpf_cid_override(const s32 *cpu_to_cid, u32 cpu_to_cid__sz,
-				      const struct bpf_prog_aux *aux)
+__bpf_kfunc void scx_bpf_cid_override(const s32 *cpu_to_cid_src, u32 cpu_to_cid_src__sz,
+				       const s32 *shard_start_src, u32 shard_start_src__sz,
+				       const struct bpf_prog_aux *aux)
 {
 	cpumask_var_t seen __free(free_cpumask_var) = CPUMASK_VAR_NULL;
+	u32 *node_counts __free(kfree) = NULL;
+	s32 *cpu_to_cid __free(kfree) = NULL;
+	s32 *shard_start __free(kfree) = NULL;
+	u32 npossible = num_possible_cpus();
 	struct scx_sched *sch;
+	u32 nr_shards;
 	bool alloced;
-	s32 cpu, cid;
+	s32 cpu, cid, si;
 
-	/* GFP_KERNEL alloc must happen before the rcu read section */
+	/*
+	 * GFP_KERNEL allocs must happen before the rcu read section. Snapshot
+	 * the BPF-supplied arrays so a concurrent map mutation can't change
+	 * them between validation and use.
+	 */
 	alloced = zalloc_cpumask_var(&seen, GFP_KERNEL);
+	node_counts = kcalloc(nr_node_ids, sizeof(*node_counts), GFP_KERNEL);
+	cpu_to_cid = kmemdup(cpu_to_cid_src, cpu_to_cid_src__sz, GFP_KERNEL);
+	shard_start = kmemdup(shard_start_src, shard_start_src__sz, GFP_KERNEL);
 
 	guard(rcu)();
 
@@ -304,22 +459,57 @@ __bpf_kfunc void scx_bpf_cid_override(const s32 *cpu_to_cid, u32 cpu_to_cid__sz,
 	if (unlikely(!sch))
 		return;
 
-	if (!alloced) {
-		scx_error(sch, "scx_bpf_cid_override: failed to allocate cpumask");
+	if (!alloced || !node_counts || !cpu_to_cid || !shard_start) {
+		scx_error(sch, "scx_bpf_cid_override: allocation failed");
 		return;
 	}
 
-	if (scx_parent(sch)) {
-		scx_error(sch, "scx_bpf_cid_override() only allowed from root sched");
+	if (cpu_to_cid_src__sz != nr_cpu_ids * sizeof(s32)) {
+		scx_error(sch, "scx_bpf_cid_override: cpu_to_cid expected %zu bytes, got %u",
+			  nr_cpu_ids * sizeof(s32), cpu_to_cid_src__sz);
 		return;
 	}
 
-	if (cpu_to_cid__sz != nr_cpu_ids * sizeof(s32)) {
-		scx_error(sch, "scx_bpf_cid_override: expected %zu bytes, got %u",
-			  nr_cpu_ids * sizeof(s32), cpu_to_cid__sz);
+	if (!shard_start_src__sz || shard_start_src__sz % sizeof(s32)) {
+		scx_error(sch, "scx_bpf_cid_override: invalid shard_start size %u",
+			  shard_start_src__sz);
 		return;
 	}
 
+	nr_shards = shard_start_src__sz / sizeof(s32);
+
+	/* validate shard_start[]: starts at 0, strictly increasing, in range */
+	if (shard_start[0] != 0) {
+		scx_error(sch, "scx_bpf_cid_override: shard_start[0] must be 0, got %d",
+			  shard_start[0]);
+		return;
+	}
+	for (si = 1; si < nr_shards; si++) {
+		if (shard_start[si] <= shard_start[si - 1]) {
+			scx_error(sch, "scx_bpf_cid_override: shard_start not increasing at [%d]",
+				  si);
+			return;
+		}
+		if (shard_start[si] >= npossible) {
+			scx_error(sch, "scx_bpf_cid_override: shard_start[%d]=%d >= %u",
+				  si, shard_start[si], npossible);
+			return;
+		}
+		if (shard_start[si] - shard_start[si - 1] > SCX_CID_SHARD_MAX_CPUS) {
+			scx_error(sch, "scx_bpf_cid_override: shard[%d] span %d exceeds max %d",
+				  si - 1, shard_start[si] - shard_start[si - 1],
+				  SCX_CID_SHARD_MAX_CPUS);
+			return;
+		}
+	}
+	if (npossible - shard_start[nr_shards - 1] > SCX_CID_SHARD_MAX_CPUS) {
+		scx_error(sch, "scx_bpf_cid_override: shard[%d] span %d exceeds max %d",
+			  nr_shards - 1, npossible - shard_start[nr_shards - 1],
+			  SCX_CID_SHARD_MAX_CPUS);
+		return;
+	}
+
+	/* Validate first so that invalid input leaves globals untouched. */
 	for_each_possible_cpu(cpu) {
 		s32 c = cpu_to_cid[cpu];
 
@@ -329,13 +519,56 @@ __bpf_kfunc void scx_bpf_cid_override(const s32 *cpu_to_cid, u32 cpu_to_cid__sz,
 			scx_error(sch, "cid %d assigned to multiple cpus", c);
 			return;
 		}
+	}
+
+	for_each_possible_cpu(cpu) {
+		s32 c = cpu_to_cid[cpu];
+
 		scx_cpu_to_cid_tbl[cpu] = c;
 		scx_cid_to_cpu_tbl[c] = cpu;
 	}
 
-	/* Invalidate stale topo info - the override carries no topology. */
-	for (cid = 0; cid < num_possible_cpus(); cid++)
+	/*
+	 * Derive scx_shard_node[] by majority count: an overridden shard may
+	 * span NUMA nodes, so assign each to the node that owns the most cpus.
+	 */
+	for (si = 0; si < nr_shards; si++) {
+		u32 end = (si + 1 < nr_shards) ? shard_start[si + 1] : npossible;
+
+		memset(node_counts, 0, nr_node_ids * sizeof(*node_counts));
+		for (cid = shard_start[si]; cid < end; cid++) {
+			s32 node = cpu_to_node(scx_cid_to_cpu_tbl[cid]);
+
+			if (numa_valid_node(node))
+				node_counts[node]++;
+		}
+		scx_shard_node[si] = pick_max_node(node_counts, nr_node_ids);
+	}
+
+	/*
+	 * Invalidate stale topo info and install shard layout from
+	 * @shard_start. Walk shards to derive shard_cid/shard_idx for each cid.
+	 */
+	si = 0;
+	for (cid = 0; cid < npossible; cid++) {
+		if (si + 1 < nr_shards && cid >= shard_start[si + 1])
+			si++;
+		scx_cid_to_shard[cid] = si;
 		scx_cid_topo[cid] = SCX_CID_TOPO_NEG;
+		scx_cid_topo[cid].shard_cid = shard_start[si];
+		scx_cid_topo[cid].shard_idx = si;
+	}
+
+	/* Rebuild scx_cid_shard_ranges[] for the new layout. */
+	memset(scx_cid_shard_ranges, 0, npossible * sizeof(*scx_cid_shard_ranges));
+	for (si = 0; si < nr_shards; si++) {
+		u32 end = (si + 1 < nr_shards) ? shard_start[si + 1] : npossible;
+
+		scx_cid_shard_ranges[si].base_cid = shard_start[si];
+		scx_cid_shard_ranges[si].nr_cids = end - shard_start[si];
+	}
+
+	scx_nr_cid_shards = nr_shards;
 }
 
 /**
@@ -395,21 +628,25 @@ __bpf_kfunc s32 scx_bpf_cpu_to_cid(s32 cpu, const struct bpf_prog_aux *aux)
  * bits outside stay untouched. In particular, scx_cmask_copy() does NOT zero
  * @dst bits that lie outside @src's range.
  *
- * The _RACY variants are otherwise identical to their non-racy counterpart but
- * read @src word-by-word via data_race(). Memory ordering with concurrent
- * writers is the caller's responsibility.
+ * Word accesses use READ_ONCE/WRITE_ONCE so a caller may read @src
+ * locklessly. Memory ordering against concurrent writers is the caller's
+ * responsibility.
  */
 enum cmask_op2 {
 	/* mutating */
 	CMASK_OP2_AND,
 	CMASK_OP2_OR,
-	CMASK_OP2_OR_RACY,
 	CMASK_OP2_COPY,
-	CMASK_OP2_COPY_RACY,
 	CMASK_OP2_ANDNOT,
 	/* predicates - short-circuit when the per-word result is true */
 	CMASK_OP2_SUBSET,
 	CMASK_OP2_INTERSECTS,
+	/*
+	 * @a is a BPF-arena cmask. Words on @a use READ_ONCE/WRITE_ONCE since
+	 * BPF may read/write concurrently. See scx_cmask_ref_or() / _copy().
+	 */
+	CMASK_OP2_REF_OR,
+	CMASK_OP2_REF_COPY,
 };
 
 static __always_inline bool cmask_op2_is_pred(const enum cmask_op2 op)
@@ -422,28 +659,28 @@ static __always_inline bool cmask_word_op2(u64 *av, const u64 *bp, u64 mask,
 {
 	switch (op) {
 	case CMASK_OP2_AND:
-		*av &= ~mask | *bp;
+		WRITE_ONCE(*av, *av & (~mask | READ_ONCE(*bp)));
 		return false;
 	case CMASK_OP2_OR:
-		*av |= *bp & mask;
-		return false;
-	case CMASK_OP2_OR_RACY:
-		*av |= data_race(*bp) & mask;
+		WRITE_ONCE(*av, *av | (READ_ONCE(*bp) & mask));
 		return false;
 	case CMASK_OP2_COPY:
-		*av = (*av & ~mask) | (*bp & mask);
-		return false;
-	case CMASK_OP2_COPY_RACY:
-		*av = (*av & ~mask) | (data_race(*bp) & mask);
+		WRITE_ONCE(*av, (*av & ~mask) | (READ_ONCE(*bp) & mask));
 		return false;
 	case CMASK_OP2_ANDNOT:
-		*av &= ~(*bp & mask);
+		WRITE_ONCE(*av, *av & ~(READ_ONCE(*bp) & mask));
 		return false;
 	case CMASK_OP2_SUBSET:
 		/* stop on the first bit in @sub not set in @super */
-		return (*bp & ~*av) & mask;
+		return (READ_ONCE(*bp) & ~READ_ONCE(*av)) & mask;
 	case CMASK_OP2_INTERSECTS:
-		return (*av & *bp) & mask;
+		return (READ_ONCE(*av) & READ_ONCE(*bp)) & mask;
+	case CMASK_OP2_REF_OR:
+		WRITE_ONCE(*av, READ_ONCE(*av) | (READ_ONCE(*bp) & mask));
+		return false;
+	case CMASK_OP2_REF_COPY:
+		WRITE_ONCE(*av, (READ_ONCE(*av) & ~mask) | (READ_ONCE(*bp) & mask));
+		return false;
 	}
 	unreachable();
 }
@@ -504,7 +741,7 @@ static __always_inline bool cmask_word_op1(const u64 *ap, u64 mask,
 {
 	switch (op) {
 	case CMASK_OP1_ANY_SET:
-		return *ap & mask;
+		return READ_ONCE(*ap) & mask;
 	}
 	unreachable();
 }
@@ -556,37 +793,10 @@ void scx_cmask_or(struct scx_cmask *dst, const struct scx_cmask *src)
 		       src->bits, src->base, src->nr_cids, CMASK_OP2_OR);
 }
 
-/**
- * scx_cmask_or_racy - OR @src into @dst, reading @src without locking
- *
- * @src is read word-by-word through data_race(). Same per-bit independence
- * rationale as scx_cmask_copy_racy(). Memory ordering with writers is the
- * caller's responsibility.
- */
-void scx_cmask_or_racy(struct scx_cmask *dst, const struct scx_cmask *src)
-{
-	cmask_walk_op2(dst->bits, dst->base, dst->nr_cids,
-		       src->bits, src->base, src->nr_cids, CMASK_OP2_OR_RACY);
-}
-
 void scx_cmask_copy(struct scx_cmask *dst, const struct scx_cmask *src)
 {
 	cmask_walk_op2(dst->bits, dst->base, dst->nr_cids,
 		       src->bits, src->base, src->nr_cids, CMASK_OP2_COPY);
-}
-
-/**
- * scx_cmask_copy_racy - Snapshot @src into @dst without locking
- *
- * @src is read word-by-word through data_race(). Head/tail masking matches
- * scx_cmask_copy(). Each bit in a cmask is independent, so partial updates
- * just leave some bits fresher than others. Memory ordering with writers is
- * the caller's responsibility.
- */
-void scx_cmask_copy_racy(struct scx_cmask *dst, const struct scx_cmask *src)
-{
-	cmask_walk_op2(dst->bits, dst->base, dst->nr_cids,
-		       src->bits, src->base, src->nr_cids, CMASK_OP2_COPY_RACY);
 }
 
 void scx_cmask_andnot(struct scx_cmask *dst, const struct scx_cmask *src)
@@ -680,13 +890,13 @@ __bpf_kfunc void scx_bpf_cid_topo(s32 cid, struct scx_cid_topo *out__uninit,
 
 __bpf_kfunc_end_defs();
 
-BTF_KFUNCS_START(scx_kfunc_ids_init)
+BTF_KFUNCS_START(scx_kfunc_ids_init_cids)
 BTF_ID_FLAGS(func, scx_bpf_cid_override, KF_IMPLICIT_ARGS | KF_SLEEPABLE)
-BTF_KFUNCS_END(scx_kfunc_ids_init)
+BTF_KFUNCS_END(scx_kfunc_ids_init_cids)
 
-static const struct btf_kfunc_id_set scx_kfunc_set_init = {
+static const struct btf_kfunc_id_set scx_kfunc_set_init_cids = {
 	.owner	= THIS_MODULE,
-	.set	= &scx_kfunc_ids_init,
+	.set	= &scx_kfunc_ids_init_cids,
 	.filter	= scx_kfunc_context_filter,
 };
 
@@ -701,9 +911,200 @@ static const struct btf_kfunc_id_set scx_kfunc_set_cid = {
 	.set	= &scx_kfunc_ids_cid,
 };
 
+/**
+ * scx_cmask_ref_init - Bind a scx_cmask_ref to a BPF-arena cmask
+ * @sch: scheduler whose arena hosts @src
+ * @src: BPF-supplied cmask pointer
+ * @ref: output ref
+ *
+ * Snapshot @src's @base, @nr_cids and @alloc_words. The snapshot is necessary
+ * because BPF may mutate the live header asynchronously.
+ *
+ * Return 0 on success, -EINVAL if the range is out of bounds or @alloc_words
+ * doesn't cover it.
+ */
+int scx_cmask_ref_init(struct scx_sched *sch, const struct scx_cmask *src,
+		       struct scx_cmask_ref *ref)
+{
+	struct scx_cmask *kern_src = scx_arena_to_kaddr(sch, src);
+	u32 base, nr_cids, alloc_words, npossible = num_possible_cpus();
+
+	base = READ_ONCE(kern_src->base);
+	nr_cids = READ_ONCE(kern_src->nr_cids);
+	alloc_words = READ_ONCE(kern_src->alloc_words);
+
+	if (unlikely(base >= npossible || nr_cids > npossible - base ||
+		     SCX_CMASK_NR_WORDS(nr_cids) > alloc_words))
+		return -EINVAL;
+
+	ref->sch = sch;
+	ref->src = kern_src;
+	ref->base = base;
+	ref->nr_cids = nr_cids;
+
+	ref->shard_first = scx_cid_to_shard[base];
+	if (likely(nr_cids))
+		ref->shard_end = scx_cid_to_shard[base + nr_cids - 1] + 1;
+	else
+		ref->shard_end = ref->shard_first;
+
+	return 0;
+}
+
+/**
+ * scx_cmask_ref_init_kern - Bind a scx_cmask_ref to a kernel-owned cmask
+ * @sch: scheduler the cmask belongs to
+ * @m: kernel address of the target cmask, storage sized for @nr_cids at @base
+ * @base: first cid of the active range
+ * @nr_cids: active range length
+ * @ref: output ref
+ *
+ * Like scx_cmask_ref_init() but the geometry is supplied by the caller, not
+ * read from @m's header, so a concurrent BPF write to the header can't steer
+ * later sizing or offsets. Rewrite the header from the trusted geometry and
+ * bind @ref to it.
+ */
+void scx_cmask_ref_init_kern(struct scx_sched *sch, struct scx_cmask *m,
+			     u32 base, u32 nr_cids, struct scx_cmask_ref *ref)
+{
+	WRITE_ONCE(m->base, base);
+	WRITE_ONCE(m->nr_cids, nr_cids);
+	WRITE_ONCE(m->alloc_words, SCX_CMASK_NR_WORDS(nr_cids));
+
+	ref->sch = sch;
+	ref->src = m;
+	ref->base = base;
+	ref->nr_cids = nr_cids;
+
+	ref->shard_first = scx_cid_to_shard[base];
+	if (likely(nr_cids))
+		ref->shard_end = scx_cid_to_shard[base + nr_cids - 1] + 1;
+	else
+		ref->shard_end = ref->shard_first;
+}
+
+/**
+ * scx_cmask_ref_shard - Read one shard from @ref into @out
+ * @ref: validated ref
+ * @shard_idx: target shard, in [@ref->shard_first, @ref->shard_end)
+ * @out: output cmask whose @out->alloc_words must hold the shard
+ *
+ * Set @out to the intersection of @ref's range with @shard_idx's cid range,
+ * with bits[] read from @ref->src via READ_ONCE. Empty intersection sets
+ * @out->nr_cids to 0. scx_error()s on @ref's sched if @out can't hold the
+ * shard.
+ */
+void scx_cmask_ref_shard(const struct scx_cmask_ref *ref, s32 shard_idx,
+			 struct scx_cmask *out)
+{
+	const struct scx_cid_shard *shard = &scx_cid_shard_ranges[shard_idx];
+	u32 shard_base = shard->base_cid;
+	u32 shard_end = shard_base + shard->nr_cids;
+	u32 isect_base, isect_end, nr_words, src_off, wi;
+	u64 head_mask, tail_mask;
+
+	isect_base = max(ref->base, shard_base);
+	isect_end = min(ref->base + ref->nr_cids, shard_end);
+
+	if (isect_base >= isect_end) {
+		out->base = shard_base;
+		out->nr_cids = 0;
+		return;
+	}
+
+	nr_words = ((isect_end - 1) / 64) - (isect_base / 64) + 1;
+	if (nr_words > out->alloc_words) {
+		scx_error(ref->sch, "scx_cmask_ref_shard: out alloc_words=%u < %u for shard %d",
+			  out->alloc_words, nr_words, shard_idx);
+		out->base = shard_base;
+		out->nr_cids = 0;
+		return;
+	}
+
+	out->base = isect_base;
+	out->nr_cids = isect_end - isect_base;
+	src_off = (isect_base / 64) - (ref->base / 64);
+
+	for (wi = 0; wi < nr_words; wi++)
+		out->bits[wi] = READ_ONCE(ref->src->bits[src_off + wi]);
+
+	head_mask = GENMASK_U64(63, isect_base & 63);
+	out->bits[0] &= head_mask;
+	tail_mask = GENMASK_U64((isect_end - 1) & 63, 0);
+	out->bits[nr_words - 1] &= tail_mask;
+}
+
+/**
+ * scx_cmask_ref_or - OR @src into the arena cmask referenced by @ref
+ * @ref: validated ref
+ * @src: stable kernel cmask
+ *
+ * Bits inside the intersection of @ref's snapshotted range with @src's range
+ * are OR'd into @ref->src and bits outside are left unchanged. Stores on
+ * @ref->src use WRITE_ONCE since BPF may read/write concurrently.
+ */
+void scx_cmask_ref_or(const struct scx_cmask_ref *ref, const struct scx_cmask *src)
+{
+	cmask_walk_op2(ref->src->bits, ref->base, ref->nr_cids,
+		       src->bits, src->base, src->nr_cids, CMASK_OP2_REF_OR);
+}
+
+/**
+ * scx_cmask_ref_copy - Copy @src into the arena cmask referenced by @ref
+ * @ref: validated ref
+ * @src: stable kernel cmask
+ *
+ * Bits inside the intersection of @ref's snapshotted range with @src's range
+ * take @src's values and bits outside are left unchanged. Stores on @ref->src
+ * use WRITE_ONCE since BPF may read/write concurrently.
+ */
+void scx_cmask_ref_copy(const struct scx_cmask_ref *ref, const struct scx_cmask *src)
+{
+	cmask_walk_op2(ref->src->bits, ref->base, ref->nr_cids,
+		       src->bits, src->base, src->nr_cids, CMASK_OP2_REF_COPY);
+}
+
+/**
+ * scx_cmask_ref_from_cpumask - Populate @ref's arena cmask from a cpumask
+ * @ref: kern-bound ref, see scx_cmask_ref_init_kern()
+ * @cpumask: cpus to translate into cids
+ *
+ * Write @ref's active range one word at a time, setting each cid's bit when
+ * its cpu is in @cpumask. Offsets and length come from @ref's trusted geometry
+ * and stores use WRITE_ONCE since BPF may read concurrently, so the arena
+ * header is never read.
+ */
+void scx_cmask_ref_from_cpumask(const struct scx_cmask_ref *ref,
+				const struct cpumask *cpumask)
+{
+	struct scx_cmask *m = ref->src;
+	u32 base = ref->base, nr_cids = ref->nr_cids;
+	u32 wi, nr_words;
+
+	if (!nr_cids)
+		return;
+
+	nr_words = (base + nr_cids - 1) / 64 - base / 64 + 1;
+	for (wi = 0; wi < nr_words; wi++) {
+		u32 word_first_cid = (base / 64 + wi) * 64;
+		u64 word = 0;
+		u32 bit;
+
+		for (bit = 0; bit < 64; bit++) {
+			u32 cid = word_first_cid + bit;
+
+			if (cid < base || cid >= base + nr_cids)
+				continue;
+			if (cpumask_test_cpu(__scx_cid_to_cpu(cid), cpumask))
+				word |= BIT_U64(bit);
+		}
+		WRITE_ONCE(m->bits[wi], word);
+	}
+}
+
 int scx_cid_kfunc_init(void)
 {
-	return register_btf_kfunc_id_set(BPF_PROG_TYPE_STRUCT_OPS, &scx_kfunc_set_init) ?:
+	return register_btf_kfunc_id_set(BPF_PROG_TYPE_STRUCT_OPS, &scx_kfunc_set_init_cids) ?:
 		register_btf_kfunc_id_set(BPF_PROG_TYPE_STRUCT_OPS, &scx_kfunc_set_cid) ?:
 		register_btf_kfunc_id_set(BPF_PROG_TYPE_TRACING, &scx_kfunc_set_cid) ?:
 		register_btf_kfunc_id_set(BPF_PROG_TYPE_SYSCALL, &scx_kfunc_set_cid);
