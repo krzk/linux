@@ -11,7 +11,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_frequencyY
  */
 
-#define IIO_DEV_ATTR_FREQ(_channel, _num, _mode, _show, _store, _addr)	\
+#define IIO_DEV_ATTR_FREQ(_mode, _channel, _num, _show, _store, _addr)	\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_frequency##_num,	\
 			_mode, _show, _store, _addr)
 
@@ -26,7 +26,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_frequencysymbol
  */
 
-#define IIO_DEV_ATTR_FREQSYMBOL(_channel, _mode, _show, _store, _addr)	\
+#define IIO_DEV_ATTR_FREQSYMBOL(_mode, _channel, _show, _store, _addr)	\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_frequencysymbol,	\
 			_mode, _show, _store, _addr)
 
@@ -34,7 +34,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_phaseY
  */
 
-#define IIO_DEV_ATTR_PHASE(_channel, _num, _mode, _show, _store, _addr)	\
+#define IIO_DEV_ATTR_PHASE(_mode, _channel, _num, _show, _store, _addr)	\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_phase##_num,		\
 			_mode, _show, _store, _addr)
 
@@ -49,7 +49,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_phasesymbol
  */
 
-#define IIO_DEV_ATTR_PHASESYMBOL(_channel, _mode, _show, _store, _addr)	\
+#define IIO_DEV_ATTR_PHASESYMBOL(_mode, _channel, _show, _store, _addr)	\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_phasesymbol,		\
 			_mode, _show, _store, _addr)
 
@@ -57,7 +57,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_pincontrol_en
  */
 
-#define IIO_DEV_ATTR_PINCONTROL_EN(_channel, _mode, _show, _store, _addr)\
+#define IIO_DEV_ATTR_PINCONTROL_EN(_mode, _channel, _show, _store, _addr)\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_pincontrol_en,	\
 			_mode, _show, _store, _addr)
 
@@ -65,7 +65,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_pincontrol_frequency_en
  */
 
-#define IIO_DEV_ATTR_PINCONTROL_FREQ_EN(_channel, _mode, _show, _store, _addr)\
+#define IIO_DEV_ATTR_PINCONTROL_FREQ_EN(_mode, _channel, _show, _store, _addr)\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_pincontrol_frequency_en,\
 			_mode, _show, _store, _addr)
 
@@ -73,7 +73,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_pincontrol_phase_en
  */
 
-#define IIO_DEV_ATTR_PINCONTROL_PHASE_EN(_channel, _mode, _show, _store, _addr)\
+#define IIO_DEV_ATTR_PINCONTROL_PHASE_EN(_mode, _channel, _show, _store, _addr)\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_pincontrol_phase_en,	\
 			_mode, _show, _store, _addr)
 
@@ -81,7 +81,7 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_out_enable
  */
 
-#define IIO_DEV_ATTR_OUT_ENABLE(_channel, _mode, _show, _store, _addr)	\
+#define IIO_DEV_ATTR_OUT_ENABLE(_mode, _channel, _show, _store, _addr)	\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_out_enable,		\
 			_mode, _show, _store, _addr)
 
@@ -89,8 +89,8 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_outY_enable
  */
 
-#define IIO_DEV_ATTR_OUTY_ENABLE(_channel, _output,			\
-			_mode, _show, _store, _addr)			\
+#define IIO_DEV_ATTR_OUTY_ENABLE(_mode, _channel, _output,		\
+			_show, _store, _addr)				\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_out##_output##_enable,\
 			_mode, _show, _store, _addr)
 
@@ -98,9 +98,9 @@
  * /sys/bus/iio/devices/.../out_altvoltageX_outY_wavetype
  */
 
-#define IIO_DEV_ATTR_OUT_WAVETYPE(_channel, _output, _store, _addr)	\
+#define IIO_DEV_ATTR_OUT_WAVETYPE(_mode, _channel, _output, _store, _addr)\
 	IIO_DEVICE_ATTR(out_altvoltage##_channel##_out##_output##_wavetype,\
-			0200, NULL, _store, _addr)
+			_mode, NULL, _store, _addr)
 
 /**
  * /sys/bus/iio/devices/.../out_altvoltageX_outY_wavetype_available
