@@ -622,6 +622,9 @@ static int insert_iommu_master(struct device *dev,
 			return 0;
 		}
 
+	if (master->num_mids >= MAX_NUM_MIDS)
+		return -ENOSPC;
+
 	master->mids[master->num_mids++] = spec->args[0];
 	return 0;
 }
@@ -720,7 +723,7 @@ static int msm_iommu_probe(struct platform_device *pdev)
 
 	iommu = devm_kzalloc(&pdev->dev, sizeof(*iommu), GFP_KERNEL);
 	if (!iommu)
-		return -ENODEV;
+		return -ENOMEM;
 
 	iommu->dev = &pdev->dev;
 	INIT_LIST_HEAD(&iommu->ctx_list);
@@ -778,8 +781,6 @@ static int msm_iommu_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	list_add(&iommu->dev_node, &qcom_iommu_devices);
-
 	ret = iommu_device_sysfs_add(&iommu->iommu, iommu->dev, NULL,
 				     "msm-smmu.%pa", &ioaddr);
 	if (ret) {
@@ -790,8 +791,11 @@ static int msm_iommu_probe(struct platform_device *pdev)
 	ret = iommu_device_register(&iommu->iommu, &msm_iommu_ops, &pdev->dev);
 	if (ret) {
 		pr_err("Could not register msm-smmu at %pa\n", &ioaddr);
+		iommu_device_sysfs_remove(&iommu->iommu);
 		return ret;
 	}
+
+	list_add(&iommu->dev_node, &qcom_iommu_devices);
 
 	pr_info("device mapped at %p, irq %d with %d ctx banks\n",
 		iommu->base, iommu->irq, iommu->ncb);
