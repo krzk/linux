@@ -101,6 +101,10 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
 	struct gdma_context *gc;
 	int err;
 
+	err = ib_no_udata_io(udata);
+	if (err)
+		return err;
+
 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
 	gc = mdev_to_gc(dev);
 
@@ -133,6 +137,11 @@ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
 	struct gdma_destroy_pd_req req = {};
 	struct mana_ib_dev *dev;
 	struct gdma_context *gc;
+	int err;
+
+	err = ib_no_udata_io(udata);
+	if (err)
+		return err;
 
 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
 	gc = mdev_to_gc(dev);
@@ -142,7 +151,11 @@ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
 
 	req.pd_handle = pd->pd_handle;
 
-	return mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+	if (err)
+		return err;
+
+	return 0;
 }
 
 static int mana_gd_destroy_doorbell_page(struct gdma_context *gc,
@@ -198,17 +211,17 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
 	int doorbell_page;
 	int ret;
 
+	ret = ib_no_udata_io(udata);
+	if (ret)
+		return ret;
+
 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
 	gc = mdev_to_gc(mdev);
 
 	/* Allocate a doorbell page index */
 	ret = mana_gd_allocate_doorbell_page(gc, &doorbell_page);
-	if (ret) {
-		ibdev_dbg(ibdev, "Failed to allocate doorbell page %d\n", ret);
+	if (ret)
 		return ret;
-	}
-
-	ibdev_dbg(ibdev, "Doorbell page allocated %d\n", doorbell_page);
 
 	ucontext->doorbell = doorbell_page;
 
@@ -575,11 +588,10 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
 	struct pci_dev *pdev = to_pci_dev(mdev_to_gc(dev)->dev);
 	int err;
 
-	err = ib_is_udata_in_empty(uhw);
+	err = ib_no_udata_io(uhw);
 	if (err)
 		return err;
 
-	memset(props, 0, sizeof(*props));
 	props->vendor_id = pdev->vendor;
 	props->vendor_part_id = dev->gdma_dev->dev_id.type;
 	props->max_mr_size = MANA_IB_MAX_MR_SIZE;
@@ -605,7 +617,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
 	if (!mana_ib_is_rnic(dev))
 		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
 
-	return ib_respond_empty_udata(uhw);
+	return 0;
 }
 
 int mana_ib_query_port(struct ib_device *ibdev, u32 port,

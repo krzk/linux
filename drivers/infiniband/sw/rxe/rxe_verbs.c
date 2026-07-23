@@ -22,13 +22,13 @@ static int rxe_query_device(struct ib_device *ibdev,
 	struct rxe_dev *rxe = to_rdev(ibdev);
 	int err;
 
-	err = ib_is_udata_in_empty(udata);
+	err = ib_no_udata_io(udata);
 	if (err)
 		return err;
 
 	memcpy(attr, &rxe->attr, sizeof(*attr));
 
-	return ib_respond_empty_udata(udata);
+	return 0;
 }
 
 static int rxe_query_port(struct ib_device *ibdev,
