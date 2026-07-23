@@ -1049,14 +1049,14 @@ static const struct nfc_digital_ops st95hf_nfc_digital_ops = {
 };
 
 static const struct spi_device_id st95hf_id[] = {
-	{ "st95hf", 0 },
-	{}
+	{ .name = "st95hf" },
+	{ }
 };
 MODULE_DEVICE_TABLE(spi, st95hf_id);
 
-static const struct of_device_id st95hf_spi_of_match[] __maybe_unused = {
+static const struct of_device_id st95hf_spi_of_match[] = {
 	{ .compatible = "st,st95hf" },
-	{},
+	{ }
 };
 MODULE_DEVICE_TABLE(of, st95hf_spi_of_match);
 
