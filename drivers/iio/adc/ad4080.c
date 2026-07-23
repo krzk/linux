@@ -848,17 +848,17 @@ static int ad4080_probe(struct spi_device *spi)
 }
 
 static const struct spi_device_id ad4080_id[] = {
-	{ "ad4080", (kernel_ulong_t)&ad4080_chip_info },
-	{ "ad4081", (kernel_ulong_t)&ad4081_chip_info },
-	{ "ad4082", (kernel_ulong_t)&ad4082_chip_info },
-	{ "ad4083", (kernel_ulong_t)&ad4083_chip_info },
-	{ "ad4084", (kernel_ulong_t)&ad4084_chip_info },
-	{ "ad4085", (kernel_ulong_t)&ad4085_chip_info },
-	{ "ad4086", (kernel_ulong_t)&ad4086_chip_info },
-	{ "ad4087", (kernel_ulong_t)&ad4087_chip_info },
-	{ "ad4088", (kernel_ulong_t)&ad4088_chip_info },
-	{ "ad4880", (kernel_ulong_t)&ad4880_chip_info },
-	{ "ad4884", (kernel_ulong_t)&ad4884_chip_info },
+	{ .name = "ad4080", .driver_data = (kernel_ulong_t)&ad4080_chip_info },
+	{ .name = "ad4081", .driver_data = (kernel_ulong_t)&ad4081_chip_info },
+	{ .name = "ad4082", .driver_data = (kernel_ulong_t)&ad4082_chip_info },
+	{ .name = "ad4083", .driver_data = (kernel_ulong_t)&ad4083_chip_info },
+	{ .name = "ad4084", .driver_data = (kernel_ulong_t)&ad4084_chip_info },
+	{ .name = "ad4085", .driver_data = (kernel_ulong_t)&ad4085_chip_info },
+	{ .name = "ad4086", .driver_data = (kernel_ulong_t)&ad4086_chip_info },
+	{ .name = "ad4087", .driver_data = (kernel_ulong_t)&ad4087_chip_info },
+	{ .name = "ad4088", .driver_data = (kernel_ulong_t)&ad4088_chip_info },
+	{ .name = "ad4880", .driver_data = (kernel_ulong_t)&ad4880_chip_info },
+	{ .name = "ad4884", .driver_data = (kernel_ulong_t)&ad4884_chip_info },
 	{ }
 };
 MODULE_DEVICE_TABLE(spi, ad4080_id);
