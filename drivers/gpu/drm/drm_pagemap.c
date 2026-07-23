@@ -12,7 +12,7 @@
 #include <drm/drm_pagemap_util.h>
 #include <drm/drm_print.h>
 
-#if IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION)
+#if IS_ENABLED(CONFIG_ARCH_HAS_PMD_SOFTLEAVES)
 #define DRM_PAGEMAP_PMD_ORDER	HPAGE_PMD_ORDER
 #else
 #define DRM_PAGEMAP_PMD_ORDER	(-1)
