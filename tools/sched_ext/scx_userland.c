@@ -326,7 +326,7 @@ static int spawn_stats_thread(void)
 static void pre_bootstrap(int argc, char **argv)
 {
 	int err;
-	__u32 opt;
+	__s32 opt;
 	struct sched_param sched_param = {
 		.sched_priority = sched_get_priority_max(SCHED_EXT),
 	};
