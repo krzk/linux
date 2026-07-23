@@ -753,8 +753,6 @@ static int bq257xx_charger_probe(struct platform_device *pdev)
 						IRQF_TRIGGER_FALLING |
 						IRQF_ONESHOT,
 						dev_name(&bq->client->dev), pdata);
-		if (ret < 0)
-			dev_err_probe(dev, ret, "Charger get irq failed\n");
 	}
 
 	return ret;

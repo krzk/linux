@@ -83,6 +83,10 @@ enum {
 	POWER_SUPPLY_TECHNOLOGY_LiFe,
 	POWER_SUPPLY_TECHNOLOGY_NiCd,
 	POWER_SUPPLY_TECHNOLOGY_LiMn,
+	POWER_SUPPLY_TECHNOLOGY_PbAc,
+	POWER_SUPPLY_TECHNOLOGY_NiZn,
+	POWER_SUPPLY_TECHNOLOGY_RAM,
+	POWER_SUPPLY_TECHNOLOGY_ZnAr,
 };
 
 enum {
@@ -346,7 +350,8 @@ struct power_supply {
 #endif
 
 #ifdef CONFIG_LEDS_TRIGGERS
-	struct led_trigger *trig;
+	struct led_trigger *charging_or_full_trig;
+	struct led_trigger *online_trig;
 	struct led_trigger *charging_trig;
 	struct led_trigger *full_trig;
 	struct led_trigger *charging_blink_full_solid_trig;

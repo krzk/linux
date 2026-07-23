@@ -1055,19 +1055,13 @@ static int twl4030_bci_probe(struct platform_device *pdev)
 	ret = devm_request_threaded_irq(&pdev->dev, bci->irq_chg, NULL,
 			twl4030_charger_interrupt, IRQF_ONESHOT, pdev->name,
 			bci);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "could not request irq %d, status %d\n",
-			bci->irq_chg, ret);
+	if (ret < 0)
 		return ret;
-	}
 
 	ret = devm_request_threaded_irq(&pdev->dev, bci->irq_bci, NULL,
 			twl4030_bci_interrupt, IRQF_ONESHOT, pdev->name, bci);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "could not request irq %d, status %d\n",
-			bci->irq_bci, ret);
+	if (ret < 0)
 		return ret;
-	}
 
 	/* Enable interrupts now. */
 	reg = ~(u32)(TWL4030_ICHGLOW | TWL4030_ICHGEOC | TWL4030_TBATOR2 |
