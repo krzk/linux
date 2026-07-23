@@ -44,6 +44,7 @@ pub use self::io::{
     Bar,
     ConfigSpace,
     ConfigSpaceSize,
+    DevresBar,
     Extended,
     Normal, //
 };
