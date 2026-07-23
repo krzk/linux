@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
 /*
  * Copyright (C) 2017 Intel Deutschland GmbH
- * Copyright (C) 2019-2025 Intel Corporation
+ * Copyright (C) 2019-2026 Intel Corporation
  */
 #include <linux/uuid.h>
 #include "iwl-drv.h"
@@ -1193,6 +1193,8 @@ int iwl_acpi_get_wbem(struct iwl_fw_runtime *fwrt, u32 *value)
 
 	*value = wifi_pkg->package.elements[1].integer.value &
 		 IWL_ACPI_WBEM_REV0_MASK;
+	fwrt->wbem_source = BIOS_SOURCE_ACPI;
+	fwrt->wbem_revision = tbl_rev;
 	IWL_DEBUG_RADIO(fwrt, "Loaded WBEM config from ACPI\n");
 	ret = 0;
 out_free:
