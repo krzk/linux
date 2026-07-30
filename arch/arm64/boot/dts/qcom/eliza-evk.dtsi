@@ -215,7 +215,7 @@
 	pinctrl-1 = <&usb_dp_sw_sleep>;
 	pinctrl-names = "default", "sleep";
 
-	status = "okay";
+	//status = "okay";
 };
 
 &mdss_dp0_out {
@@ -225,7 +225,7 @@
 &mdss_dsi0 {
 	vdda-supply = <&vreg_l4b>;
 
-	status = "okay";
+	// status = "okay";
 };
 
 &mdss_dsi0_out {
@@ -236,7 +236,7 @@
 &mdss_dsi0_phy {
 	vdds-supply = <&vreg_l2b>;
 
-	status = "okay";
+	// status = "okay";
 };
 
 &mdss_hdmi {
@@ -306,6 +306,14 @@
 &pm7550ba_eusb2_repeater {
 	vdd18-supply = <&vreg_l7b>;
 	vdd3-supply = <&vreg_l17b>;
+};
+
+&qupv3_1 {
+	firmware-name = "qcom/eliza/qupv3fw.elf";
+};
+
+&qupv3_2 {
+	firmware-name = "qcom/eliza/qupv3fw.elf";
 };
 
 &sdhc_2 {
