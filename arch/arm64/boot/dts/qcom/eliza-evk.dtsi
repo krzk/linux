@@ -22,6 +22,7 @@
 		enable-active-high;
 		pinctrl-0 = <&hdmi_5p0_state>;
 		pinctrl-names = "default";
+		// regulator-always-on; // makes hpd always high?
 	};
 
 	hdmi-0-connector {
@@ -240,18 +241,27 @@
 
 &mdss_hdmi {
 	//hpd-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
-
+#if 0
 	pinctrl-0 = <&hdmi_ddc_default>,
 		    <&hdmi_cec_active>,
 		    <&hdmi_hpd_active>,
 		    <&hdmi_earc_pwr_en_state>;
 	pinctrl-1 = <&hdmi_ddc_default>,
 		    <&hdmi_cec_sleep>,
+		    <&hdmi_hpd_sleep>,
+		    <&hdmi_earc_pwr_en_sleep>;
+#endif
+	pinctrl-0 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_active>,
+		    <&hdmi_hpd_active>;
+	pinctrl-1 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_sleep>,
 		    <&hdmi_hpd_sleep>;
 	pinctrl-names = "default", "sleep";
 
-	vdda-0p9-supply = <&vreg_l2b>;
-	vdda-1p2-supply = <&vreg_l4b>;
+	code-vdda-supply = <&vreg_l4b>;
+	code-vcc-supply = <&vreg_l2b>;
+	vddio-supply = <&hdmi_5p0_reg>;
 
 	status = "okay";
 };
@@ -261,8 +271,6 @@
 };
 
 &mdss_hdmi_phy {
-	vddio-supply = <&hdmi_5p0_reg>;
-
 	status = "okay";
 };
 
@@ -405,21 +413,39 @@
 		};
 	};
 
-	/* TODO: based on schematics, but not downstream */
-	hdmi_earc_pwr_en_state: hdmi-earc-pwr-en-state {
+	/*
+	 * Based on schematics, but not downstream. Necessary to enable SIL9437
+	 * IC for eARC, which when non-working seems to pull down HPD
+	 * permanently when 5p0 is on and reverse (pull up when 5p0 is off) -
+	 * no clue what is happening here.
+	 */
+	 /*
+	hdmi_earc_pwr_en_active: hdmi-earc-pwr-en-active-state {
 		pins = "gpio180";
 		function = "gpio";
 		drive-strength = <8>;
 		bias-disable;
-		output-high;
+		//output-high;
+		output-low;
 	};
+
+	hdmi_earc_pwr_en_sleep: hdmi-earc-pwr-en-sleep-state {
+		pins = "gpio180";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		//output-high;
+		output-low;
+	};
+	*/
+
 
 	hdmi_5p0_state: hdmi-5p0-state {
 		pins = "gpio184";
 		function = "gpio";
 		drive-strength = <8>;
 		bias-disable;
-		output-high; /* FIXME: make it low */
+		output-low;
 	};
 };
 
