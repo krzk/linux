@@ -1865,7 +1865,7 @@
 				status = "disabled";
 			};
 
-			i2c16: i2c@198c000  {
+			i2c16: i2c@198c000 {
 				compatible = "qcom,geni-i2c";
 				reg = <0x0 0x0198c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 585 IRQ_TYPE_LEVEL_HIGH>;

@@ -1917,7 +1917,7 @@
 				 <&gcc GCC_CAMSS_TFE_0_CLK>,
 				 <&gcc GCC_CAMSS_TFE_0_CPHY_RX_CLK>,
 				 <&gcc GCC_CAMSS_TFE_1_CLK>,
-				 <&gcc GCC_CAMSS_TFE_1_CPHY_RX_CLK> ;
+				 <&gcc GCC_CAMSS_TFE_1_CPHY_RX_CLK>;
 			clock-names = "ahb",
 				      "axi",
 				      "camnoc_nrt_axi",

@@ -462,7 +462,7 @@
 			no-map;
 		};
 
-		spss_region_mem: spss@9b0a0000  {
+		spss_region_mem: spss@9b0a0000 {
 			reg = <0x0 0x9b0a0000 0x0 0x1e0000>;
 			no-map;
 		};

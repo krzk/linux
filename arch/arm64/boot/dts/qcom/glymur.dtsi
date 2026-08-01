@@ -2359,7 +2359,7 @@
 			status = "disabled";
 		};
 
-		usb_mp_hsphy1: phy@fa2000  {
+		usb_mp_hsphy1: phy@fa2000 {
 			compatible = "qcom,glymur-m31-eusb2-phy",
 				     "qcom,sm8750-m31-eusb2-phy";
 
@@ -2524,7 +2524,7 @@
 			};
 		};
 
-		usb_1_hsphy: phy@fdd000  {
+		usb_1_hsphy: phy@fdd000 {
 			compatible = "qcom,glymur-m31-eusb2-phy",
 				     "qcom,sm8750-m31-eusb2-phy";
 
@@ -4437,7 +4437,7 @@
 			#interconnect-cells = <2>;
 		};
 
-		usb_2_hsphy: phy@88e0000  {
+		usb_2_hsphy: phy@88e0000 {
 			compatible = "qcom,glymur-m31-eusb2-phy",
 				     "qcom,sm8750-m31-eusb2-phy";
 
@@ -6733,7 +6733,7 @@
 			};
 		};
 
-		itnoc@11200000  {
+		itnoc@11200000 {
 			compatible = "qcom,coresight-itnoc";
 			reg = <0x0 0x11200000 0x0 0x3c00>;
 
