@@ -289,7 +289,7 @@
 	cpu0-supply = <&vdd_dvfs>;
 };
 
-&iic2	{
+&iic2 {
 	status = "okay";
 	pinctrl-0 = <&iic2_pins>;
 	pinctrl-names = "default";
