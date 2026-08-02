@@ -354,11 +354,13 @@
 pp1256_s8b: &vreg_s8b_1p256 {};
 
 pp1800_l18b_s0: &vreg_l18b_1p8 {};
+/* dt-check-style: redundant-whitespace */
 pp1800_l18b:    &vreg_l18b_1p8 {};
 
 vreg_l19b_s0: &vreg_l19b_1p8 {};
 
 pp1800_alc5682: &vreg_l2c_1p8 {};
+/* dt-check-style: redundant-whitespace */
 pp1800_l2c:     &vreg_l2c_1p8 {};
 
 vreg_l4c: &vreg_l4c_1p8_3p0 {};
@@ -368,14 +370,17 @@ ppvar_l6c: &vreg_l6c_2p96 {};
 pp3000_l7c: &vreg_l7c_3p0 {};
 
 pp1800_prox: &vreg_l8c_1p8 {};
+/* dt-check-style: redundant-whitespace */
 pp1800_l8c:  &vreg_l8c_1p8 {};
 
 pp2950_l9c: &vreg_l9c_2p96 {};
 
+/* dt-check-style: redundant-whitespace */
 pp1800_lcm:  &vreg_l12c_1p8 {};
 pp1800_mipi: &vreg_l12c_1p8 {};
 pp1800_l12c: &vreg_l12c_1p8 {};
 
+/* dt-check-style: redundant-whitespace */
 pp3300_lcm:  &vreg_l13c_3p0 {};
 pp3300_mipi: &vreg_l13c_3p0 {};
 pp3300_l13c: &vreg_l13c_3p0 {};
@@ -384,6 +389,7 @@ pp3300_l13c: &vreg_l13c_3p0 {};
 
 vreg_edp_bl: &ppvar_sys {};
 
+/* dt-check-style: redundant-whitespace */
 ts_avdd:      &pp3300_left_in_mlb {};
 vreg_edp_3p3: &pp3300_left_in_mlb {};
 
