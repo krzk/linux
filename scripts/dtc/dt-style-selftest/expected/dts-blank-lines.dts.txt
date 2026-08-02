@@ -1,0 +1,4 @@
+# mode=strict
+bad/dts-blank-lines.dts:15: [blank-lines] consecutive blank lines
+bad/dts-blank-lines.dts:17: [blank-lines] blank line at start of node body
+bad/dts-blank-lines.dts:20: [blank-lines] blank line at end of node body

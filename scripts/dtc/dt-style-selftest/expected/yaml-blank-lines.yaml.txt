@@ -1,0 +1,4 @@
+# mode=strict
+bad/yaml-blank-lines.yaml:32: example 0 [blank-lines] consecutive blank lines
+bad/yaml-blank-lines.yaml:34: example 0 [blank-lines] blank line at start of node body
+bad/yaml-blank-lines.yaml:38: example 0 [blank-lines] blank line at end of node body
