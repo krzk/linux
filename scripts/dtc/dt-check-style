@@ -80,7 +80,7 @@ def is_preprocessor(stripped):
 
 class DtsLine:
     __slots__ = ('lineno', 'raw', 'linetype', 'indent_str', 'stripped', 'is_root',
-                 'prop_name', 'continuations',
+                 'prop_name', 'continuations', 'suppressions',
                  'node_name', 'node_addr', 'label', 'ref_name', 'parent', 'depth',
                  'closures')
 
@@ -94,6 +94,7 @@ class DtsLine:
         self.is_root = is_root
         self.prop_name = None
         self.continuations = []
+        self.suppressions = set()
         self.node_name = None
         self.node_addr = None
         self.label = None
@@ -140,6 +141,23 @@ def _split_code(text):
 
 
 re_only_closures = re.compile(r'(?:\}\s*;?\s*)+$')
+re_suppression_comment = re.compile(
+    r'^\s*(?://|/\*|\*)?\s+dt-check-style:\s+(.+?)(?:\*/)?\s*$')
+
+
+def _parse_suppression_comment(text):
+    m = re_suppression_comment.match(text)
+    if not m:
+        return None
+    return {token for token in re.split(r'[\s,]+', m.group(1).strip()) if token}
+
+
+def _is_comment_like(text):
+    stripped = text.lstrip()
+    if not stripped:
+        return False
+    return stripped.startswith('//') or stripped.startswith('/*') or \
+        stripped.startswith('*') or stripped.startswith('*/')
 
 
 def classify_lines(text):
@@ -150,6 +168,8 @@ def classify_lines(text):
     in_cpp_macro = False
     prev_complete = True
     depth = 0
+    #pending_suppressions = None
+    active_suppressions = set()
 
     # Split preserving the indent string verbatim
     re_lead = re.compile(r'^([ \t]*)(.*)$')
@@ -158,6 +178,14 @@ def classify_lines(text):
         m = re_lead.match(raw)
         indent_str = m.group(1)
         stripped = m.group(2)
+
+        # local_suppressions = set()
+        # if pending_suppressions is not None and stripped and not _is_comment_like(stripped):
+        #     local_suppressions = set(pending_suppressions)
+        #     pending_suppressions = None
+
+        # active_suppressions = set(suppression_stack[-1])
+        # active_suppressions.update(local_suppressions)
 
         # Continuation of a multi-line C preprocessor directive: the
         # previous PREPROCESSOR line ended with a '\\' line splice, so
@@ -189,6 +217,7 @@ def classify_lines(text):
         if (stripped.startswith('#') or stripped.startswith('/')) and is_preprocessor(stripped):
             dl = DtsLine(i, raw, LineType.PREPROCESSOR, depth,
                          indent_str, stripped)
+            dl.suppressions = active_suppressions
             out.append(dl)
             prev_complete = True
             in_cpp_macro = stripped.rstrip().endswith('\\')
@@ -204,13 +233,20 @@ def classify_lines(text):
         # COMMENT_START (carries to next line) or COMMENT, and skip the
         # structural classification entirely.
         if not code:
+            active_suppressions = _parse_suppression_comment(stripped)
             ltype = LineType.COMMENT_START if opens_block else LineType.COMMENT
             dl = DtsLine(i, raw, ltype, depth, indent_str, stripped)
+            dl.suppressions = active_suppressions
             out.append(dl)
             continue
 
+        # comment_suppressions = _parse_suppression_comment(stripped)
+        # if comment_suppressions is not None:
+        #     pending_suppressions = comment_suppressions
+
         if not prev_complete:
             dl = DtsLine(i, raw, LineType.CONTINUATION, depth, indent_str, code)
+            dl.suppressions = active_suppressions
             out.append(dl)
             prev_complete = (code.endswith(';') or
                              code.endswith('{') or
@@ -225,8 +261,12 @@ def classify_lines(text):
         if re_only_closures.match(code):
             closures = code.count('}')
             depth = max(depth - closures, 0)
+            # for _ in range(min(closures, max(0, len(suppression_stack) - 1))):
+            #     suppression_stack.pop()
             dl = DtsLine(i, raw, LineType.NODE_CLOSE, depth, indent_str, code)
             dl.closures = closures
+            #dl.suppressions.update(active_suppressions)
+            active_suppressions = set()
             out.append(dl)
             prev_complete = True
             continue
@@ -237,6 +277,12 @@ def classify_lines(text):
                 is_root = True
             dl = DtsLine(i, raw, LineType.NODE_OPEN, depth, indent_str, code, is_root=is_root)
             parse_node_header(dl)
+            # Previous suppression, like one above the node, still count for the
+            # node name and its contents
+            dl.suppressions = active_suppressions
+            #active_suppressions = set()
+            #dl.suppressions.update(active_suppressions)
+            #suppression_stack.append(set(active_suppressions))
             out.append(dl)
             depth += 1
             prev_complete = True
@@ -245,6 +291,7 @@ def classify_lines(text):
         # Property (or first line of a multi-line property).
         dl = DtsLine(i, raw, LineType.PROPERTY, depth, indent_str, code)
         parse_property_name(dl)
+        dl.suppressions = active_suppressions
         out.append(dl)
         prev_complete = code.endswith(';')
 
@@ -345,7 +392,7 @@ class Rule:
 def check_trailing_whitespace(ctx):
     for dl in ctx.lines:
         if dl.raw != dl.raw.rstrip():
-            yield (dl.lineno, 'trailing whitespace')
+            yield (dl, dl.lineno, 'trailing whitespace')
 
 
 def check_redundant_whitespace(ctx):
@@ -357,11 +404,11 @@ def check_redundant_whitespace(ctx):
                            LineType.PREPROCESSOR):
             continue
         if re.search(r'(\s\s+|\t){', dl.raw):
-            yield (dl.lineno, 'extra whitespace before {')
+            yield (dl, dl.lineno, 'extra whitespace before {')
         if re.search(r':(\s\s+|\t)', dl.raw):
-            yield (dl.lineno, 'extra whitespace after :')
+            yield (dl, dl.lineno, 'extra whitespace after :')
         if re.search(r'\s+;', dl.raw):
-            yield (dl.lineno, 'extra whitespace before ;')
+            yield (dl, dl.lineno, 'extra whitespace before ;')
 
 
 def check_redundant_whitespace_strict(ctx):
@@ -373,9 +420,9 @@ def check_redundant_whitespace_strict(ctx):
                            LineType.PREPROCESSOR):
             continue
         if re.search(r'(\s\s+|\t)=', dl.raw):
-            yield (dl.lineno, 'extra whitespace before =')
+            yield (dl, dl.lineno, 'extra whitespace before =')
         if re.search(r'=(\s\s+|\t)', dl.raw):
-            yield (dl.lineno, 'extra whitespace after =')
+            yield (dl, dl.lineno, 'extra whitespace after =')
 
 
 def check_tab_in_yaml_example(ctx):
@@ -393,7 +440,7 @@ def check_tab_in_yaml_example(ctx):
         if dl.linetype == LineType.BLANK:
             continue
         if '\t' in dl.raw:
-            yield (dl.lineno, 'tab character not allowed in DTS example')
+            yield (dl, dl.lineno, 'tab character not allowed in DTS example')
 
 
 def check_mixed_indent_chars(ctx):
@@ -405,16 +452,16 @@ def check_mixed_indent_chars(ctx):
         if dl.linetype == LineType.PREPROCESSOR:
             continue
         if re.search(r' \t', dl.indent_str):
-            yield (dl.lineno, 'mixed tabs and spaces in indent')
+            yield (dl, dl.lineno, 'mixed tabs and spaces in indent')
         if dl.indent_str.count(' ') > 7:
-            yield (dl.lineno, 'too many space characters in indent (more than 7)')
+            yield (dl, dl.lineno, 'too many space characters in indent (more than 7)')
         for cont in dl.continuations:
             if not cont.indent_str:
                 continue
             if cont.linetype == LineType.PREPROCESSOR:
                 continue
             if re.search(r' \t', cont.indent_str):
-                yield (cont.lineno, 'mixed tabs and spaces in indent')
+                yield (dl, cont.lineno, 'mixed tabs and spaces in indent')
 
 
 def detect_indent_unit(ctx):
@@ -433,42 +480,42 @@ def detect_indent_unit(ctx):
         if not dl.indent_str:
             continue
         if dl.indent_str == '\t':
-            return ('\t', dl.lineno)
+            return ('\t', dl)
         if dl.indent_str == '    ':
-            return ('    ', dl.lineno)
+            return ('    ', dl)
         if dl.indent_str == '  ':
-            return ('  ', dl.lineno)
+            return ('  ', dl)
         # Anything else at depth 1 is non-canonical; flag elsewhere.
-        return (dl.indent_str, dl.lineno)
+        return (dl.indent_str, dl)
     return (None, None)
 
 
 def check_indent_unit_relaxed(ctx):
     """YAML examples: 2 or 4 spaces. Never tabs or other widths."""
-    (unit, lineno) = detect_indent_unit(ctx)
+    (unit, dl) = detect_indent_unit(ctx)
     if unit is None:
         return
     if unit not in ('  ', '    '):
-        yield (lineno, 'indent unit must be 2 or 4 spaces, got %r' % unit)
+        yield (dl, dl.lineno, 'indent unit must be 2 or 4 spaces, got %r' % unit)
 
 
 def check_indent_unit_dts(ctx):
     """DTS files: 1 tab per level. Always required."""
-    (unit, lineno) = detect_indent_unit(ctx)
+    (unit, dl) = detect_indent_unit(ctx)
     if unit is None:
         return
     if unit != '\t':
-        yield (lineno, 'indent unit must be 1 tab in DTS, got %r' % unit)
+        yield (dl, dl.lineno, 'indent unit must be 1 tab in DTS, got %r' % unit)
 
 
 def check_indent_unit_strict(ctx):
     """YAML: must be exactly 4 spaces. DTS: 1 tab (same as relaxed)."""
-    (unit, lineno) = detect_indent_unit(ctx)
+    (unit, dl) = detect_indent_unit(ctx)
     if unit is None:
         return
     if ctx.file_type == 'yaml':
         if unit != '    ':
-            yield (lineno, 'indent unit must be 4 spaces in strict mode, '
+            yield (dl, dl.lineno, 'indent unit must be 4 spaces in strict mode, '
                    'got %r' % unit)
 
 
@@ -498,7 +545,7 @@ def check_indent_consistent(ctx):
         # which matches the indent expected.
         expected = unit * dl.depth
         if dl.indent_str != expected:
-            yield (dl.lineno,
+            yield (dl, dl.lineno,
                    'indent mismatch (expected depth %d * %r)' %
                    (dl.depth, unit))
 
@@ -511,7 +558,7 @@ def check_blank_lines(ctx):
     for i in range(1, len(lines)):
         if lines[i].linetype == LineType.BLANK and \
                 lines[i - 1].linetype == LineType.BLANK:
-            yield (lines[i].lineno, 'consecutive blank lines')
+            yield (lines[i], lines[i].lineno, 'consecutive blank lines')
     # Blank right after { or right before }
     for i, dl in enumerate(lines):
         if dl.linetype != LineType.BLANK:
@@ -519,9 +566,9 @@ def check_blank_lines(ctx):
         prev = lines[i - 1] if i > 0 else None
         nxt = lines[i + 1] if i + 1 < len(lines) else None
         if prev is not None and prev.linetype == LineType.NODE_OPEN:
-            yield (dl.lineno, 'blank line at start of node body')
+            yield (dl, dl.lineno, 'blank line at start of node body')
         if nxt is not None and nxt.linetype == LineType.NODE_CLOSE:
-            yield (dl.lineno, 'blank line at end of node body')
+            yield (dl, dl.lineno, 'blank line at end of node body')
 
 
 def _walk_bodies(lines):
@@ -586,7 +633,7 @@ def check_child_address_order(ctx):
         for i in range(1, len(addressed)):
             if addressed[i][0] < addressed[i - 1][0]:
                 dl = addressed[i][1]
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'child node @%s out of address order' %
                        dl.node_addr)
 
@@ -615,7 +662,7 @@ def check_child_name_order(ctx):
         for i in range(1, len(unaddressed)):
             if unaddressed[i][0] < unaddressed[i - 1][0]:
                 dl = unaddressed[i][1]
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'child node %r out of name order' % dl.node_name)
 
 
@@ -758,7 +805,7 @@ def check_property_order(ctx):
             if keyed[k][1] < keyed[k - 1][1]:
                 p = keyed[k][0]
                 prev = keyed[k - 1][0]
-                yield (p.lineno,
+                yield (p, p.lineno,
                        'property %r out of canonical order '
                        '(should sort before %r)' %
                        (p.prop_name, prev.prop_name))
@@ -826,10 +873,10 @@ def check_required_blank_lines(ctx):
             if needs_blank and prev_substantive is not None and \
                     between_blanks == 0:
                 if d.linetype == LineType.NODE_OPEN:
-                    yield (d.lineno,
+                    yield (d, d.lineno,
                            'child node must be preceded by a blank line')
                 else:
-                    yield (d.lineno,
+                    yield (d, d.lineno,
                            '"status" must be preceded by a blank line')
 
             prev_substantive = d
@@ -847,7 +894,7 @@ def check_hex_case(ctx):
         for m in re.finditer(r'\b0[xX][0-9a-fA-F]+\b', text):
             lit = m.group(0)
             if any(c.isupper() for c in lit[2:]) or lit[1] == 'X':
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'hex literal %r must be lowercase' % lit)
 
 
@@ -864,20 +911,20 @@ def check_unit_address_format(ctx):
         addr = dl.node_addr
         for part in addr.split(','):
             if part[:2] in ('0x', '0X'):
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'unit address %r must not have a "0x" prefix' %
                        addr)
                 break
             if not re.match(r'^[0-9a-fA-F]+$', part):
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'unit address %r is not valid hex' % addr)
                 break
             if any(c in 'ABCDEF' for c in part):
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'unit address %r must be lowercase hex' % addr)
                 break
             if len(part) > 1 and part.startswith('0'):
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'unit address %r has leading zeros' % addr)
                 break
 
@@ -906,7 +953,7 @@ def check_value_whitespace(ctx):
         for m in re.finditer(r'<([^<>]*)>', text):
             content = m.group(1)
             if content and content != content.strip():
-                yield (dl.lineno, 'extra whitespace inside <...>')
+                yield (dl, dl.lineno, 'extra whitespace inside <...>')
                 break
 
 
@@ -920,7 +967,7 @@ def check_node_close_alone(ctx):
     for dl in ctx.lines:
         if dl.linetype == LineType.NODE_CLOSE:
             if dl.closures > 1:
-                yield (dl.lineno,
+                yield (dl, dl.lineno,
                        'closing brace must be on its own line')
             continue
         if dl.linetype in (LineType.BLANK, LineType.COMMENT,
@@ -929,7 +976,7 @@ def check_node_close_alone(ctx):
             continue
         text = _strip_strings_and_comments(dl.raw)
         if '};' in text:
-            yield (dl.lineno,
+            yield (dl, dl.lineno,
                    'closing brace must be on its own line')
 
 
@@ -954,7 +1001,7 @@ def check_line_length(ctx):
             continue
         cols = _display_col(dl.raw)
         if cols > 80:
-            yield (dl.lineno,
+            yield (dl, dl.lineno,
                    'line exceeds 80 columns (%d)' % cols)
 
 
@@ -986,7 +1033,7 @@ def check_continuation_alignment(ctx):
                 target_offset = 1
                 err_msg_explanation = 'to the value under <'
             if _display_col(cont.indent_str) != target_col + target_offset:
-                yield (cont.lineno,
+                yield (dl, cont.lineno,
                        'continuation should align to column %d '
                        '(%s)' % (target_col + target_offset + 1, err_msg_explanation))
 
@@ -997,19 +1044,19 @@ def check_unclosed_block_comment(ctx):
     opened on a PROPERTY or other code line (where in_block_comment is
     set by _split_code so the next line becomes COMMENT_BODY without a
     preceding COMMENT_START)."""
-    open_lineno = None
+    open_line = None
     for dl in ctx.lines:
         if dl.linetype == LineType.COMMENT_START:
-            open_lineno = dl.lineno
+            open_line = dl
         elif dl.linetype == LineType.COMMENT_END:
-            open_lineno = None
-        elif dl.linetype == LineType.COMMENT_BODY and open_lineno is None:
+            open_line = None
+        elif dl.linetype == LineType.COMMENT_BODY and open_line is None:
             # Block was opened by a /* tail on a code line; report at
             # the first orphan body line since the originating line is
             # already classified as something else.
-            open_lineno = dl.lineno
-    if open_lineno is not None:
-        yield (open_lineno, 'unclosed /* block comment')
+            open_line = dl
+    if open_line is not None:
+        yield (open_line, open_line.lineno, 'unclosed /* block comment')
 
 
 def check_unused_labels(ctx):
@@ -1020,7 +1067,8 @@ def check_unused_labels(ctx):
         # reporting.
         m = re.search(r'(?m)^.*\b' + re.escape(label) + r'\s*:', ctx.text)
         lineno = ctx.text[:m.start()].count('\n') + 1 if m else 1
-        yield (lineno, 'label %r defined but never &-referenced' % label)
+        # FIXME: return proper DtsLine
+        yield (None, lineno, 'label %r defined but never &-referenced' % label)
 
 
 # --- registry --------------------------------------------------------------
@@ -1141,7 +1189,10 @@ def check_block(text, mode, input_type):
     rules = select_rules(mode, input_type)
     findings = []
     for r in rules:
-        for lineno, msg in r.check(ctx):
+        for dl, lineno, msg in r.check(ctx):
+            # FIXME: check_unused_labels() returns None as DtsLine
+            if dl and dl.suppressions and r.name in dl.suppressions:
+                continue
             findings.append((lineno, r.name, msg))
     findings.sort(key=lambda t: (t[0], t[1]))
     return findings

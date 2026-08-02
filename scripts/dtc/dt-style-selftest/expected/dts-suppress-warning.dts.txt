@@ -1,0 +1,5 @@
+# mode=strict
+bad/dts-suppress-warning.dts:14: [child-name-order] child node 'a55-pmu' out of name order
+bad/dts-suppress-warning.dts:28: [redundant-whitespace-strict] extra whitespace after =
+bad/dts-suppress-warning.dts:39: [child-address-order] child node @20000 out of address order
+bad/dts-suppress-warning.dts:44: [redundant-whitespace-strict] extra whitespace after =
