@@ -113,6 +113,7 @@ allOf:
           maxItems: 2
         clock-names:
           maxItems: 2
+        ulpi: false
 
 unevaluatedProperties: false
 
