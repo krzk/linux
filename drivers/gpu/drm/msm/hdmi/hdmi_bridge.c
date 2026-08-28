@@ -5,6 +5,7 @@
  */
 
 #include <linux/delay.h>
+#include <linux/pm_opp.h>
 #include <drm/drm_bridge_connector.h>
 #include <drm/drm_edid.h>
 #include <drm/display/drm_hdmi_helper.h>
@@ -30,9 +31,10 @@ static int msm_hdmi_clk_prepare(struct drm_bridge *bridge)
 
 	if (hdmi->extp_clk) {
 		DBG("pixclock: %lu", hdmi->pixclock);
-		ret = clk_set_rate(hdmi->extp_clk, hdmi->pixclock);
+
+		ret = dev_pm_opp_set_rate(&hdmi->pdev->dev, hdmi->pixclock);
 		if (ret)
-			DRM_DEV_ERROR(dev->dev, "failed to set extp clk rate: %d\n", ret);
+			DRM_DEV_ERROR(dev->dev, "failed to set OPP rate: %d\n", ret);
 
 		ret = clk_prepare_enable(hdmi->extp_clk);
 		if (ret) {
@@ -62,8 +64,10 @@ static void msm_hdmi_clk_unprepare(struct drm_bridge *bridge)
 	struct hdmi_bridge *hdmi_bridge = to_hdmi_bridge(bridge);
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
 
-	if (hdmi->extp_clk)
+	if (hdmi->extp_clk) {
 		clk_disable_unprepare(hdmi->extp_clk);
+		dev_pm_opp_set_rate(&hdmi->pdev->dev, 0);
+	}
 }
 
 #define AVI_IFRAME_LINE_NUMBER 1
