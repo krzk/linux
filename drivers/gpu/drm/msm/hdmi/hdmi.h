@@ -52,6 +52,9 @@ struct hdmi {
 	struct regulator_bulk_data *pwr_regs;
 	struct clk_bulk_data *pwr_clks;
 	struct clk *extp_clk;
+	struct clk *phy_iface_clk;
+	struct clk *pixel_src_clk;
+	struct clk *pll_clk;
 
 	struct gpio_desc *hpd_gpiod;
 
@@ -171,6 +174,7 @@ struct hdmi_phy {
 	struct platform_device *pdev;
 	void __iomem *mmio;
 	struct hdmi_phy_cfg *cfg;
+	void *pll;
 	const struct hdmi_phy_funcs *funcs;
 	struct regulator_bulk_data *regs;
 	struct clk **clks;
