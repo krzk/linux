@@ -234,6 +234,16 @@ static const struct hdmi_platform_config hdmi_tx_8974_config = {
 	.pwr_clk_cnt = ARRAY_SIZE(pwr_clk_names_8x74),
 };
 
+static const char * const pwr_reg_names_eliza[] = {"core-vdda", "core-vcc", "vddio"};
+static const char * const pwr_clk_names_eliza[] = {"iface", "core"};
+
+static const struct hdmi_platform_config hdmi_tx_eliza_config = {
+	.pwr_reg_names = pwr_reg_names_eliza,
+	.pwr_reg_cnt = ARRAY_SIZE(pwr_reg_names_eliza),
+	.pwr_clk_names = pwr_clk_names_eliza,
+	.pwr_clk_cnt = ARRAY_SIZE(pwr_clk_names_eliza),
+};
+
 static int msm_hdmi_bind(struct device *dev, struct device *master, void *data)
 {
 	struct msm_drm_private *priv = dev_get_drvdata(master);
@@ -360,6 +370,27 @@ static int msm_hdmi_dev_probe(struct platform_device *pdev)
 		goto err_put_bridge;
 	}
 
+	hdmi->phy_iface_clk = devm_clk_get_optional(dev, "phy_iface");
+	if (IS_ERR(hdmi->phy_iface_clk)) {
+		ret = dev_err_probe(dev, PTR_ERR(hdmi->phy_iface_clk),
+				    "failed to get phy iface clock\n");
+		goto err_put_bridge;
+	}
+
+	hdmi->pixel_src_clk = devm_clk_get_optional(dev, "pixel_src");
+	if (IS_ERR(hdmi->pixel_src_clk)) {
+		ret = dev_err_probe(dev, PTR_ERR(hdmi->pixel_src_clk),
+				    "failed to get pixel src clock\n");
+		goto err_put_bridge;
+	}
+
+	hdmi->pll_clk = devm_clk_get_optional(dev, "pll");
+	if (IS_ERR(hdmi->pll_clk)) {
+		ret = dev_err_probe(dev, PTR_ERR(hdmi->pll_clk),
+				    "failed to get pll clock\n");
+		goto err_put_bridge;
+	}
+
 	hdmi->hpd_gpiod = devm_gpiod_get_optional(dev, "hpd", GPIOD_IN);
 	/* This will catch e.g. -EPROBE_DEFER */
 	if (IS_ERR(hdmi->hpd_gpiod)) {
@@ -458,6 +489,7 @@ fail:
 static DEFINE_RUNTIME_DEV_PM_OPS(msm_hdmi_pm_ops, msm_hdmi_runtime_suspend, msm_hdmi_runtime_resume, NULL);
 
 static const struct of_device_id msm_hdmi_dt_match[] = {
+	{ .compatible = "qcom,eliza-hdmi-tx", .data = &hdmi_tx_eliza_config },
 	{ .compatible = "qcom,hdmi-tx-8998", .data = &hdmi_tx_8974_config },
 	{ .compatible = "qcom,hdmi-tx-8996", .data = &hdmi_tx_8974_config },
 	{ .compatible = "qcom,hdmi-tx-8994", .data = &hdmi_tx_8974_config },

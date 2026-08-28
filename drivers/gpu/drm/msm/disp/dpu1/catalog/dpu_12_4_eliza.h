@@ -294,6 +294,14 @@ static const struct dpu_intf_cfg eliza_intf[] = {
 		.prog_fetch_lines_worst_case = 24,
 		.intr_underrun = DPU_IRQ_IDX(MDP_SSPP_TOP0_INTR, 30),
 		.intr_vsync = DPU_IRQ_IDX(MDP_SSPP_TOP0_INTR, 31),
+	}, {
+		.name = "intf_11", .id = INTF_11,
+		.base = 0x3f000, .len = 0x4bc,
+		.type = INTF_HDMI,
+		.controller_id = MSM_HDMI_CONTROLLER_0,
+		.prog_fetch_lines_worst_case = 24,
+		.intr_underrun = DPU_IRQ_IDX(MDP_SSPP_TOP0_INTR, 14),
+		.intr_vsync = DPU_IRQ_IDX(MDP_SSPP_TOP0_INTR, 15),
 	}
 };
 
