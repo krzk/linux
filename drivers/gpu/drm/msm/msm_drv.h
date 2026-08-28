@@ -67,6 +67,11 @@ enum msm_dsi_controller {
 	MSM_DSI_CONTROLLER_COUNT,
 };
 
+enum msm_hdmi_controller {
+	MSM_HDMI_CONTROLLER_0,
+	MSM_HDMI_CONTROLLER_COUNT,
+};
+
 #define MSM_GPU_MAX_RINGS 4
 
 struct msm_drm_private {
