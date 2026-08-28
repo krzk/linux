@@ -3142,14 +3142,14 @@
 
 				interrupts-extended = <&mdss 8>;
 
-				clocks = <&dispcc DISP_CC_MDSS_HDMI_APP_CLK>,
-					 <&dispcc DISP_CC_MDSS_HDMI_AHBM_CLK>,
+				clocks = <&dispcc DISP_CC_MDSS_HDMI_AHBM_CLK>,
+					 <&dispcc DISP_CC_MDSS_HDMI_APP_CLK>,
 					 <&dispcc DISP_CC_MDSS_HDMI_PCLK_CLK>,
 					 <&dispcc DISP_CC_MDSS_HDMI_INTF_CLK>,
 					 <&mdss_hdmi_phy>,
 					 <&dispcc DISP_CC_MDSS_HDMI_PCLK_CLK_SRC>;
-				clock-names = "core",
-					      "iface",
+				clock-names = "iface",
+					      "core",
 					      "extp",
 					      "phy_iface",
 					      "pll",
