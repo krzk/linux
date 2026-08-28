@@ -14,6 +14,18 @@
 #include "msm_kms.h"
 #include "hdmi.h"
 
+static void msm_hdmi_clk_reparent(struct hdmi *hdmi)
+{
+	int ret;
+
+	if (hdmi->pixel_src_clk && hdmi->pll_clk) {
+		ret = clk_set_parent(hdmi->pixel_src_clk, hdmi->pll_clk);
+		if (ret)
+			DRM_DEV_ERROR(hdmi->dev->dev, "failed to set reparent pixel src clock rate: %d\n",
+				      ret);
+	}
+}
+
 static int msm_hdmi_power_on(struct drm_bridge *bridge)
 {
 	struct hdmi_bridge *hdmi_bridge = to_hdmi_bridge(bridge);
@@ -29,16 +41,37 @@ static int msm_hdmi_clk_prepare(struct drm_bridge *bridge)
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
 	int ret;
 
+	msm_hdmi_clk_reparent(hdmi);
 	if (hdmi->extp_clk) {
+		/*
+		 * Set rate to hdmi->pixclock: PCLK_CLK_SRC and PCLK_CLK
+		 * Set rate to hdmi->pixclock/2: INTF_CLK and PCLK_DIV_CLK_SRC
+		 * Set rate to hdmi->pixclock: HDMI PHY PLL
+		 */
 		DBG("pixclock: %lu", hdmi->pixclock);
 
 		ret = dev_pm_opp_set_rate(&hdmi->pdev->dev, hdmi->pixclock);
 		if (ret)
 			DRM_DEV_ERROR(dev->dev, "failed to set OPP rate: %d\n", ret);
 
+		ret = clk_set_rate(hdmi->pixel_src_clk, hdmi->pixclock);
+		if (ret)
+			DRM_DEV_ERROR(dev->dev, "failed to set pixel src clk rate: %d\n", ret);
+
+		ret = clk_set_rate(hdmi->phy_iface_clk, hdmi->pixclock / 2);
+		if (ret)
+			DRM_DEV_ERROR(dev->dev, "failed to set pixel iface clk rate: %d\n", ret);
+
 		ret = clk_prepare_enable(hdmi->extp_clk);
 		if (ret) {
 			DRM_DEV_ERROR(dev->dev, "failed to enable extp clk: %d\n", ret);
+			return ret;
+		}
+
+		ret = clk_prepare_enable(hdmi->phy_iface_clk);
+		if (ret) {
+			DRM_DEV_ERROR(dev->dev, "failed to enable phy iface clk: %d\n", ret);
+			clk_disable_unprepare(hdmi->extp_clk);
 			return ret;
 		}
 	}
@@ -65,6 +98,7 @@ static void msm_hdmi_clk_unprepare(struct drm_bridge *bridge)
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
 
 	if (hdmi->extp_clk) {
+		clk_disable_unprepare(hdmi->phy_iface_clk);
 		clk_disable_unprepare(hdmi->extp_clk);
 		dev_pm_opp_set_rate(&hdmi->pdev->dev, 0);
 	}
@@ -467,21 +501,47 @@ static enum drm_mode_status msm_hdmi_bridge_tmds_char_rate_valid(const struct dr
 	 * mdp4/dtv stuff where pixel clk is assigned to mdp/encoder
 	 * instead):
 	 */
-	if (kms->funcs->round_pixclk)
+	if (kms->funcs->round_pixclk) {
 		actual = kms->funcs->round_pixclk(kms,
 						  tmds_rate,
 						  hdmi_bridge->hdmi->encoder);
-	else if (hdmi->extp_clk)
-		actual = clk_round_rate(hdmi->extp_clk, tmds_rate);
-	else
-		actual = tmds_rate;
+		DBG("requested=%lld, actual=%ld", tmds_rate, actual);
 
-	DBG("requested=%lld, actual=%ld", tmds_rate, actual);
+		if (actual != tmds_rate)
+			return MODE_CLOCK_RANGE;
+		return MODE_OK;
+	} else if (!dev_pm_opp_get_opp_count(&hdmi->pdev->dev)) {
+		if (hdmi->extp_clk)
+			actual = clk_round_rate(hdmi->extp_clk, tmds_rate);
+		else
+			actual = tmds_rate;
 
-	if (actual != tmds_rate)
-		return MODE_CLOCK_RANGE;
+		if (actual != tmds_rate)
+			return MODE_CLOCK_RANGE;
+		return MODE_OK;
+	} else {
+		struct dev_pm_opp *opp;
+		unsigned long pclk_rate = tmds_rate;
 
-	return 0;
+		if (mode->clock > 600000)
+			return MODE_CLOCK_HIGH;
+
+		opp = dev_pm_opp_find_freq_ceil(&hdmi->pdev->dev, &pclk_rate);
+		if (!IS_ERR(opp)) {
+			dev_pm_opp_put(opp);
+		} else if (PTR_ERR(opp) == -ERANGE) {
+			/*
+			 * An empty table is created by devm_pm_opp_set_clkname() even
+			 * if there is none. Thus find_freq_ceil will still return
+			 * -ERANGE in such case.
+			 */
+			return MODE_CLOCK_RANGE;
+		} else {
+			return MODE_ERROR;
+		}
+
+		return MODE_OK;
+	}
 }
 
 static const struct drm_bridge_funcs msm_hdmi_bridge_funcs = {
