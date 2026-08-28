@@ -259,8 +259,8 @@
 		    <&hdmi_hpd_sleep>;
 	pinctrl-names = "default", "sleep";
 
-	code-vdda-supply = <&vreg_l4b>;
-	code-vcc-supply = <&vreg_l2b>;
+	core-vdda-supply = <&vreg_l4b>;
+	core-vcc-supply = <&vreg_l2b>;
 	vddio-supply = <&hdmi_5p0_reg>;
 
 	status = "okay";
