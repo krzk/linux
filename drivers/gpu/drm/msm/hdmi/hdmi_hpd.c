@@ -69,6 +69,7 @@ void msm_hdmi_hpd_enable(struct drm_bridge *bridge)
 	int ret;
 	unsigned long flags;
 
+	pr_err("%s:%d AAA CCC\n", __func__, __LINE__);
 	if (hdmi->hpd_gpiod)
 		gpiod_set_value_cansleep(hdmi->hpd_gpiod, 1);
 
@@ -110,6 +111,7 @@ void msm_hdmi_hpd_disable(struct drm_bridge *bridge)
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
 	struct device *dev = &hdmi->pdev->dev;
 
+	pr_err("%s:%d AAA CCC\n", __func__, __LINE__);
 	/* Disable HPD interrupt */
 	hdmi_write(hdmi, REG_HDMI_HPD_INT_CTRL, 0);
 
@@ -139,7 +141,8 @@ void msm_hdmi_hpd_irq(struct drm_bridge *bridge)
 		hdmi_write(hdmi, REG_HDMI_HPD_INT_CTRL,
 			HDMI_HPD_INT_CTRL_INT_ACK);
 
-		DBG("status=%04x, ctrl=%04x", hpd_int_status, hpd_int_ctrl);
+		pr_err("%s:%d AAA CCC connect event status=%04x, ctrl=%04x, detected=%d\n", __func__, __LINE__,
+		       hpd_int_status, hpd_int_ctrl, detected);
 
 		/* detect disconnect if we are connected or visa versa: */
 		hpd_int_ctrl = HDMI_HPD_INT_CTRL_INT_EN;
@@ -148,6 +151,10 @@ void msm_hdmi_hpd_irq(struct drm_bridge *bridge)
 		hdmi_write(hdmi, REG_HDMI_HPD_INT_CTRL, hpd_int_ctrl);
 
 		queue_work(hdmi->workq, &hdmi_bridge->hpd_work);
+		pr_err("%s:%d AAA\n", __func__, __LINE__);
+	} else {
+		pr_err("%s:%d AAA CCC acking, hpd ctrl=0x%x\n", __func__, __LINE__,
+			   hdmi_read(hdmi, REG_HDMI_HPD_CTRL));
 	}
 }
 

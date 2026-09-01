@@ -331,6 +331,7 @@ static void msm_hdmi_bridge_atomic_pre_enable(struct drm_bridge *bridge,
 	struct drm_connector_state *conn_state;
 	struct drm_crtc_state *crtc_state;
 
+	pr_err("%s:%d AAA CCC\n", __func__, __LINE__);
 	DBG("power up");
 
 	connector = drm_atomic_get_new_connector_for_encoder(state, encoder);
@@ -371,6 +372,8 @@ static void msm_hdmi_bridge_atomic_pre_enable(struct drm_bridge *bridge,
 	msm_hdmi_phy_powerup(phy, hdmi->pixclock);
 	msm_hdmi_set_mode(hdmi, true);
 
+	pr_err("%s:%d AAA CCC CLK=0x%x\n", __func__, __LINE__,
+	       hdmi_read(hdmi, REG_HDMI_CLK_ACTIVE));
 	if (hdmi->hdcp_ctrl)
 		msm_hdmi_hdcp_on(hdmi->hdcp_ctrl);
 
@@ -395,6 +398,7 @@ static void msm_hdmi_bridge_atomic_post_disable(struct drm_bridge *bridge,
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
 	struct hdmi_phy *phy = hdmi->phy;
 
+	pr_err("%s:%d AAA CCC\n", __func__, __LINE__);
 	if (hdmi->hdcp_ctrl)
 		msm_hdmi_hdcp_off(hdmi->hdcp_ctrl);
 
@@ -404,9 +408,11 @@ static void msm_hdmi_bridge_atomic_post_disable(struct drm_bridge *bridge,
 	mutex_lock(&hdmi->state_mutex);
 	msm_hdmi_set_mode(hdmi, hdmi->hpd_enabled);
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	msm_hdmi_phy_powerdown(phy);
 	msm_hdmi_clk_unprepare(bridge);
 	msm_hdmi_phy_deinit(phy);
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 
 	if (hdmi->power_on) {
 		hdmi->power_on = false;
@@ -430,7 +436,7 @@ static void msm_hdmi_set_timings(struct hdmi *hdmi,
 	vstart = mode->vtotal - mode->vsync_start - 1;
 	vend   = mode->vtotal - mode->vsync_start + mode->vdisplay - 1;
 
-	DBG("htotal=%d, vtotal=%d, hstart=%d, hend=%d, vstart=%d, vend=%d",
+	pr_err("AAA htotal=%d, vtotal=%d, hstart=%d, hend=%d, vstart=%d, vend=%d",
 			mode->htotal, mode->vtotal, hstart, hend, vstart, vend);
 
 	hdmi_write(hdmi, REG_HDMI_TOTAL,
@@ -606,6 +612,7 @@ int msm_hdmi_bridge_init(struct hdmi *hdmi)
 	bridge->hdmi_audio_dev = &hdmi->pdev->dev;
 	bridge->hdmi_audio_dai_port = -1;
 
+	pr_err("%s:%d AAA CCC\n", __func__, __LINE__);
 	ret = devm_drm_bridge_add(hdmi->dev->dev, bridge);
 	if (ret)
 		return ret;

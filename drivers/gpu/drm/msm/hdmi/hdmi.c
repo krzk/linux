@@ -39,8 +39,9 @@ void msm_hdmi_set_mode(struct hdmi *hdmi, bool power_on)
 
 	hdmi_write(hdmi, REG_HDMI_CTRL, ctrl);
 	spin_unlock_irqrestore(&hdmi->reg_lock, flags);
-	DBG("HDMI Core: %s, HDMI_CTRL=0x%08x",
-			power_on ? "Enable" : "Disable", ctrl);
+	pr_err("AAA HDMI Core: %s, HDMI_CTRL=0x%08x, is_hdmi=%d",
+			power_on ? "Enable" : "Disable", ctrl,
+			hdmi->connector->display_info.is_hdmi);
 }
 
 static irqreturn_t msm_hdmi_irq(int irq, void *dev_id)
@@ -457,6 +458,8 @@ static int msm_hdmi_runtime_suspend(struct device *dev)
 
 	regulator_bulk_disable(config->pwr_reg_cnt, hdmi->pwr_regs);
 
+	pr_err("%s:%d AAA CCC HDMI regulators disabled\n", __func__, __LINE__);
+
 	return 0;
 }
 
@@ -470,6 +473,7 @@ static int msm_hdmi_runtime_resume(struct device *dev)
 	if (ret)
 		return ret;
 
+	pr_err("%s:%d AAA CCC HDMI regulators enabled\n", __func__, __LINE__);
 	ret = pinctrl_pm_select_default_state(dev);
 	if (ret)
 		goto fail;

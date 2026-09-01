@@ -556,11 +556,15 @@ xsi:schemaLocation="https://gitlab.freedesktop.org/freedreno/ rules-fd.xsd">
 	<reg32 offset="0x002dc" name="CEC_WR_RANGE"/>
 	<reg32 offset="0x002e0" name="CEC_RD_RANGE"/>
 	<reg32 offset="0x002e4" name="VERSION"/>
+	<reg32 offset="0x002f8" name="TIMING_ENGINE_EN"/>
 	<reg32 offset="0x00360" name="CEC_COMPL_CTL"/>
 	<reg32 offset="0x00364" name="CEC_RD_START_RANGE"/>
 	<reg32 offset="0x00368" name="CEC_RD_TOTAL_RANGE"/>
 	<reg32 offset="0x0036c" name="CEC_RD_ERR_RESP_LO"/>
 	<reg32 offset="0x00370" name="CEC_WR_CHECK_CONFIG"/>
+	<reg32 offset="0x00388" name="CLK_ACTIVE"/>
+	<reg32 offset="0x00438" name="DDC_INT_CTRL2"/>
+	<reg32 offset="0x00444" name="DDC_INT_CTRL5"/>
 
 </domain>
 
