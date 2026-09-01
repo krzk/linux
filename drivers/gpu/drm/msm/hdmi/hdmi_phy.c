@@ -100,12 +100,14 @@ void msm_hdmi_phy_resource_disable(struct hdmi_phy *phy)
 		clk_disable_unprepare(phy->clks[i]);
 
 	regulator_bulk_disable(cfg->num_regs, phy->regs);
+	pr_err("%s:%d AAA CCC Disabled regulators for HDMI PHY\n", __func__, __LINE__);
 
 	pm_runtime_put_sync(dev);
 }
 
 void msm_hdmi_phy_init(struct hdmi_phy *phy, unsigned long pixclock)
 {
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (!phy || !phy->cfg->init)
 		return;
 
@@ -114,6 +116,7 @@ void msm_hdmi_phy_init(struct hdmi_phy *phy, unsigned long pixclock)
 
 void msm_hdmi_phy_deinit(struct hdmi_phy *phy)
 {
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (!phy || !phy->cfg->deinit)
 		return;
 
@@ -122,6 +125,7 @@ void msm_hdmi_phy_deinit(struct hdmi_phy *phy)
 
 void msm_hdmi_phy_powerup(struct hdmi_phy *phy, unsigned long pixclock)
 {
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (!phy || !phy->cfg->powerup)
 		return;
 
@@ -130,6 +134,7 @@ void msm_hdmi_phy_powerup(struct hdmi_phy *phy, unsigned long pixclock)
 
 void msm_hdmi_phy_powerdown(struct hdmi_phy *phy)
 {
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (!phy || !phy->cfg->powerdown)
 		return;
 
@@ -173,6 +178,7 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 	struct hdmi_phy *phy;
 	int ret;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
 	if (!phy)
 		return -ENODEV;
@@ -181,6 +187,7 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 	if (!phy->cfg)
 		return -ENODEV;
 
+	pr_err("%s:%d AAA\n", __func__, __LINE__);
 	if (phy->cfg->num_regs)
 		phy->mmio = msm_ioremap(pdev, "hdmi_phy");
 	else
@@ -213,6 +220,7 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 	msm_hdmi_phy_resource_disable(phy);
 
 
+	pr_err("%s:%d AAA CCC=%px\n", __func__, __LINE__, phy);
 	return 0;
 }
 

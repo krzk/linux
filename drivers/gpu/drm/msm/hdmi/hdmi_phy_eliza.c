@@ -88,6 +88,16 @@ static const struct hdmi_pll_eliza_mpll mpll_lut[] = {
 
 #define hw_clk_to_pll(x) container_of(x, struct hdmi_pll_eliza, clk_hw)
 
+static void hdmi_eliza_dump_regs(struct hdmi_phy *phy)
+{
+	int i;
+
+	for (i = 0; i <= REG_HDMI_ELIZA_PHY_RX2_CONFIG_15; i+=4) {
+		pr_err("AAA HDMI phy 0x%x=0x%x\n", i,
+		       hdmi_phy_read(phy, i));
+	}
+}
+
 static struct hdmi_phy *pll_get_phy(struct hdmi_pll_eliza *pll)
 {
 	return dev_get_drvdata(pll->dev);
@@ -102,6 +112,8 @@ hdmi_pll_eliza_mpll_lut_decoder(unsigned long rate)
 	for (i = 0; i < ARRAY_SIZE(mpll_lut); i++) {
 		if (rate == mpll_lut[i].rate) {
 			cfg = &mpll_lut[i].cfg;
+			pr_err("%s:%d AAA cplk %lu - %d\n", __func__, __LINE__,
+			       mpll_lut[i].rate, i);
 			break;
 		}
 	}
@@ -319,6 +331,17 @@ static int hdmi_eliza_pll_configure_pll(struct hdmi_pll_eliza *pll,
 		cfg = &cfg_calc;
 	}
 
+
+	pr_err("%s:%d AAA phy reset=0x%x\n", __func__, __LINE__, hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_RESET_CONTROL_0));
+
+	pr_err("%s:%d AAA for rate %lu, parent rate %lu, pll->rate=%lu\n", __func__, __LINE__,
+	       rate, parent_rate, pll->rate);
+
+	DRM_ERROR("AAA set vco_freq=%u, rxvcosel=%u, tx_clk_div=%u, clk_pat=%u\n", cfg->vco_freq, cfg->rxvcosel, cfg->tx_clk_div, cfg->clk_pat);
+	DRM_ERROR("AAA set cp_int_holder=%u, cp_prop_holder=%u\n", cfg->cp_int_holder, cfg->cp_prop_holder);
+	DRM_ERROR("AAA set quotient=%u, remainder=%u\n", cfg->quotient, cfg->remainder);
+	DRM_ERROR("AAA set multiplier=%u, denominator=%u\n", cfg->multiplier, cfg->denominator);
+
 	hdmi_phy_update_bits(phy, REG_HDMI_ELIZA_PHY_CLOCK_PATTERN_CONFIG_0, BIT(0), cfg->clk_pat);
 
 	hdmi_phy_update_bits(phy, REG_HDMI_ELIZA_PHY_MISC_CONTROL_2, GENMASK(6, 4), cfg->rxvcosel << 4);
@@ -423,7 +446,106 @@ static unsigned long hdmi_eliza_pll_recalc_rate(struct clk_hw *hw,
 					       unsigned long parent_rate)
 {
 	struct hdmi_pll_eliza *pll = hw_clk_to_pll(hw);
+	struct hdmi_phy *phy = pll_get_phy(pll);
+	//u64 factor, num;
 	u64 rate;
+
+	pr_err("%s:%d AAA pll rate=%lu\n", __func__, __LINE__, pll->rate);
+
+	pr_err("%s:%d AAA BBB cfg.multiplier=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.multiplier & 0xff,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_2));
+	pr_err("%s:%d AAA BBB cfg.multiplier=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.multiplier >> 8,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_3));
+
+	pr_err("%s:%d AAA BBB cfg.quotient=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.quotient & 0xff,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_6));
+	pr_err("%s:%d AAA BBB cfg.quotient=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.quotient >> 8,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_7));
+
+	pr_err("%s:%d AAA BBB cfg.remainder=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.remainder & 0xff,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_8));
+	pr_err("%s:%d AAA BBB cfg.remainder=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.remainder >> 8,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_9));
+
+	pr_err("%s:%d AAA BBB cfg.denominator=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.denominator & 0xff,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_4));
+	pr_err("%s:%d AAA BBB cfg.denominator=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.denominator >> 8,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_5));
+
+	pr_err("%s:%d AAA BBB cfg.tx_clk_div=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.tx_clk_div & 0x7,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_1));
+
+	pr_err("%s:%d AAA BBB cfg.vco_freq=%x | %x | %x\n", __func__, __LINE__,
+	       pll->cfg.vco_freq & 0x3,
+	       (hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_0) >> 3) & 0x3,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_0));
+
+	pr_err("%s:%d AAA BBB cfg.vco_freq=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.vco_freq & 0x3,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_0));
+
+	pr_err("%s:%d AAA BBB cfg.clk_pat=%x | %lx | %x\n", __func__, __LINE__,
+	       pll->cfg.clk_pat,
+	       (hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_CLOCK_PATTERN_CONFIG_0) & GENMASK(1, 0)),
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_CLOCK_PATTERN_CONFIG_0));
+
+	pr_err("%s:%d AAA BBB cfg.rxvcosel=%x | %lx | %x\n", __func__, __LINE__,
+	       pll->cfg.rxvcosel,
+	       (hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MISC_CONTROL_2) & GENMASK(6, 4)) >> 4,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MISC_CONTROL_2));
+
+	pr_err("%s:%d AAA BBB cfg.cp_int_holder=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.cp_int_holder & 0xff,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_10));
+	pr_err("%s:%d AAA BBB cfg.cp_prop_holder=%x | %x\n", __func__, __LINE__,
+	       pll->cfg.cp_prop_holder & 0xff,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_12));
+
+	pr_err("%s:%d AAA BBB MISC_CONTROL_1 | %x\n", __func__, __LINE__,
+	       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MISC_CONTROL_1));
+
+	/*
+	factor = (u64)pll->cfg.multiplier / 2;
+	factor += pll->cfg.quotient;
+	factor += pll->cfg.remainder;
+	factor *= (u64)parent_rate;
+
+	pll->rate = div_u64(factor, pll->cfg.denominator);
+	*/
+	/*
+	num = (u64)(pll->cfg.multiplier + 32) * pll->cfg.denominator * 32768;
+	num += (u64)pll->cfg.quotient * pll->cfg.denominator;
+	num += pll->cfg.remainder;
+	num *= (u64)parent_rate;
+
+	pll->rate = div_u64(num, (pll->cfg.denominator * 65536));
+	pr_err("%s:%d AAA BB new pll rate=%lu\n", __func__, __LINE__, pll->rate);
+	*/
+	/*
+	pr_err("%s:%d AAA BB new pll rate=%lu | %llu\n", __func__, __LINE__, pll->rate,
+	       hdmi_eliza_pll_vco_freq(REF_CLK_HZ, pll->cfg.multiplier,
+					pll->cfg.quotient, pll->cfg.remainder,
+					pll->cfg.denominator));
+	pr_err("%s:%d AAA BB new pll rate=%lu | %llu\n", __func__, __LINE__, pll->rate,
+	       hdmi_eliza_pll_vco_freq(REF_CLK_HZ / (10 * (1UL << pll->cfg.tx_clk_div)),
+					pll->cfg.multiplier,
+					pll->cfg.quotient, pll->cfg.remainder,
+					pll->cfg.denominator));
+	pr_err("%s:%d AAA BB new pll rate=%lu | %llu\n", __func__, __LINE__, pll->rate,
+	       hdmi_eliza_pll_vco_freq((REF_CLK_HZ * 2 / 10) >> pll->cfg.tx_clk_div,
+					pll->cfg.multiplier,
+					pll->cfg.quotient, pll->cfg.remainder,
+					pll->cfg.denominator));
+	*/
 
 	rate = hdmi_eliza_pll_vco_freq(REF_CLK_HZ, pll->cfg.multiplier,
 				       pll->cfg.quotient, pll->cfg.remainder,
@@ -542,6 +664,7 @@ static void hdmi_eliza_phy_configure(struct hdmi_phy *phy)
 	/*
 	 * MISC_CONTROL_2: missing in programming sequence, but present in
 	 * downstream
+	 * TODO: feels like hard-coding RX_VCO_VREF_SEL without using calculator
 	 */
 	hdmi_phy_write(phy, REG_HDMI_ELIZA_PHY_MISC_CONTROL_2, 0x4d);
 }
@@ -585,11 +708,15 @@ static int hdmi_eliza_phy_ready_poll(struct hdmi_phy *phy, u32 reg, u32 mask, u3
 	const u32 sleep_us = 2000;
 	const u32 timeout_us = 3000000;
 
+	pr_err("%s:%d AAA CCC reg=0x%x = 0x%x (waiting for == 0x%x)\n", __func__, __LINE__,
+	       reg, hdmi_phy_read(phy, reg), val);
 	if (readl_poll_timeout_atomic((phy->mmio + reg), state,
 				      ((state & mask) == val),
 				      sleep_us, timeout_us)) {
 		DRM_ERROR("poll timeout, reg: 0x%x status=0x%x", reg, state);
 
+		pr_err("%s:%d AAA CCC reg=0x%x = 0x%x\n", __func__, __LINE__,
+			reg, hdmi_phy_read(phy, reg));
 		return -ETIMEDOUT;
 	}
 
@@ -602,12 +729,23 @@ static int hdmi_eliza_phy_tx_ready_poll(struct hdmi_phy *phy)
 	int ret = 0;
 
 	/* Poll until TXn_ACK==0, downstream is wrong here */
+	// Note: and verified with unpowered HDMI display
 	for (int i = 0; i < HDMI_PHY_TXN_CONTROL; i++) {
 		ret |= hdmi_eliza_phy_ready_poll(phy,
 						 REG_HDMI_ELIZA_PHY_TX0_CONTROL_2 + i * phy_txn_offset,
 						 BIT(0), 0x0);
-		if (ret)
-			break;
+		if (ret) {
+			pr_err("%s:%d AAA CCC ERROR: %d\n", __func__, __LINE__, ret);
+			for (int j = 0; j <= 12; j++) {
+				pr_err("%s:%d AAA CCC REG_HDMI_ELIZA_PHY_TXn_CONTROL_%d: 0x%x 0x%x 0x%x 0x%x\n", __func__, __LINE__,
+				       j,
+				       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_TX0_CONTROL_0 + j*0x4),
+				       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_TX1_CONTROL_0 + j*0x4),
+				       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_TX2_CONTROL_0 + j*0x4),
+				       hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_TX3_CONTROL_0 + j*0x4));
+			}
+			//break;
+		}
 	}
 
 	return ret;
@@ -618,8 +756,10 @@ static int hdmi_eliza_phy_sram_init(struct hdmi_phy *phy)
 	int ret;
 
 	ret = hdmi_eliza_phy_ready_poll(phy, REG_HDMI_ELIZA_PHY_SRAM_CONTROL_1, BIT(0), BIT(0));
-	if (ret)
+	if (ret) {
+		pr_err("%s:%d AAA CCC ERROR\n", __func__, __LINE__);
 		return ret;
+	}
 
 	hdmi_phy_write(phy, REG_HDMI_ELIZA_PHY_CR_ADDRESS_LSB, 0x3);
 	hdmi_phy_write(phy, REG_HDMI_ELIZA_PHY_CR_ADDRESS_MSB, 0xe0);
@@ -690,12 +830,16 @@ static void hdmi_eliza_phy_init(struct hdmi_phy *phy,
 
 	if (hdmi_eliza_phy_tx_ready_poll(phy))
 		return;
+
+	/* TODO: clock enable */
+	pr_err("%s:%d AAA CCC init done \n", __func__, __LINE__);
 };
 
 static void hdmi_eliza_phy_powerup(struct hdmi_phy *phy,
 				   unsigned long pixclock)
 {
 	hdmi_phy_update_bits(phy, REG_HDMI_ELIZA_PHY_TX_COMMON_CONTROL_0, BIT(1), BIT(1));
+	pr_err("%s:%d AAA CCC power up done \n", __func__, __LINE__);
 }
 
 static void hdmi_eliza_phy_deinit(struct hdmi_phy *phy)
@@ -712,6 +856,7 @@ static void hdmi_eliza_phy_deinit(struct hdmi_phy *phy)
 
 static void hdmi_eliza_phy_powerdown(struct hdmi_phy *phy)
 {
+	pr_err("%s:%d AAA CCC phy power down\n", __func__, __LINE__);
 	hdmi_phy_update_bits(phy, REG_HDMI_ELIZA_PHY_TX_COMMON_CONTROL_0, BIT(1), 0);
 }
 
