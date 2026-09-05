@@ -789,7 +789,16 @@ def _pair_x_names(name, all_names):
     return None
 
 
-PAIRING_RULES = (_pair_pinctrl_names, _pair_x_names)
+def _pair_address_size_cells(name, all_names):
+    """#address-cells should be followed by #size-cells, because they describe
+    similar aspect when reading DTS."""
+    if name == '#size-cells' and '#address-cells' in all_names:
+        return '#address-cells'
+    return None
+
+
+PAIRING_RULES = (_pair_pinctrl_names, _pair_x_names,
+                 _pair_address_size_cells)
 
 
 def _property_sort_key(dl, name, all_names):

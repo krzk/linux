@@ -1,3 +1,5 @@
 # mode=strict
 bad/yaml-prop-pairing.yaml:30: example 0 [property-order] property 'clocks' out of canonical order (should sort before 'clock-names')
-bad/yaml-prop-pairing.yaml:32: example 0 [property-order] property 'pinctrl-0' out of canonical order (should sort before 'pinctrl-names')
+bad/yaml-prop-pairing.yaml:31: example 0 [property-order] property '#address-cells' out of canonical order (should sort before 'clocks')
+bad/yaml-prop-pairing.yaml:33: example 0 [property-order] property 'pinctrl-0' out of canonical order (should sort before 'pinctrl-names')
+bad/yaml-prop-pairing.yaml:34: example 0 [property-order] property '#size-cells' out of canonical order (should sort before 'pinctrl-0')

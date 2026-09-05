@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+
+/dts-v1/;
+
+/ {
+	model = "DT style selftest";
+	compatible = "example,test-board", "example,test-soc";
+
+	soc@0 {
+		compatible = "simple-bus";
+		ranges = <0 0 0 0xc0000000>;
+
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		interrupt-controller@10000 {
+			compatible = "example,intc";
+			reg = <0x10000 0x1000>;
+
+			clock-names = "bus";
+			clocks = <&clk 0>;
+
+			interrupts = <1 2 3>;
+
+			#address-cells = <1>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&p0>;
+			#size-cells = <1>;
+		};
+	};
+};
