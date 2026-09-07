@@ -399,13 +399,17 @@ static int msm_hdmi_dev_probe(struct platform_device *pdev)
 		goto err_put_bridge;
 	}
 
-	ret = devm_pm_opp_set_clkname(dev, "extp");
-	if (ret)
-		return ret;
+	if (hdmi->extp_clk) {
+		ret = devm_pm_opp_set_clkname(dev, "extp");
+		if (ret)
+			goto err_put_bridge;
+	}
 
 	ret = devm_pm_opp_of_add_table(dev);
-	if (ret && ret != -ENODEV)
-		return dev_err_probe(dev, ret, "invalid OPP table in device tree\n");
+	if (ret && ret != -ENODEV) {
+		dev_err_probe(dev, ret, "invalid OPP table in device tree\n");
+		goto err_put_bridge;
+	}
 
 	if (!hdmi->hpd_gpiod)
 		DBG("failed to get HPD gpio");
