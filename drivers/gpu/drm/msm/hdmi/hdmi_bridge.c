@@ -540,6 +540,14 @@ static enum drm_mode_status msm_hdmi_bridge_tmds_char_rate_valid(const struct dr
 			return MODE_ERROR;
 		}
 
+		if (hdmi->extp_clk)
+			actual = clk_round_rate(hdmi->extp_clk, tmds_rate);
+		else
+			actual = tmds_rate;
+
+		if (actual != tmds_rate)
+			return MODE_CLOCK_RANGE;
+
 		return MODE_OK;
 	}
 }
