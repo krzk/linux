@@ -540,15 +540,20 @@ static enum drm_mode_status msm_hdmi_bridge_tmds_char_rate_valid(const struct dr
 			return MODE_ERROR;
 		}
 
-		if (hdmi->extp_clk)
+		/*
+		 * Don't round rate when pixclock is not properly parented or
+		 * PHY block is off, because it would return useless rate.
+		 */
+		if (hdmi->power_on && hdmi->extp_clk)
 			actual = clk_round_rate(hdmi->extp_clk, tmds_rate);
 		else
 			actual = tmds_rate;
 
-		if (actual != tmds_rate)
-			return MODE_CLOCK_RANGE;
+		/* 174499999 Hz for 174500000 Hz is fine */
+		if ((actual >= tmds_rate - 1) && (actual <= tmds_rate + 1))
+			return MODE_OK;
 
-		return MODE_OK;
+		return MODE_CLOCK_RANGE;
 	}
 }
 
