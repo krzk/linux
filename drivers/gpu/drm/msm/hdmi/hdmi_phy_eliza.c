@@ -425,6 +425,8 @@ static unsigned long hdmi_eliza_pll_recalc_rate(struct clk_hw *hw,
 	struct hdmi_pll_eliza *pll = hw_clk_to_pll(hw);
 	u64 rate;
 
+	pr_err("%s:%d AAA denominator: %u\n", __func__, __LINE__,
+	       pll->cfg.denominator);
 	rate = hdmi_eliza_pll_vco_freq(REF_CLK_HZ, pll->cfg.multiplier,
 				       pll->cfg.quotient, pll->cfg.remainder,
 				       pll->cfg.denominator);
