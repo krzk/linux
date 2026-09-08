@@ -756,4 +756,5 @@ const struct hdmi_phy_cfg msm_hdmi_phy_8996_cfg = {
 	.num_regs = ARRAY_SIZE(hdmi_phy_8996_reg_names),
 	.clk_names = hdmi_phy_8996_clk_names,
 	.num_clks = ARRAY_SIZE(hdmi_phy_8996_clk_names),
+	.num_mmio = 6,
 };
