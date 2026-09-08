@@ -163,6 +163,7 @@ struct hdmi_phy_cfg {
 	int num_regs;
 	const char * const *clk_names;
 	int num_clks;
+	int num_mmio;
 };
 
 extern const struct hdmi_phy_cfg msm_hdmi_phy_8x60_cfg;

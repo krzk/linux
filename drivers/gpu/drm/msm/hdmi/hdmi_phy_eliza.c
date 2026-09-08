@@ -723,4 +723,5 @@ const struct hdmi_phy_cfg msm_hdmi_phy_eliza_cfg = {
 	.powerdown = hdmi_eliza_phy_powerdown,
 	.clk_names = hdmi_phy_eliza_clk_names,
 	.num_clks = ARRAY_SIZE(hdmi_phy_eliza_clk_names),
+	.num_mmio = 1,
 };

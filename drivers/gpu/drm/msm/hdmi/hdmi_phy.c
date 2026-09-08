@@ -183,7 +183,7 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 	if (!phy->cfg)
 		return -ENODEV;
 
-	if (phy->cfg->num_regs)
+	if (phy->cfg->num_mmio > 1)
 		phy->mmio = msm_ioremap(pdev, "hdmi_phy");
 	else
 		phy->mmio = msm_ioremap(pdev, NULL);
