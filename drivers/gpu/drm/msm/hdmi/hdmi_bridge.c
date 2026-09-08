@@ -533,6 +533,9 @@ static enum drm_mode_status msm_hdmi_bridge_tmds_char_rate_valid(const struct dr
 			return MODE_CLOCK_HIGH;
 
 		opp = dev_pm_opp_find_freq_ceil(&hdmi->pdev->dev, &pclk_rate);
+
+		pr_err("%s:%d AAA requested=%llu, opp=%lu\n", __func__, __LINE__,
+		       tmds_rate, pclk_rate);
 		if (!IS_ERR(opp)) {
 			dev_pm_opp_put(opp);
 		} else if (PTR_ERR(opp) == -ERANGE) {
