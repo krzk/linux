@@ -391,7 +391,7 @@ static int hdmi_eliza_pll_prepare(struct clk_hw *hw)
 	 * thus obviously the professional solution is to delay.
 	 * 8 ms was figured out during tests, not based on any datasheet.
 	 */
-	mdelay(8);
+	msleep(8);
 
 	return 0;
 }
