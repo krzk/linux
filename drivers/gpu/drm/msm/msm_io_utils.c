@@ -78,7 +78,7 @@ static void __iomem *_msm_ioremap(struct platform_device *pdev, const char *name
 	if (!res) {
 		if (!quiet)
 			DRM_DEV_ERROR(&pdev->dev, "failed to get memory resource: %s\n",
-				      (name ? name : "#0"));
+				      (name ?: "#0"));
 		return ERR_PTR(-EINVAL);
 	}
 
