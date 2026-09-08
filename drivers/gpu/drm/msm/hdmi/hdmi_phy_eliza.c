@@ -549,6 +549,21 @@ static unsigned long hdmi_eliza_pll_recalc_rate(struct clk_hw *hw,
 					pll->cfg.denominator));
 	*/
 
+	pll->cfg.multiplier = hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_3) << 8;
+	pll->cfg.multiplier += hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_2);
+
+	pll->cfg.quotient = hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_7) << 8;
+	pll->cfg.quotient += hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_6);
+
+	pll->cfg.remainder = hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_9) << 8;
+	pll->cfg.remainder += hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_8);
+
+	pll->cfg.denominator = hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_5) << 8;
+	pll->cfg.denominator += hdmi_phy_read(phy, REG_HDMI_ELIZA_PHY_MPLLB_CONTROL_4);
+
+	if (!pll->cfg.denominator)
+		return 0;
+
 	rate = hdmi_eliza_pll_vco_freq(REF_CLK_HZ, pll->cfg.multiplier,
 				       pll->cfg.quotient, pll->cfg.remainder,
 				       pll->cfg.denominator);
@@ -712,9 +727,8 @@ static int hdmi_eliza_phy_ready_poll(struct hdmi_phy *phy, u32 reg, u32 mask, u3
 
 	pr_err("%s:%d AAA CCC reg=0x%x = 0x%x (waiting for == 0x%x)\n", __func__, __LINE__,
 	       reg, hdmi_phy_read(phy, reg), val);
-	if (readl_poll_timeout_atomic((phy->mmio + reg), state,
-				      ((state & mask) == val),
-				      sleep_us, timeout_us)) {
+	if (readl_poll_timeout((phy->mmio + reg), state, ((state & mask) == val),
+			       sleep_us, timeout_us)) {
 		DRM_ERROR("poll timeout, reg: 0x%x status=0x%x", reg, state);
 
 		pr_err("%s:%d AAA CCC reg=0x%x = 0x%x\n", __func__, __LINE__,
@@ -811,7 +825,7 @@ static void hdmi_eliza_phy_init(struct hdmi_phy *phy,
 
 	hdmi_eliza_phy_tx_lane_config(phy, pixclock);
 
-	hdmi_eliza_pll_configure_pll(phy->pll, 396000000, 19200000);
+	// hdmi_eliza_pll_configure_pll(phy->pll, 396000000, 19200000);
 
 	/* sram_mode() (with SRAM init) */
 	hdmi_phy_update_bits(phy, REG_HDMI_ELIZA_PHY_SRAM_CONTROL_0,
