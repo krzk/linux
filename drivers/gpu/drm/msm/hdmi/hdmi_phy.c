@@ -190,7 +190,7 @@ static int msm_hdmi_phy_probe(struct platform_device *pdev)
 		return -ENODEV;
 
 	pr_err("%s:%d AAA\n", __func__, __LINE__);
-	if (phy->cfg->num_regs)
+	if (phy->cfg->num_mmio > 1)
 		phy->mmio = msm_ioremap(pdev, "hdmi_phy");
 	else
 		phy->mmio = msm_ioremap(pdev, NULL);
