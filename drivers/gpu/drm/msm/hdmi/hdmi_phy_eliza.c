@@ -450,6 +450,8 @@ static unsigned long hdmi_eliza_pll_recalc_rate(struct clk_hw *hw,
 	//u64 factor, num;
 	u64 rate;
 
+	pr_err("%s:%d AAA denominator: %u\n", __func__, __LINE__,
+	       pll->cfg.denominator);
 	pr_err("%s:%d AAA pll rate=%lu\n", __func__, __LINE__, pll->rate);
 
 	pr_err("%s:%d AAA BBB cfg.multiplier=%x | %x\n", __func__, __LINE__,
