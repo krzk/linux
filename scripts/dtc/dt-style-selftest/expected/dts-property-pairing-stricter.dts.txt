@@ -1,0 +1,7 @@
+# mode=stricter
+bad/dts-property-pairing-stricter.dts:21: [property-order] property 'clocks' out of canonical order (should sort before 'clock-names')
+bad/dts-property-pairing-stricter.dts:21: [property-order-stricter] property 'clocks' out of canonical order (should sort before 'clock-names')
+bad/dts-property-pairing-stricter.dts:25: [property-order-stricter] property '#address-cells' out of canonical order (should sort before 'interrupts')
+bad/dts-property-pairing-stricter.dts:27: [property-order] property 'pinctrl-0' out of canonical order (should sort before 'pinctrl-names')
+bad/dts-property-pairing-stricter.dts:27: [property-order-stricter] property 'pinctrl-0' out of canonical order (should sort before 'pinctrl-names')
+bad/dts-property-pairing-stricter.dts:28: [property-order-stricter] property '#size-cells' out of canonical order (should sort before 'pinctrl-0')
