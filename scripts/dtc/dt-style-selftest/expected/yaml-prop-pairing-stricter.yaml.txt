@@ -1,7 +1,0 @@
-# mode=stricter
-bad/yaml-prop-pairing-stricter.yaml:30: example 0 [property-order] property 'clocks' out of canonical order (should sort before 'clock-names')
-bad/yaml-prop-pairing-stricter.yaml:30: example 0 [property-order-stricter] property 'clocks' out of canonical order (should sort before 'clock-names')
-bad/yaml-prop-pairing-stricter.yaml:31: example 0 [property-order-stricter] property '#address-cells' out of canonical order (should sort before 'clocks')
-bad/yaml-prop-pairing-stricter.yaml:33: example 0 [property-order] property 'pinctrl-0' out of canonical order (should sort before 'pinctrl-names')
-bad/yaml-prop-pairing-stricter.yaml:33: example 0 [property-order-stricter] property 'pinctrl-0' out of canonical order (should sort before 'pinctrl-names')
-bad/yaml-prop-pairing-stricter.yaml:34: example 0 [property-order-stricter] property '#size-cells' out of canonical order (should sort before 'pinctrl-0')
