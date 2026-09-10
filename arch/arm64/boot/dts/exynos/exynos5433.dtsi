@@ -90,72 +90,6 @@
 			};
 		};
 
-		cpu0: cpu@100 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x100>;
-			clocks = <&cmu_apollo CLK_SCLK_APOLLO>;
-			clock-names = "apolloclk";
-			operating-points-v2 = <&cluster_a53_opp_table>;
-			#cooling-cells = <2>;
-			i-cache-size = <0x8000>;
-			i-cache-line-size = <64>;
-			i-cache-sets = <256>;
-			d-cache-size = <0x8000>;
-			d-cache-line-size = <64>;
-			d-cache-sets = <128>;
-			next-level-cache = <&cluster_a53_l2>;
-		};
-
-		cpu1: cpu@101 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x101>;
-			operating-points-v2 = <&cluster_a53_opp_table>;
-			#cooling-cells = <2>;
-			i-cache-size = <0x8000>;
-			i-cache-line-size = <64>;
-			i-cache-sets = <256>;
-			d-cache-size = <0x8000>;
-			d-cache-line-size = <64>;
-			d-cache-sets = <128>;
-			next-level-cache = <&cluster_a53_l2>;
-		};
-
-		cpu2: cpu@102 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x102>;
-			operating-points-v2 = <&cluster_a53_opp_table>;
-			#cooling-cells = <2>;
-			i-cache-size = <0x8000>;
-			i-cache-line-size = <64>;
-			i-cache-sets = <256>;
-			d-cache-size = <0x8000>;
-			d-cache-line-size = <64>;
-			d-cache-sets = <128>;
-			next-level-cache = <&cluster_a53_l2>;
-		};
-
-		cpu3: cpu@103 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a53";
-			enable-method = "psci";
-			reg = <0x103>;
-			operating-points-v2 = <&cluster_a53_opp_table>;
-			#cooling-cells = <2>;
-			i-cache-size = <0x8000>;
-			i-cache-line-size = <64>;
-			i-cache-sets = <256>;
-			d-cache-size = <0x8000>;
-			d-cache-line-size = <64>;
-			d-cache-sets = <128>;
-			next-level-cache = <&cluster_a53_l2>;
-		};
-
 		cpu4: cpu@0 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a57";
@@ -220,6 +154,72 @@
 			d-cache-line-size = <64>;
 			d-cache-sets = <256>;
 			next-level-cache = <&cluster_a57_l2>;
+		};
+
+		cpu0: cpu@100 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x100>;
+			enable-method = "psci";
+			clocks = <&cmu_apollo CLK_SCLK_APOLLO>;
+			clock-names = "apolloclk";
+			operating-points-v2 = <&cluster_a53_opp_table>;
+			#cooling-cells = <2>;
+			i-cache-size = <0x8000>;
+			i-cache-line-size = <64>;
+			i-cache-sets = <256>;
+			d-cache-size = <0x8000>;
+			d-cache-line-size = <64>;
+			d-cache-sets = <128>;
+			next-level-cache = <&cluster_a53_l2>;
+		};
+
+		cpu1: cpu@101 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x101>;
+			enable-method = "psci";
+			operating-points-v2 = <&cluster_a53_opp_table>;
+			#cooling-cells = <2>;
+			i-cache-size = <0x8000>;
+			i-cache-line-size = <64>;
+			i-cache-sets = <256>;
+			d-cache-size = <0x8000>;
+			d-cache-line-size = <64>;
+			d-cache-sets = <128>;
+			next-level-cache = <&cluster_a53_l2>;
+		};
+
+		cpu2: cpu@102 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x102>;
+			enable-method = "psci";
+			operating-points-v2 = <&cluster_a53_opp_table>;
+			#cooling-cells = <2>;
+			i-cache-size = <0x8000>;
+			i-cache-line-size = <64>;
+			i-cache-sets = <256>;
+			d-cache-size = <0x8000>;
+			d-cache-line-size = <64>;
+			d-cache-sets = <128>;
+			next-level-cache = <&cluster_a53_l2>;
+		};
+
+		cpu3: cpu@103 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x103>;
+			enable-method = "psci";
+			operating-points-v2 = <&cluster_a53_opp_table>;
+			#cooling-cells = <2>;
+			i-cache-size = <0x8000>;
+			i-cache-line-size = <64>;
+			i-cache-sets = <256>;
+			d-cache-size = <0x8000>;
+			d-cache-line-size = <64>;
+			d-cache-sets = <128>;
+			next-level-cache = <&cluster_a53_l2>;
 		};
 
 		cluster_a57_l2: l2-cache0 {
