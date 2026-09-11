@@ -84,6 +84,8 @@ int msm_hdmi_phy_resource_enable(struct hdmi_phy *phy)
 err_clk_unprepare:
 	for (; i > 0; i--)
 		clk_disable_unprepare(phy->clks[i - 1]);
+	regulator_bulk_disable(cfg->num_regs, phy->regs);
+
 err_pm_put:
 	pm_runtime_put_sync(dev);
 

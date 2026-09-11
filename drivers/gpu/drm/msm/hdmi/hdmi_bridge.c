@@ -100,7 +100,7 @@ static void msm_hdmi_clk_unprepare(struct drm_bridge *bridge)
 	if (hdmi->extp_clk) {
 		clk_disable_unprepare(hdmi->phy_iface_clk);
 		clk_disable_unprepare(hdmi->extp_clk);
-		dev_pm_opp_set_rate(&hdmi->pdev->dev, 0);
+		dev_pm_opp_set_opp(&hdmi->pdev->dev, NULL);
 	}
 }
 
