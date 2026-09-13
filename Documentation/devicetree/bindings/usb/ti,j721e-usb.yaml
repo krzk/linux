@@ -94,19 +94,19 @@ examples:
             #size-cells = <2>;
 
             usb@6000000 {
-                  compatible = "cdns,usb3";
-                  reg = <0x00 0x6000000 0x00 0x10000>,
-                        <0x00 0x6010000 0x00 0x10000>,
-                        <0x00 0x6020000 0x00 0x10000>;
-                  reg-names = "otg", "xhci", "dev";
-                  interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>, /* irq.0 */
-                               <GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH>, /* irq.6 */
-                               <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>; /* otgirq.0 */
-                  interrupt-names = "host",
-                                    "peripheral",
-                                    "otg";
-                  maximum-speed = "super-speed";
-                  dr_mode = "otg";
+                compatible = "cdns,usb3";
+                reg = <0x00 0x6000000 0x00 0x10000>,
+                      <0x00 0x6010000 0x00 0x10000>,
+                      <0x00 0x6020000 0x00 0x10000>;
+                reg-names = "otg", "xhci", "dev";
+                interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>, /* irq.0 */
+                             <GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH>, /* irq.6 */
+                             <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>; /* otgirq.0 */
+                interrupt-names = "host",
+                                  "peripheral",
+                                  "otg";
+                maximum-speed = "super-speed";
+                dr_mode = "otg";
             };
         };
     };

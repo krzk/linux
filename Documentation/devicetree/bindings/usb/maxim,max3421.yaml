@@ -57,11 +57,11 @@ examples:
         #size-cells = <0>;
 
         usb@0 {
-          compatible = "maxim,max3421";
-          reg = <0>;
-          maxim,vbus-en-pin = <3 1>;
-          spi-max-frequency = <26000000>;
-          interrupt-parent = <&gpio>;
-          interrupts = <42>;
+            compatible = "maxim,max3421";
+            reg = <0>;
+            maxim,vbus-en-pin = <3 1>;
+            spi-max-frequency = <26000000>;
+            interrupt-parent = <&gpio>;
+            interrupts = <42>;
         };
     };

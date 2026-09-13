@@ -65,8 +65,8 @@ examples:
             reset-gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
 
             hub@1 {
-              compatible = "usb123,4567";
-              reg = <1>;
+                compatible = "usb123,4567";
+                reg = <1>;
             };
         };
 

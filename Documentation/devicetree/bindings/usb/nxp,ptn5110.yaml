@@ -67,10 +67,10 @@ examples:
                     #size-cells = <0>;
 
                     port@0 {
-                       reg = <0>;
-                       typec1_dr_sw: endpoint {
-                           remote-endpoint = <&usb1_drd_sw>;
-                       };
+                        reg = <0>;
+                        typec1_dr_sw: endpoint {
+                            remote-endpoint = <&usb1_drd_sw>;
+                        };
                     };
                 };
             };

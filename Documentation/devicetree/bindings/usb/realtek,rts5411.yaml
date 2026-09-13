@@ -84,7 +84,7 @@ examples:
                 port@4 {
                     reg = <4>;
                     endpoint {
-                      remote-endpoint = <&usb_a0_ss>;
+                        remote-endpoint = <&usb_a0_ss>;
                     };
                 };
             };
