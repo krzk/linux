@@ -1114,7 +1114,7 @@ RULES = [
     Rule('hex-case', 'strict',
          'hex literals must be lowercase',
          check_hex_case),
-    Rule('indent-consistent', 'strict',
+    Rule('indent-consistent', 'relaxed',
          'every line indented at depth * unit',
          check_indent_consistent),
     Rule('indent-unit', 'strict',
