@@ -516,7 +516,7 @@ examples:
                 regulator-boot-on;
             };
 
-           ldo_vcamd {
+            ldo_vcamd {
                 regulator-name = "vcamd";
                 regulator-min-microvolt = <1200000>;
                 regulator-max-microvolt = <1800000>;

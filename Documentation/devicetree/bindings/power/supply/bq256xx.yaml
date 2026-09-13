@@ -121,6 +121,6 @@ examples:
 
         input-voltage-limit-microvolt = <4500000>;
         input-current-limit-microamp = <2400000>;
-       };
+      };
     };
 ...

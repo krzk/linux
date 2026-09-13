@@ -47,5 +47,5 @@ examples:
             interrupts-extended = <&gpio5 2 IRQ_TYPE_EDGE_BOTH>,
                                   <&gpio3 21 IRQ_TYPE_EDGE_BOTH>;
             interrupt-names = "a_det", "alert";
-       };
+        };
     };

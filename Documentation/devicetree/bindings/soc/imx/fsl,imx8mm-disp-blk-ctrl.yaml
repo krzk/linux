@@ -87,8 +87,8 @@ examples:
                <&clk IMX8MM_CLK_DSI_PHY_REF>,
                <&clk IMX8MM_CLK_CSI1_CORE>,
                <&clk IMX8MM_CLK_CSI1_PHY_REF>;
-       clock-names = "csi-bridge-axi", "csi-bridge-apb", "csi-bridge-core",
-                     "lcdif-axi", "lcdif-apb", "lcdif-pix", "dsi-pclk",
-                     "dsi-ref", "csi-aclk", "csi-pclk";
-       #power-domain-cells = <1>;
+      clock-names = "csi-bridge-axi", "csi-bridge-apb", "csi-bridge-core",
+                    "lcdif-axi", "lcdif-apb", "lcdif-pix", "dsi-pclk",
+                    "dsi-ref", "csi-aclk", "csi-pclk";
+      #power-domain-cells = <1>;
     };

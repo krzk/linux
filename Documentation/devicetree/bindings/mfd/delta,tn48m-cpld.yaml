@@ -83,8 +83,8 @@ examples:
             };
 
             reset-controller {
-              compatible = "delta,tn48m-reset";
-              #reset-cells = <1>;
+                compatible = "delta,tn48m-reset";
+                #reset-cells = <1>;
             };
         };
     };

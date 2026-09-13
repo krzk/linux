@@ -51,5 +51,5 @@ examples:
             reg = <0x9>;
             interrupt-parent = <&gpio6>;
             interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-       };
+        };
     };

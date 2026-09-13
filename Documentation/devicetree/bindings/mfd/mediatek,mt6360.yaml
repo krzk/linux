@@ -232,7 +232,7 @@ examples:
                             reg = <1>;
                             endpoint {
                                 remote-endpoint = <&usb_ss>;
-                          };
+                            };
                         };
                         port@2 {
                             reg = <2>;

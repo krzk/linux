@@ -129,8 +129,8 @@ examples:
         };
 
         siram@1000 {
-          compatible = "fsl,t1040-qe-siram";
-          reg = <0x1000 0x800>;
+            compatible = "fsl,t1040-qe-siram";
+            reg = <0x1000 0x800>;
         };
 
         muram@10000 {
@@ -139,10 +139,10 @@ examples:
             #address-cells = <1>;
             #size-cells = <1>;
 
-              data-only@0{
-                  compatible = "fsl,qe-muram-data",
-                              "fsl,cpm-muram-data";
-                  reg = <0 0xc000>;
-              };
+            data-only@0{
+                compatible = "fsl,qe-muram-data",
+                             "fsl,cpm-muram-data";
+                reg = <0 0xc000>;
+            };
         };
     };

@@ -67,4 +67,4 @@ examples:
                          "fsl,cpm-muram-data";
             reg = <0 0xc000>;
         };
-     };
+    };

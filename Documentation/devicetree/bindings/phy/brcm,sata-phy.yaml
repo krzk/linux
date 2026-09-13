@@ -133,12 +133,12 @@ examples:
         #size-cells = <0>;
 
         sata-phy@0 {
-                reg = <0>;
-                #phy-cells = <0>;
+            reg = <0>;
+            #phy-cells = <0>;
         };
 
         sata-phy@1 {
-                reg = <1>;
-                #phy-cells = <0>;
+            reg = <1>;
+            #phy-cells = <0>;
         };
     };

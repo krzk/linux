@@ -321,8 +321,8 @@ examples:
                    <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>,
                    /* last is eDMA2-ERR interrupt */
                    <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
-       clock-names = "dma", "dmamux0";
-       clocks = <&pcc2 IMX7ULP_CLK_DMA1>, <&pcc2 IMX7ULP_CLK_DMA_MUX1>;
+      clock-names = "dma", "dmamux0";
+      clocks = <&pcc2 IMX7ULP_CLK_DMA1>, <&pcc2 IMX7ULP_CLK_DMA_MUX1>;
     };
 
   - |

@@ -91,7 +91,7 @@ examples:
           compatible = "apple,smc-rtc";
           nvmem-cells = <&rtc_offset>;
           nvmem-cell-names = "rtc_offset";
-       };
+        };
 
         hwmon {
           compatible = "apple,smc-hwmon";

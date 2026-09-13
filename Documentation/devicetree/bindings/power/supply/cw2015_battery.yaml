@@ -70,8 +70,8 @@ examples:
                 0x48 0x77 0x9C 0xB3 0x80 0x52 0x94 0xCB
                 0x2F 0x00 0x64 0xA5 0xB5 0x11 0xF0 0x11
            >;
-           cellwise,monitor-interval-ms = <5000>;
-           monitored-battery = <&bat>;
-           power-supplies = <&mains_charger>, <&usb_charger>;
-       };
+            cellwise,monitor-interval-ms = <5000>;
+            monitored-battery = <&bat>;
+            power-supplies = <&mains_charger>, <&usb_charger>;
+        };
     };

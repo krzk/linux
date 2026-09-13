@@ -84,18 +84,18 @@ examples:
         ranges;
 
         interrupt-controller@10 {
-                compatible = "marvell,cp110-icu-nsr";
-                reg = <0x10 0x20>;
-                #interrupt-cells = <2>;
-                interrupt-controller;
-                msi-parent = <&gicp>;
+            compatible = "marvell,cp110-icu-nsr";
+            reg = <0x10 0x20>;
+            #interrupt-cells = <2>;
+            interrupt-controller;
+            msi-parent = <&gicp>;
         };
 
         interrupt-controller@50 {
-                compatible = "marvell,cp110-icu-sei";
-                reg = <0x50 0x10>;
-                #interrupt-cells = <2>;
-                interrupt-controller;
-                msi-parent = <&sei>;
+            compatible = "marvell,cp110-icu-sei";
+            reg = <0x50 0x10>;
+            #interrupt-cells = <2>;
+            interrupt-controller;
+            msi-parent = <&sei>;
         };
     };

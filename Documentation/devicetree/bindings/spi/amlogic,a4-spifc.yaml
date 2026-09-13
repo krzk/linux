@@ -58,25 +58,25 @@ unevaluatedProperties: false
 examples:
   - |
     sfc0: spi@fe08d000 {
-      compatible = "amlogic,a4-spifc";
-      reg = <0xfe08d000 0x800>;
-      clocks = <&clkc_periphs 31>,
-               <&clkc_periphs 102>;
-      clock-names = "gate", "core";
+        compatible = "amlogic,a4-spifc";
+        reg = <0xfe08d000 0x800>;
+        clocks = <&clkc_periphs 31>,
+                 <&clkc_periphs 102>;
+        clock-names = "gate", "core";
 
-      pinctrl-0 = <&spiflash_default>;
-      pinctrl-names = "default";
+        pinctrl-0 = <&spiflash_default>;
+        pinctrl-names = "default";
 
-      #address-cells = <1>;
-      #size-cells = <0>;
+        #address-cells = <1>;
+        #size-cells = <0>;
 
-      flash@0 {
-          compatible = "spi-nand";
-          reg = <0>;
-          #address-cells = <1>;
-          #size-cells = <1>;
-          nand-ecc-engine = <&sfc0>;
-          nand-ecc-strength = <8>;
-          nand-ecc-step-size = <512>;
-      };
+        flash@0 {
+            compatible = "spi-nand";
+            reg = <0>;
+            #address-cells = <1>;
+            #size-cells = <1>;
+            nand-ecc-engine = <&sfc0>;
+            nand-ecc-strength = <8>;
+            nand-ecc-step-size = <512>;
+        };
     };

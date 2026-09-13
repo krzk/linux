@@ -92,10 +92,10 @@ examples:
 
             regulators {
                 vout0 {
-                     regulator-name = "FPGA-2.5V";
+                    regulator-name = "FPGA-2.5V";
                 };
                 vout2 {
-                     regulator-name = "FPGA-1.5V";
+                    regulator-name = "FPGA-1.5V";
                 };
             };
         };

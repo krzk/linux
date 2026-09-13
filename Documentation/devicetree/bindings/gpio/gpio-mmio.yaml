@@ -117,30 +117,30 @@ unevaluatedProperties: false
 examples:
   - |
     gpio@1f300010 {
-      compatible = "ni,169445-nand-gpio";
-      reg = <0x1f300010 0x4>;
-      reg-names = "dat";
-      gpio-controller;
-      #gpio-cells = <2>;
+        compatible = "ni,169445-nand-gpio";
+        reg = <0x1f300010 0x4>;
+        reg-names = "dat";
+        gpio-controller;
+        #gpio-cells = <2>;
     };
 
     gpio@e0100000 {
-      compatible = "wd,mbl-gpio";
-      reg-names = "dat";
-      reg = <0xe0100000 0x1>;
-      #gpio-cells = <2>;
-      gpio-controller;
-      no-output;
+        compatible = "wd,mbl-gpio";
+        reg-names = "dat";
+        reg = <0xe0100000 0x1>;
+        #gpio-cells = <2>;
+        gpio-controller;
+        no-output;
     };
 
     gpio@fffe0406 {
-      compatible = "brcm,bcm6345-gpio";
-      reg-names = "dirout", "dat";
-      reg = <0xfffe0406 2>, <0xfffe040a 2>;
-      ngpios = <15>;
-      native-endian;
-      gpio-controller;
-      #gpio-cells = <2>;
+        compatible = "brcm,bcm6345-gpio";
+        reg-names = "dirout", "dat";
+        reg = <0xfffe0406 2>, <0xfffe040a 2>;
+        ngpios = <15>;
+        native-endian;
+        gpio-controller;
+        #gpio-cells = <2>;
     };
 
     bus@c4000000 {

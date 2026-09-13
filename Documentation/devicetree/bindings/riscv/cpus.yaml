@@ -167,47 +167,47 @@ examples:
         #size-cells = <0>;
         timebase-frequency = <1000000>;
         cpu@0 {
-                clock-frequency = <0>;
-                compatible = "sifive,rocket0", "riscv";
-                device_type = "cpu";
-                i-cache-block-size = <64>;
-                i-cache-sets = <128>;
-                i-cache-size = <16384>;
-                reg = <0>;
-                riscv,isa-base = "rv64i";
-                riscv,isa-extensions = "i", "m", "a", "c";
+            clock-frequency = <0>;
+            compatible = "sifive,rocket0", "riscv";
+            device_type = "cpu";
+            i-cache-block-size = <64>;
+            i-cache-sets = <128>;
+            i-cache-size = <16384>;
+            reg = <0>;
+            riscv,isa-base = "rv64i";
+            riscv,isa-extensions = "i", "m", "a", "c";
 
-                cpu_intc0: interrupt-controller {
-                        #interrupt-cells = <1>;
-                        compatible = "riscv,cpu-intc";
-                        interrupt-controller;
-                };
+            cpu_intc0: interrupt-controller {
+                #interrupt-cells = <1>;
+                compatible = "riscv,cpu-intc";
+                interrupt-controller;
+            };
         };
         cpu@1 {
-                clock-frequency = <0>;
-                compatible = "sifive,rocket0", "riscv";
-                d-cache-block-size = <64>;
-                d-cache-sets = <64>;
-                d-cache-size = <32768>;
-                d-tlb-sets = <1>;
-                d-tlb-size = <32>;
-                device_type = "cpu";
-                i-cache-block-size = <64>;
-                i-cache-sets = <64>;
-                i-cache-size = <32768>;
-                i-tlb-sets = <1>;
-                i-tlb-size = <32>;
-                mmu-type = "riscv,sv39";
-                reg = <1>;
-                tlb-split;
-                riscv,isa-base = "rv64i";
-                riscv,isa-extensions = "i", "m", "a", "f", "d", "c";
+            clock-frequency = <0>;
+            compatible = "sifive,rocket0", "riscv";
+            d-cache-block-size = <64>;
+            d-cache-sets = <64>;
+            d-cache-size = <32768>;
+            d-tlb-sets = <1>;
+            d-tlb-size = <32>;
+            device_type = "cpu";
+            i-cache-block-size = <64>;
+            i-cache-sets = <64>;
+            i-cache-size = <32768>;
+            i-tlb-sets = <1>;
+            i-tlb-size = <32>;
+            mmu-type = "riscv,sv39";
+            reg = <1>;
+            tlb-split;
+            riscv,isa-base = "rv64i";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c";
 
-                cpu_intc1: interrupt-controller {
-                        #interrupt-cells = <1>;
-                        compatible = "riscv,cpu-intc";
-                        interrupt-controller;
-                };
+            cpu_intc1: interrupt-controller {
+                #interrupt-cells = <1>;
+                compatible = "riscv,cpu-intc";
+                interrupt-controller;
+            };
         };
     };
 
@@ -217,18 +217,18 @@ examples:
         #address-cells = <1>;
         #size-cells = <0>;
         cpu@0 {
-                device_type = "cpu";
-                reg = <0>;
-                compatible = "riscv";
-                mmu-type = "riscv,sv48";
-                riscv,isa-base = "rv64i";
-                riscv,isa-extensions = "i", "m", "a", "f", "d", "c";
+            device_type = "cpu";
+            reg = <0>;
+            compatible = "riscv";
+            mmu-type = "riscv,sv48";
+            riscv,isa-base = "rv64i";
+            riscv,isa-extensions = "i", "m", "a", "f", "d", "c";
 
-                interrupt-controller {
-                        #interrupt-cells = <1>;
-                        interrupt-controller;
-                        compatible = "riscv,cpu-intc";
-                };
+            interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
         };
     };
 ...

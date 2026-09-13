@@ -177,7 +177,7 @@ examples:
                           <WAKE_TCS    3>,
                           <CONTROL_TCS 1>;
         power-domains = <&CLUSTER_PD>;
-      };
+    };
 
   - |
     // For a TCS whose RSC base address is 0xAF20000 and is at DRV id of 0, the

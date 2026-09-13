@@ -245,55 +245,55 @@ examples:
     #include <dt-bindings/clock/qcom,gcc-sc8280xp.h>
 
     phy@88eb000 {
-      compatible = "qcom,sc8280xp-qmp-usb43dp-phy";
-      reg = <0x088eb000 0x4000>;
+        compatible = "qcom,sc8280xp-qmp-usb43dp-phy";
+        reg = <0x088eb000 0x4000>;
 
-      clocks = <&gcc GCC_USB3_PRIM_PHY_AUX_CLK>,
-               <&gcc GCC_USB4_EUD_CLKREF_CLK>,
-               <&gcc GCC_USB3_PRIM_PHY_COM_AUX_CLK>,
-               <&gcc GCC_USB3_PRIM_PHY_PIPE_CLK>;
-      clock-names = "aux", "ref", "com_aux", "usb3_pipe";
+        clocks = <&gcc GCC_USB3_PRIM_PHY_AUX_CLK>,
+                 <&gcc GCC_USB4_EUD_CLKREF_CLK>,
+                 <&gcc GCC_USB3_PRIM_PHY_COM_AUX_CLK>,
+                 <&gcc GCC_USB3_PRIM_PHY_PIPE_CLK>;
+        clock-names = "aux", "ref", "com_aux", "usb3_pipe";
 
-      power-domains = <&gcc USB30_PRIM_GDSC>;
+        power-domains = <&gcc USB30_PRIM_GDSC>;
 
-      resets = <&gcc GCC_USB3_PHY_PRIM_BCR>,
-               <&gcc GCC_USB4_DP_PHY_PRIM_BCR>;
-      reset-names = "phy", "common";
+        resets = <&gcc GCC_USB3_PHY_PRIM_BCR>,
+                 <&gcc GCC_USB4_DP_PHY_PRIM_BCR>;
+        reset-names = "phy", "common";
 
-      vdda-phy-supply = <&vreg_l9d>;
-      vdda-pll-supply = <&vreg_l4d>;
+        vdda-phy-supply = <&vreg_l9d>;
+        vdda-pll-supply = <&vreg_l4d>;
 
-      orientation-switch;
+        orientation-switch;
 
-      #clock-cells = <1>;
-      #phy-cells = <1>;
+        #clock-cells = <1>;
+        #phy-cells = <1>;
 
-      ports {
-          #address-cells = <1>;
-          #size-cells = <0>;
+        ports {
+            #address-cells = <1>;
+            #size-cells = <0>;
 
-          port@0 {
-              reg = <0>;
+            port@0 {
+                reg = <0>;
 
-              endpoint {
-                  remote-endpoint = <&typec_connector_ss>;
-              };
-          };
+                endpoint {
+                    remote-endpoint = <&typec_connector_ss>;
+                };
+            };
 
-          port@1 {
-              reg = <1>;
+            port@1 {
+                reg = <1>;
 
-              endpoint {
-                  remote-endpoint = <&dwc3_ss_out>;
-              };
-          };
+                endpoint {
+                    remote-endpoint = <&dwc3_ss_out>;
+                };
+            };
 
-          port@2 {
-              reg = <2>;
+            port@2 {
+                reg = <2>;
 
-              endpoint {
-                  remote-endpoint = <&mdss_dp_out>;
-              };
-          };
-      };
+                endpoint {
+                    remote-endpoint = <&mdss_dp_out>;
+                };
+            };
+        };
     };

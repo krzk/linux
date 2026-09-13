@@ -104,23 +104,23 @@ examples:
             vcc-supply = <&vcc>;
 
             channel@0 {
-                    reg = <0x0>;
-                    shunt-resistor-micro-ohms = <100000>;
+                reg = <0x0>;
+                shunt-resistor-micro-ohms = <100000>;
             };
 
             channel@1 {
-                    reg = <0x1>;
-                    shunt-resistor-micro-ohms = <100000>;
+                reg = <0x1>;
+                shunt-resistor-micro-ohms = <100000>;
             };
 
             channel@2 {
-                    reg = <0x2>;
-                    adi,temperature-enable;
+                reg = <0x2>;
+                adi,temperature-enable;
             };
 
             channel@3 {
-                    reg = <0x3>;
-                    adi,temperature-enable;
+                reg = <0x3>;
+                adi,temperature-enable;
             };
         };
     };

@@ -374,7 +374,7 @@ examples:
           #phy-cells = <0>;
           interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL_HIGH 0>;
           interrupt-names = "linestate";
-         };
+        };
 
         u2phy0_otg: otg-port {
           #phy-cells = <0>;

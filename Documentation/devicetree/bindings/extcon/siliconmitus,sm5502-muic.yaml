@@ -49,9 +49,9 @@ examples:
         #size-cells = <0>;
 
         extcon@25 {
-                compatible = "siliconmitus,sm5502-muic";
-                reg = <0x25>;
-                interrupt-parent = <&msmgpio>;
-                interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+            compatible = "siliconmitus,sm5502-muic";
+            reg = <0x25>;
+            interrupt-parent = <&msmgpio>;
+            interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
         };
     };

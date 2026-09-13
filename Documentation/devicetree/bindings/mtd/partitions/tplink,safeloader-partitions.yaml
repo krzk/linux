@@ -52,6 +52,6 @@ examples:
         partitions-table-offset = <0x100000>;
 
         partition-file-system {
-                linux,rootfs;
+            linux,rootfs;
         };
     };

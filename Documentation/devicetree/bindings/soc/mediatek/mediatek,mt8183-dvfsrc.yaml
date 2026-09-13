@@ -68,17 +68,17 @@ examples:
                 compatible = "mediatek,mt8195-dvfsrc-regulator";
 
                 dvfsrc_vcore: dvfsrc-vcore {
-                        regulator-name = "dvfsrc-vcore";
-                        regulator-min-microvolt = <550000>;
-                        regulator-max-microvolt = <750000>;
-                        regulator-always-on;
+                    regulator-name = "dvfsrc-vcore";
+                    regulator-min-microvolt = <550000>;
+                    regulator-max-microvolt = <750000>;
+                    regulator-always-on;
                 };
 
                 dvfsrc_vscp: dvfsrc-vscp {
-                        regulator-name = "dvfsrc-vscp";
-                        regulator-min-microvolt = <550000>;
-                        regulator-max-microvolt = <750000>;
-                        regulator-always-on;
+                    regulator-name = "dvfsrc-vscp";
+                    regulator-min-microvolt = <550000>;
+                    regulator-max-microvolt = <750000>;
+                    regulator-always-on;
                 };
             };
 

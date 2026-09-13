@@ -222,15 +222,15 @@ unevaluatedProperties: false
 examples:
   - |
     i2c {
-      #address-cells = <1>;
-      #size-cells = <0>;
+        #address-cells = <1>;
+        #size-cells = <0>;
 
-      eeprom@52 {
-          compatible = "microchip,24c32", "atmel,24c32";
-          reg = <0x52>;
-          pagesize = <32>;
-          wp-gpios = <&gpio1 3 0>;
-          num-addresses = <8>;
-      };
+        eeprom@52 {
+            compatible = "microchip,24c32", "atmel,24c32";
+            reg = <0x52>;
+            pagesize = <32>;
+            wp-gpios = <&gpio1 3 0>;
+            num-addresses = <8>;
+        };
     };
 ...

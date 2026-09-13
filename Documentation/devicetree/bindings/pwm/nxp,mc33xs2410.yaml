@@ -93,26 +93,26 @@ examples:
         #address-cells = <1>;
         #size-cells = <0>;
 
-       pwm@0 {
-           compatible = "nxp,mc33xs2410";
-           reg = <0x0>;
-           spi-max-frequency = <4000000>;
-           spi-cpha;
-           spi-cs-setup-delay-ns = <100>;
-           spi-cs-hold-delay-ns = <10>;
-           spi-cs-inactive-delay-ns = <300>;
-           reset-gpios = <&gpio3 22 GPIO_ACTIVE_LOW>;
-           #pwm-cells = <3>;
-           pwm-names = "di0", "di1", "di2", "di3";
-           pwms = <&pwm0 0 1000000>,
-                  <&pwm1 0 1000000>,
-                  <&pwm2 0 1000000>,
-                  <&pwm3 0 1000000>;
-           interrupt-parent = <&gpio0>;
-           interrupts = <31 IRQ_TYPE_LEVEL_LOW>;
-           clocks = <&clk_ext_fixed>;
-           vdd-supply = <&reg_3v3>;
-           vspi-supply = <&reg_3v3>;
-           vpwr-supply = <&reg_24v0>;
-       };
+        pwm@0 {
+            compatible = "nxp,mc33xs2410";
+            reg = <0x0>;
+            spi-max-frequency = <4000000>;
+            spi-cpha;
+            spi-cs-setup-delay-ns = <100>;
+            spi-cs-hold-delay-ns = <10>;
+            spi-cs-inactive-delay-ns = <300>;
+            reset-gpios = <&gpio3 22 GPIO_ACTIVE_LOW>;
+            #pwm-cells = <3>;
+            pwm-names = "di0", "di1", "di2", "di3";
+            pwms = <&pwm0 0 1000000>,
+                   <&pwm1 0 1000000>,
+                   <&pwm2 0 1000000>,
+                   <&pwm3 0 1000000>;
+            interrupt-parent = <&gpio0>;
+            interrupts = <31 IRQ_TYPE_LEVEL_LOW>;
+            clocks = <&clk_ext_fixed>;
+            vdd-supply = <&reg_3v3>;
+            vspi-supply = <&reg_3v3>;
+            vpwr-supply = <&reg_24v0>;
+        };
     };

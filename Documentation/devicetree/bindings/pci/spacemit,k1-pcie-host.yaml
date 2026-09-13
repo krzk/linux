@@ -144,14 +144,14 @@ examples:
         spacemit,apmu = <&syscon_apmu 0x3d4>;
 
         pcie@0 {
-          device_type = "pci";
-          compatible = "pciclass,0604";
-          reg = <0x0 0x0 0x0 0x0 0x0>;
-          bus-range = <0x01 0xff>;
-          #address-cells = <3>;
-          #size-cells = <2>;
-          ranges;
-          phys = <&pcie1_phy>;
-          vpcie3v3-supply = <&pcie_vcc_3v3>;
+            device_type = "pci";
+            compatible = "pciclass,0604";
+            reg = <0x0 0x0 0x0 0x0 0x0>;
+            bus-range = <0x01 0xff>;
+            #address-cells = <3>;
+            #size-cells = <2>;
+            ranges;
+            phys = <&pcie1_phy>;
+            vpcie3v3-supply = <&pcie_vcc_3v3>;
         };
     };

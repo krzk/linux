@@ -42,4 +42,4 @@ examples:
         compatible = "microchip,pic32mzda-dmt";
         reg = <0x1f800a00 0x80>;
         clocks = <&rootclk PB7CLK>;
-       };
+    };

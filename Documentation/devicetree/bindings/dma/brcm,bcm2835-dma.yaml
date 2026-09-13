@@ -95,8 +95,8 @@ examples:
                         "dma13",
                         "dma14",
                         "dma-shared-all";
-        #dma-cells = <1>;
-        brcm,dma-channel-mask = <0x7f35>;
+      #dma-cells = <1>;
+      brcm,dma-channel-mask = <0x7f35>;
     };
 
 ...

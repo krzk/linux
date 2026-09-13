@@ -46,10 +46,10 @@ examples:
         #address-cells = <2>;
         #size-cells = <2>;
         wdt1: watchdog@40440000 {
-          compatible = "nuvoton,ma35d1-wdt";
-          reg = <0x0 0x40440000 0x0 0x100>;
-          interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
-          clocks = <&clk WDT1_GATE>;
+            compatible = "nuvoton,ma35d1-wdt";
+            reg = <0x0 0x40440000 0x0 0x100>;
+            interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&clk WDT1_GATE>;
         };
     };
 ...

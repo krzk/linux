@@ -62,4 +62,4 @@ examples:
         clocks = <&clk_8m>;
         clock-names = "per";
         interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
-     };
+    };

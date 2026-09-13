@@ -158,9 +158,9 @@ examples:
 
       out-ports {
         port {
-         turing_llm_tpdm_out: endpoint {
-           remote-endpoint = <&turing0_funnel_in1>;
-         };
+          turing_llm_tpdm_out: endpoint {
+            remote-endpoint = <&turing0_funnel_in1>;
+          };
         };
       };
     };

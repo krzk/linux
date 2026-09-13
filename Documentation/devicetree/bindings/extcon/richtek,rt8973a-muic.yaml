@@ -41,9 +41,9 @@ examples:
         #address-cells = <1>;
         #size-cells = <0>;
         usb-switch@14 {
-          compatible = "richtek,rt8973a-muic";
-          reg = <0x14>;
-          interrupt-parent = <&gpio>;
-          interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+            compatible = "richtek,rt8973a-muic";
+            reg = <0x14>;
+            interrupt-parent = <&gpio>;
+            interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
         };
     };

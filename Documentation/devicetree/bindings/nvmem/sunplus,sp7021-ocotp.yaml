@@ -64,16 +64,16 @@ examples:
         #address-cells = <1>;
         #size-cells = <1>;
         therm_calib: thermal-calibration@14 {
-          reg = <0x14 0x3>;
+            reg = <0x14 0x3>;
         };
         disc_vol: disconnect-voltage@18 {
-          reg = <0x18 0x2>;
+            reg = <0x18 0x2>;
         };
         mac_addr0: mac-address0@34 {
-          reg = <0x34 0x6>;
+            reg = <0x34 0x6>;
         };
         mac_addr1: mac-address1@3a {
-          reg = <0x3a 0x6>;
+            reg = <0x3a 0x6>;
         };
     };
 ...

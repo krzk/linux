@@ -121,5 +121,5 @@ examples:
             ti,sci = <&dmsc>;
             ti,sci-dev-id = <9>;
             ti,sci-proc-ids = <0x18 0xff>;
-         };
+        };
     };

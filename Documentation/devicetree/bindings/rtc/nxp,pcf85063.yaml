@@ -87,17 +87,17 @@ examples:
         #size-cells = <0>;
 
         rtc@51 {
-          compatible = "nxp,pcf85063a";
-          reg = <0x51>;
-          quartz-load-femtofarads = <12500>;
+            compatible = "nxp,pcf85063a";
+            reg = <0x51>;
+            quartz-load-femtofarads = <12500>;
 
-          clock {
-            compatible = "fixed-clock";
-            #clock-cells = <0>;
-            clock-frequency = <32768>;
-          };
+            clock {
+                compatible = "fixed-clock";
+                #clock-cells = <0>;
+                clock-frequency = <32768>;
+            };
         };
-      };
+    };
 
   - |
     spi {

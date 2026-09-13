@@ -173,8 +173,8 @@ examples:
                <&clk IMX93_CLK_ISI_GATE>,
                <&clk IMX93_CLK_MIPI_CSI_GATE>,
                <&clk IMX93_CLK_MIPI_DSI_GATE>;
-               clock-names = "apb", "axi", "nic", "disp", "cam",
-                             "pxp", "lcdif", "isi", "csi", "dsi";
+      clock-names = "apb", "axi", "nic", "disp", "cam",
+                    "pxp", "lcdif", "isi", "csi", "dsi";
       #address-cells = <1>;
       #size-cells = <1>;
       #power-domain-cells = <1>;

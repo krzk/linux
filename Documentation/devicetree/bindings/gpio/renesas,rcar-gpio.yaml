@@ -150,4 +150,4 @@ examples:
         gpio-reserved-ranges = <17 10>;
         interrupt-controller;
         #interrupt-cells = <2>;
-     };
+    };

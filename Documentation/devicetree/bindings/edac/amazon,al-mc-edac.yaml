@@ -55,12 +55,12 @@ examples:
         #address-cells = <2>;
         #size-cells = <2>;
         edac@f0080000 {
-          #address-cells = <2>;
-          #size-cells = <2>;
-          compatible = "amazon,al-mc-edac";
-          reg = <0x0 0xf0080000 0x0 0x00010000>;
-          interrupt-parent = <&amazon_al_system_fabric>;
-          interrupt-names = "ue";
-          interrupts = <20 IRQ_TYPE_LEVEL_HIGH>;
+            #address-cells = <2>;
+            #size-cells = <2>;
+            compatible = "amazon,al-mc-edac";
+            reg = <0x0 0xf0080000 0x0 0x00010000>;
+            interrupt-parent = <&amazon_al_system_fabric>;
+            interrupt-names = "ue";
+            interrupts = <20 IRQ_TYPE_LEVEL_HIGH>;
         };
     };

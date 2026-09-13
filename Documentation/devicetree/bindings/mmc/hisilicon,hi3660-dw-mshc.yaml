@@ -90,28 +90,28 @@ examples:
     #include <dt-bindings/interrupt-controller/arm-gic.h>
 
     soc {
-      #address-cells = <2>;
-      #size-cells = <2>;
+        #address-cells = <2>;
+        #size-cells = <2>;
 
-      mmc@f723e000 {
-          compatible = "hisilicon,hi6220-dw-mshc";
-          reg = <0x0 0xf723e000 0x0 0x1000>;
-          interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
-          clocks = <&clock_sys HI6220_MMC1_CIUCLK>,
-                   <&clock_sys HI6220_MMC1_CLK>;
-          clock-names = "ciu", "biu";
-          bus-width = <4>;
-          disable-wp;
-          cap-sd-highspeed;
-          sd-uhs-sdr12;
-          sd-uhs-sdr25;
-          card-detect-delay = <200>;
-          hisilicon,peripheral-syscon = <&ao_ctrl>;
-          cd-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
-          pinctrl-names = "default", "idle";
-          pinctrl-0 = <&sd_pmx_func &sd_clk_cfg_func &sd_cfg_func>;
-          pinctrl-1 = <&sd_pmx_idle &sd_clk_cfg_idle &sd_cfg_idle>;
-          vqmmc-supply = <&ldo7>;
-          vmmc-supply = <&ldo10>;
-      };
+        mmc@f723e000 {
+            compatible = "hisilicon,hi6220-dw-mshc";
+            reg = <0x0 0xf723e000 0x0 0x1000>;
+            interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&clock_sys HI6220_MMC1_CIUCLK>,
+                     <&clock_sys HI6220_MMC1_CLK>;
+            clock-names = "ciu", "biu";
+            bus-width = <4>;
+            disable-wp;
+            cap-sd-highspeed;
+            sd-uhs-sdr12;
+            sd-uhs-sdr25;
+            card-detect-delay = <200>;
+            hisilicon,peripheral-syscon = <&ao_ctrl>;
+            cd-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+            pinctrl-names = "default", "idle";
+            pinctrl-0 = <&sd_pmx_func &sd_clk_cfg_func &sd_cfg_func>;
+            pinctrl-1 = <&sd_pmx_idle &sd_clk_cfg_idle &sd_cfg_idle>;
+            vqmmc-supply = <&ldo7>;
+            vmmc-supply = <&ldo10>;
+        };
     };

@@ -103,8 +103,8 @@ examples:
                  <&scg1 IMX7ULP_CLK_FIRC_BUS_CLK>,
                  <&scg1 IMX7ULP_CLK_ROSC>,
                  <&scg1 IMX7ULP_CLK_SPLL_BUS_CLK>;
-         clock-names = "nic1_bus_clk", "nic1_clk", "ddr_clk",
-                       "apll_pfd2", "apll_pfd1", "apll_pfd0",
-                       "upll", "sosc_bus_clk", "firc_bus_clk",
-                       "rosc", "spll_bus_clk";
+        clock-names = "nic1_bus_clk", "nic1_clk", "ddr_clk",
+                      "apll_pfd2", "apll_pfd1", "apll_pfd0",
+                      "upll", "sosc_bus_clk", "firc_bus_clk",
+                      "rosc", "spll_bus_clk";
     };

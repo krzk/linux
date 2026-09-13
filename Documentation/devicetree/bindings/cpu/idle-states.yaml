@@ -918,11 +918,11 @@ examples:
 
     // Example 4 - Qualcomm SPC
     idle-states {
-      cpu_spc: cpu-spc {
-        compatible = "qcom,idle-state-spc", "arm,idle-state";
-        entry-latency-us = <150>;
-        exit-latency-us = <200>;
-        min-residency-us = <2000>;
-      };
+        cpu_spc: cpu-spc {
+            compatible = "qcom,idle-state-spc", "arm,idle-state";
+            entry-latency-us = <150>;
+            exit-latency-us = <200>;
+            min-residency-us = <2000>;
+        };
     };
 ...

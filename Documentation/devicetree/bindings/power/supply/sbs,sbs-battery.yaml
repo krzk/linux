@@ -80,5 +80,5 @@ examples:
             sbs,poll-retry-count = <10>;
             sbs,battery-detect-gpios = <&gpio 122 GPIO_ACTIVE_HIGH>;
             sbs,disable-charger-broadcasts;
-       };
+        };
     };

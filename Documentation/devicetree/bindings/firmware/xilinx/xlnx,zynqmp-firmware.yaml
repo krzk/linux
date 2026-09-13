@@ -151,7 +151,7 @@ examples:
             #size-cells = <1>;
 
             soc_revision: soc-revision@0 {
-                reg = <0x0 0x4>;
+              reg = <0x0 0x4>;
             };
           };
         };

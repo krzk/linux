@@ -272,9 +272,9 @@ examples:
         #mbox-cells = <1>;
 
         apcs_clk: clock-controller {
-          clocks = <&apcs_hfpll>, <&gcc GCC_GPLL0_AO_OUT_MAIN>;
-          clock-names = "pll", "aux";
-          #clock-cells = <0>;
+            clocks = <&apcs_hfpll>, <&gcc GCC_GPLL0_AO_OUT_MAIN>;
+            clock-names = "pll", "aux";
+            #clock-cells = <0>;
         };
     };
 

@@ -90,8 +90,8 @@ examples:
                <&clk IMX8MN_CLK_DSI_PHY_REF>,
                <&clk IMX8MN_CLK_CSI1_PHY_REF>,
                <&clk IMX8MN_CLK_CAMERA_PIXEL_ROOT>;
-       clock-names = "disp_axi", "disp_apb", "disp_axi_root", "disp_apb_root",
-                     "lcdif-axi", "lcdif-apb", "lcdif-pix", "dsi-pclk",
-                     "dsi-ref", "csi-aclk", "csi-pclk";
-       #power-domain-cells = <1>;
+      clock-names = "disp_axi", "disp_apb", "disp_axi_root", "disp_apb_root",
+                    "lcdif-axi", "lcdif-apb", "lcdif-pix", "dsi-pclk",
+                    "dsi-ref", "csi-aclk", "csi-pclk";
+      #power-domain-cells = <1>;
     };

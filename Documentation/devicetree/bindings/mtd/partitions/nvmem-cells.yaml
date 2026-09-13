@@ -33,14 +33,14 @@ unevaluatedProperties: false
 examples:
   - |
     partitions {
-      compatible = "fixed-partitions";
-      #address-cells = <1>;
-      #size-cells = <1>;
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
 
-      /* ... */
+        /* ... */
 
-      };
-      art: art@1200000 {
+    };
+    art: art@1200000 {
         compatible = "nvmem-cells";
         reg = <0x1200000 0x0140000>;
         label = "art";
@@ -49,21 +49,21 @@ examples:
         #size-cells = <1>;
 
         macaddr_gmac1: macaddr_gmac1@0 {
-          reg = <0x0 0x6>;
+            reg = <0x0 0x6>;
         };
 
         macaddr_gmac2: macaddr_gmac2@6 {
-          reg = <0x6 0x6>;
+            reg = <0x6 0x6>;
         };
 
         pre_cal_24g: pre_cal_24g@1000 {
-          reg = <0x1000 0x2f20>;
+            reg = <0x1000 0x2f20>;
         };
 
         pre_cal_5g: pre_cal_5g@5000{
-          reg = <0x5000 0x2f20>;
+            reg = <0x5000 0x2f20>;
         };
-      };
+    };
   - |
     partitions {
         compatible = "fixed-partitions";
