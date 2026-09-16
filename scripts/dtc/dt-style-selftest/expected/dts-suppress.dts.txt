@@ -1,0 +1,8 @@
+# mode=strict
+bad/dts-suppress.dts:15: [child-name-order] child node 'a55-pmu' out of name order
+bad/dts-suppress.dts:33: [redundant-whitespace-strict] extra whitespace after =
+bad/dts-suppress.dts:39: [hex-case] hex literal '0xDEAD' must be lowercase
+bad/dts-suppress.dts:39: [redundant-whitespace-strict] extra whitespace after =
+bad/dts-suppress.dts:40: [hex-case] hex literal '0xDEAD' must be lowercase
+bad/dts-suppress.dts:47: [child-address-order] child node @20000 out of address order
+bad/dts-suppress.dts:48: [redundant-whitespace-strict] extra whitespace before =

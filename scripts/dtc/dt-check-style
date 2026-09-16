@@ -54,6 +54,8 @@ re_cpp_directive = re.compile(
 re_dtc_directive = re.compile(
     r'^/(dts-v1|include)/')
 
+re_check_disable = re.compile(r'\*\s*dt-check-style\s+disable=(\S+)')
+
 # label: name@addr {  -- label and addr optional; name can be "/"
 # Per the DT spec a node name may start with a digit (e.g. 1wire@...).
 # The address part is captured loosely (any non-space, non-brace run) so
@@ -340,6 +342,94 @@ class Rule:
         self.description = description
         self.check = check
         self.applies_to = applies_to   # input types this rule covers
+
+
+class Suppressions:
+    """Parse ``/* dt-check-style disable=RULE,RULE,RULE`` comments.
+
+    Returns a dict mapping line numbers (1-based) to sets of suppressed
+    rule names.  Three scopes are recognised:
+
+    - **File-level**: the disable comment appears in the top comments of
+      the block (every line before it is blank or a comment -- no code,
+      no preprocessor directives).  The listed rules are suppressed for
+      *every* line in the block.
+
+    - **Node-level**: the disable comment immediately precedes a
+      NODE_OPEN (only blank/comment lines may appear between them).  The
+      listed rules are suppressed for all lines from the opening brace to
+      the matching closing brace, inclusive (nested children included).
+
+    - **Property-level**: the disable comment immediately precedes a
+      PROPERTY line.  The listed rules are suppressed for that property
+      line and all its continuation lines.
+
+    A disable comment that is not in the top comments and whose next
+    non-comment/non-blank line is neither NODE_OPEN nor PROPERTY is
+    silently ignored.
+    """
+
+    def __init__(self, lines):
+        self.__COMMENT_LIKE = (LineType.BLANK, LineType.COMMENT,
+                             LineType.COMMENT_START, LineType.COMMENT_BODY,
+                             LineType.COMMENT_END)
+        self.__suppressed = {}
+
+        for i, dl in enumerate(lines):
+            if dl.linetype not in (LineType.COMMENT, LineType.COMMENT_START, LineType.COMMENT_BODY):
+                continue
+            m = re_check_disable.search(dl.stripped)
+            if not m:
+                continue
+            rules = {r for r in m.group(1).split(',') if r}
+            if not rules:
+                continue
+
+            # File-level: every line before this one is blank or a comment.
+            if all(lines[j].linetype in self.__COMMENT_LIKE for j in range(i)):
+                self._suppress_range(lines, 0, len(lines) - 1, rules)
+                continue
+
+            # Find the next non-comment/non-blank line after the disable comment.
+            next_idx = next(
+                (j for j in range(i + 1, len(lines))
+                if lines[j].linetype not in self.__COMMENT_LIKE),
+                None)
+            if next_idx is None:
+                continue
+
+            nxt = lines[next_idx]
+            if nxt.linetype == LineType.NODE_OPEN:
+                # Node-level: suppress from NODE_OPEN to its matching NODE_CLOSE.
+                node_depth = nxt.depth
+                end_idx = len(lines) - 1
+                for j in range(next_idx + 1, len(lines)):
+                    if (lines[j].linetype == LineType.NODE_CLOSE and
+                            lines[j].depth == node_depth):
+                        end_idx = j
+                        break
+                self._suppress_range(lines, next_idx, end_idx, rules)
+            elif nxt.linetype == LineType.PROPERTY:
+                # Property-level: suppress the property and its continuations.
+                self._add(nxt.lineno, rules)
+                for cont in nxt.continuations:
+                    self._add(cont.lineno, rules)
+
+
+    def _add(self, lineno, rules):
+        self.__suppressed.setdefault(lineno, set()).update(rules)
+
+
+    def _suppress_range(self, lines, start_idx, end_idx, rules):
+        for i in range(start_idx, min(end_idx + 1, len(lines))):
+            dl = lines[i]
+            self._add(dl.lineno, rules)
+            for cont in dl.continuations:
+                self._add(cont.lineno, rules)
+
+
+    def is_suppressed(self, rule_name, lineno):
+        return rule_name in self.__suppressed.get(lineno, set())
 
 
 # --- individual rule check functions --------------------------------------
@@ -642,6 +732,9 @@ def check_line_length(ctx):
     """Lines must not exceed 80 columns; tabs count as 8 (see
     _display_col)."""
     for dl in ctx.lines:
+        # Ignore suppression rules, which can go longer than 80
+        if re_check_disable.search(dl.stripped):
+            continue
         yield from _check_line_length(dl)
         for cont in dl.continuations:
             yield from _check_line_length(cont)
@@ -1180,10 +1273,12 @@ def check_block(text, mode, file_type):
     lines = classify_lines(text)
     ctx = Ctx(lines, text, mode, file_type)
     rules = select_rules(mode, file_type)
+    suppressions = Suppressions(lines)
     findings = []
     for r in rules:
         for lineno, msg in r.check(ctx):
-            findings.append((lineno, r.name, msg))
+            if not suppressions.is_suppressed(r.name, lineno):
+                findings.append((lineno, r.name, msg))
     findings.sort(key=lambda t: (t[0], t[1]))
     return findings
 

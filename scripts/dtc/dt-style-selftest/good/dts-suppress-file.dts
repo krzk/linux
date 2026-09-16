@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+/* dt-check-style disable=redundant-whitespace-strict */
+/*
+ * Here goes reason
+ * dt-check-style disable=continuation-alignment
+ */
+/dts-v1/;
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	memory@a0000000 {
+		device_type = "memory";
+		reg = <0x0 0xa0000000 0x0 0x0>;
+	};
+
+	/* dt-check-style disable=child-name-order */
+	a55-pmu {
+		compatible = "example,pmu";
+	};
+
+	soc@0 {
+		compatible = "simple-bus";
+		ranges = <0 0 0 0xc0000000>;
+
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		interrupt-controller@10000 {
+			compatible = "example,intc";
+			reg = <0x10000 0x1000>;
+			interrupts =  <1 2 3>;
+		};
+
+		/* dt-check-style disable=hex-case */
+		serial@30000 {
+			compatible = "example,serial";
+			reg =  <0x30000 0xDEAD>,
+				<0x30000 0xDEAD>;
+		};
+
+		/* dt-check-style disable=child-address-order */
+		serial@20000 {
+			compatible  = "example,serial";
+			/* Redundant rule disable should be ignored */
+			/* dt-check-style disable=hex-case */
+			reg = <0x20000 0x1000>;
+		};
+	};
+};
