@@ -11,6 +11,10 @@
  * Note: This file does not include device nodes for all the controllers in
  * Exynos5433 SoC. As device tree coverage for Exynos5433 increases,
  * additional nodes can be added to this file.
+ *
+ * First (boot) CPU has to be cpu@100, also most of nodes in SoC are not going
+ * to be re-shuffled to avoid mess on backports:
+ * dt-check-style disable=child-address-order
  */
 
 #include <dt-bindings/clock/exynos5433.h>
