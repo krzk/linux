@@ -97,11 +97,13 @@ static void msm_hdmi_clk_unprepare(struct drm_bridge *bridge)
 	struct hdmi_bridge *hdmi_bridge = to_hdmi_bridge(bridge);
 	struct hdmi *hdmi = hdmi_bridge->hdmi;
 
+#if 1
 	if (hdmi->extp_clk) {
-		clk_disable_unprepare(hdmi->phy_iface_clk);
+		// clk_disable_unprepare(hdmi->phy_iface_clk); // commenting this solves tx acks
 		clk_disable_unprepare(hdmi->extp_clk);
 		dev_pm_opp_set_opp(&hdmi->pdev->dev, NULL);
 	}
+#endif
 }
 
 #define AVI_IFRAME_LINE_NUMBER 1
