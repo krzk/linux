@@ -27,6 +27,28 @@
 		};
 	};
 
+	hdmi-0-connector {
+		compatible = "hdmi-connector";
+		type = "a";
+
+		port {
+			hdmi_0_connector_in: endpoint {
+				remote-endpoint = <&lt9611_out>;
+			};
+		};
+	};
+
+	hdmi-1-connector {
+		compatible = "hdmi-connector";
+		type = "a";
+
+		port {
+			hdmi_1_connector_in: endpoint {
+				remote-endpoint = <&mdss_hdmi_out>;
+			};
+		};
+	};
+
 	pmic-glink {
 		compatible = "qcom,eliza-pmic-glink",
 			     "qcom,sm8550-pmic-glink",
@@ -61,8 +83,29 @@
 						remote-endpoint = <&usb_dp_qmpphy_out>;
 					};
 				};
+/*
+				port@2 {
+					reg = <2>;
+
+					pmic_glink_sbu: endpoint {
+						remote-endpoint = <&wcd_usbss_sbu_mux>;
+					};
+				};
+				*/
 			};
 		};
+	};
+
+	hdmi_5p0_reg: regulator-hdmi-5v0 {
+		compatible = "regulator-fixed";
+		regulator-name = "hdmi_5p0";
+
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&tlmm 184 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		pinctrl-0 = <&hdmi_5p0_state>;
+		pinctrl-names = "default";
 	};
 
 	sound {
@@ -193,6 +236,43 @@
 	};
 };
 
+/*
+&i2c3 {
+	status = "okay";
+
+	wcd_usbss: typec-mux@e {
+		compatible = "qcom,wcd9395-usbss", "qcom,wcd9390-usbss";
+		reg = <0xe>;
+
+		vdd-supply = <&vreg_l7b>;
+		reset-gpios = <&tlmm 151 GPIO_ACTIVE_HIGH>;
+
+		mode-switch;
+		orientation-switch;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				wcd_usbss_sbu_mux: endpoint {
+					remote-endpoint = <&pmic_glink_sbu>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				wcd_usbss_headset_out: endpoint {
+				};
+			};
+		};
+	};
+};
+*/
+
 &i2c4 {
 	pinctrl-0 = <&qup_i2c4_data_clk>;
 	pinctrl-names = "default";
@@ -253,6 +333,148 @@
 	status = "okay";
 };
 
+&i2c4 {
+	clock-frequency = <400000>;
+
+	status = "okay";
+
+	gpio_expander2: gpio@20 {
+		compatible = "ti,tca9539";
+		reg = <0x20>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	gpio_expander3: gpio@21 {
+		compatible = "ti,tca9539";
+		reg = <0x21>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+
+		/* That's GPIO 184 instead, here only as input */
+		/*
+		hdmi-5p0-pwr-en-hog {
+			gpio-hog;
+			gpios = <4 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "hdmi_5p0_pwr_en";
+		};
+		*/
+	};
+};
+
+&i2c8 {
+	clock-frequency = <400000>;
+
+	status = "okay";
+
+	lt9611_codec: hdmi-bridge@41 {
+		compatible = "lontium,lt9611uxd";
+		reg = <0x41>;
+
+		interrupts-extended = <&tlmm 13 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&tlmm 16 GPIO_ACTIVE_HIGH>;
+
+		vdd-supply = <&vph_pwr>;
+		vcc-supply = <&vreg_l7b>;
+
+		pinctrl-0 = <&lt9611_default>;
+		pinctrl-names = "default";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				lt9611_a: endpoint {
+					remote-endpoint = <&mdss_dsi0_out>;
+				};
+			};
+
+			port@2 {
+				reg = <2>;
+
+				lt9611_out: endpoint {
+					remote-endpoint = <&hdmi_0_connector_in>;
+				};
+			};
+		};
+	};
+};
+
+&mdss {
+	status = "okay";
+};
+
+&mdss_dp0 {
+	/* TODO: l17b needed for USB DP switch */
+	pinctrl-0 = <&usb_dp_sw_active>;
+	pinctrl-1 = <&usb_dp_sw_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	//status = "okay";
+};
+
+&mdss_dp0_out {
+	link-frequencies = /bits/ 64 <1620000000 2700000000 5400000000 8100000000>;
+};
+
+&mdss_dsi0 {
+	vdda-supply = <&vreg_l4b>;
+
+	// status = "okay";
+};
+
+&mdss_dsi0_out {
+	remote-endpoint = <&lt9611_a>;
+	data-lanes = <0 1 2 3>;
+};
+
+&mdss_dsi0_phy {
+	vdds-supply = <&vreg_l2b>;
+
+	// status = "okay";
+};
+
+&mdss_hdmi {
+	//hpd-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
+#if 0
+	pinctrl-0 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_active>,
+		    <&hdmi_hpd_active>,
+		    <&hdmi_earc_pwr_en_state>;
+	pinctrl-1 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_sleep>,
+		    <&hdmi_hpd_sleep>,
+		    <&hdmi_earc_pwr_en_sleep>;
+#endif
+	pinctrl-0 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_active>,
+		    <&hdmi_hpd_active>;
+	pinctrl-1 = <&hdmi_ddc_default>,
+		    <&hdmi_cec_sleep>,
+		    <&hdmi_hpd_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	core-vdda-supply = <&vreg_l4b>;
+	core-vcc-supply = <&vreg_l2b>;
+	vddio-supply = <&hdmi_5p0_reg>;
+
+	status = "okay";
+};
+
+&mdss_hdmi_out {
+	remote-endpoint = <&hdmi_1_connector_in>;
+};
+
+&mdss_hdmi_phy {
+	status = "okay";
+};
+
 &pcie0 {
 	wake-gpios = <&tlmm 114 GPIO_ACTIVE_HIGH>;
 	perst-gpios = <&tlmm 78 GPIO_ACTIVE_LOW>;
@@ -285,6 +507,14 @@
 &pm7550ba_eusb2_repeater {
 	vdd18-supply = <&vreg_l7b>;
 	vdd3-supply = <&vreg_l17b>;
+};
+
+&qupv3_1 {
+	firmware-name = "qcom/eliza/qupv3fw.elf";
+};
+
+&qupv3_2 {
+	firmware-name = "qcom/eliza/qupv3fw.elf";
 };
 
 &sdhc_2 {
@@ -356,6 +586,65 @@
 };
 
 &tlmm {
+	hdmi_ddc_default: hdmi-ddc-state {
+		hdmi-ddc-scl-pins {
+			pins = "gpio6";
+			function = "hdmi_ddc_scl";
+			drive-strength = <2>;
+			bias-pull-up;
+		};
+
+		hdmi-ddc-sda-pins {
+			pins = "gpio7";
+			function = "hdmi_ddc_sda";
+			drive-strength = <2>;
+			bias-pull-up;
+		};
+	};
+
+	lt9611_default: lt9611-state {
+		irq-pins {
+			pins = "gpio13";
+			function = "gpio";
+			bias-disable;
+		};
+
+		rst-pins {
+			pins = "gpio16";
+			function = "gpio";
+
+			output-high;
+		};
+	};
+
+	hdmi_cec_active: hdmi-cec-active-state {
+		pins = "gpio46";
+		function = "hdmi_tx_cec";
+		drive-strength = <16>;
+		bias-pull-up;
+	};
+
+	hdmi_cec_sleep: hdmi-cec-sleep-state {
+		pins = "gpio46";
+		function = "hdmi_tx_cec";
+		drive-strength = <2>;
+		bias-pull-up;
+	};
+
+	hdmi_hpd_active: hdmi-hpd-active-state {
+		pins = "gpio47";
+		function = "hdmi_hot_plug";
+		drive-strength = <16>;
+		bias-pull-down;
+	};
+
+	hdmi_hpd_sleep: hdmi-hpd-sleep-state {
+		pins = "gpio47";
+		function = "hdmi_hot_plug";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
 	sd_cd: sd-cd-state {
 		pins = "gpio58";
 		function = "gpio";
@@ -374,6 +663,67 @@
 		function = "gpio";
 		drive-strength = <16>;
 		bias-disable;
+	};
+
+	usb_dp_sw_active: usb-dp-sw-active-state {
+		pins = "gpio177", "gpio178";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-high;
+	};
+
+	usb_dp_sw_sleep: usb-dp-sw-sleep-state {
+		usb-dp-sw-en-pins {
+			pins = "gpio177";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-disable;
+			output-high;
+		};
+
+		usb-dp-sw-sel-pins {
+			pins = "gpio178";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-disable;
+			output-low;
+		};
+	};
+
+	/*
+	 * Based on schematics, but not downstream. Necessary to enable SIL9437
+	 * IC for eARC, which when non-working seems to pull down HPD
+	 * permanently when 5p0 is on and reverse (pull up when 5p0 is off) -
+	 * no clue what is happening here.
+	 */
+	 /*
+	hdmi_earc_pwr_en_active: hdmi-earc-pwr-en-active-state {
+		pins = "gpio180";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		//output-high;
+		output-low;
+	};
+
+	hdmi_earc_pwr_en_sleep: hdmi-earc-pwr-en-sleep-state {
+		pins = "gpio180";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		//output-high;
+		output-low;
+	};
+	*/
+
+
+	hdmi_5p0_state: hdmi-5p0-state {
+		pins = "gpio184";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-low;
 	};
 };
 

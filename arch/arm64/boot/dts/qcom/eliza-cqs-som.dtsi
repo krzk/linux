@@ -116,7 +116,7 @@
 
 		vreg_l2b: ldo2 {
 			regulator-name = "vreg_l2b";
-			regulator-min-microvolt = <720000>;
+			regulator-min-microvolt = <880000>;
 			regulator-max-microvolt = <950000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
