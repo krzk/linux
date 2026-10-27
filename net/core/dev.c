@@ -3041,7 +3041,7 @@ int __netif_set_xps_queue(struct net_device *dev, const unsigned long *mask,
 		goto out_no_old_maps;
 
 	for (j = 0; j < dev_maps->nr_ids; j++) {
-		for (i = num_tc, tci = j * dev_maps->num_tc; i--; tci++) {
+		for (i = dev_maps->num_tc, tci = j * dev_maps->num_tc; i--; tci++) {
 			map = xmap_dereference(dev_maps->attr_map[tci]);
 			if (!map)
 				continue;
@@ -4283,7 +4283,7 @@ static enum skb_drop_reason qdisc_pkt_len_segs_init(struct sk_buff *skb)
 {
 	struct skb_shared_info *shinfo = skb_shinfo(skb);
 	unsigned int hdr_len, tlen;
-	u16 gso_segs;
+	u32 gso_segs;
 
 	qdisc_skb_cb(skb)->pkt_len = skb->len;
 	if (!shinfo->gso_size) {
@@ -4334,6 +4334,15 @@ static enum skb_drop_reason qdisc_pkt_len_segs_init(struct sk_buff *skb)
 		if (payload <= 0)
 			return SKB_DROP_REASON_SKB_BAD_GSO;
 		gso_segs = DIV_ROUND_UP(payload, shinfo->gso_size);
+		/* shinfo->gso_segs is a 16bit field.
+		 * Also make sure untrusted gso_size/hdr_len can not inflate
+		 * qdisc_pkt_len() beyond QDISC_PKT_LEN_MAX, or deficit
+		 * schedulers could spin in their refill loops.
+		 */
+		if (unlikely(gso_segs > GSO_MAX_SEGS ||
+			     skb->len + (u64)(gso_segs - 1) * hdr_len >
+			     QDISC_PKT_LEN_MAX))
+			return SKB_DROP_REASON_SKB_BAD_GSO;
 		shinfo->gso_segs = gso_segs;
 		qdisc_skb_cb(skb)->pkt_segs = gso_segs;
 	}
