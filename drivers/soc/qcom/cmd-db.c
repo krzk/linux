@@ -338,14 +338,60 @@ static const struct file_operations cmd_db_debugfs_ops = {
 	.release = single_release,
 };
 
+static int cmd_db_validate(struct device *dev,
+			   const struct cmd_db_header *header, size_t size)
+{
+	const struct entry_header *ent;
+	const struct rsc_hdr *rsc;
+	size_t data_size, end;
+	u16 cnt;
+	int i, j;
+
+	data_size = size - sizeof(*header);
+
+	for (i = 0; i < MAX_SLV_ID; i++) {
+		rsc = &header->header[i];
+		if (!rsc->slv_id)
+			break;
+
+		cnt = le16_to_cpu(rsc->cnt);
+		end = le16_to_cpu(rsc->header_offset) +
+		      (size_t)cnt * sizeof(*ent);
+		if (end > data_size) {
+			dev_err(dev, "Slave %d entries out of bounds\n", i);
+			return -EINVAL;
+		}
+
+		ent = (const void *)(header->data +
+				     le16_to_cpu(rsc->header_offset));
+		for (j = 0; j < cnt; j++, ent++) {
+			end = (size_t)le16_to_cpu(rsc->data_offset) +
+			      le16_to_cpu(ent->offset) + le16_to_cpu(ent->len);
+			if (end > data_size) {
+				dev_err(dev, "Slave %d entry %d data out of bounds\n",
+					i, j);
+				return -EINVAL;
+			}
+		}
+	}
+
+	return 0;
+}
+
 static int cmd_db_dev_probe(struct platform_device *pdev)
 {
 	struct cmd_db_header *header;
 	struct reserved_mem *rmem;
+	int ret;
 
 	rmem = of_reserved_mem_lookup(pdev->dev.of_node);
 	if (!rmem) {
 		dev_err(&pdev->dev, "failed to acquire memory region\n");
+		return -EINVAL;
+	}
+
+	if (rmem->size < sizeof(*header)) {
+		dev_err(&pdev->dev, "Command DB memory region too small\n");
 		return -EINVAL;
 	}
 
@@ -357,6 +403,10 @@ static int cmd_db_dev_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Invalid Command DB Magic\n");
 		return -EINVAL;
 	}
+
+	ret = cmd_db_validate(&pdev->dev, header, rmem->size);
+	if (ret)
+		return ret;
 
 	cmd_db_header = header;
 
