@@ -585,6 +585,11 @@ serves to give credit to reviewers and to inform maintainers of the degree of
 review which has been done on the patch.  Reviewed-by: tags, when supplied by
 reviewers known to understand the subject area and to perform thorough reviews,
 will normally increase the likelihood of your patch getting into the kernel.
+If the reviewer checks only a piece of the patch, leaving the rest unreviewed,
+especially skipping the main concept of the patch, then more appropriate is
+an Acked-by tag or adding a "# subpart-name" marker after the Reviewed-by tag:
+
+	Reviewed-by: Driver X Reviewer <foo@example.org> # for Driver
 
 Both Tested-by and Reviewed-by tags, once received on mailing list from tester
 or reviewer, should be added by author to the applicable patches when sending
