@@ -385,7 +385,8 @@
 		pinctrl-0 = <&grip_default>;
 		pinctrl-1 = <&grip_sleep>;
 
-		interrupts = <&tlmm 96 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <96 IRQ_TYPE_EDGE_FALLING>;
 
 		vcc-supply = <&vreg_l18a_2p85>;
 	};
