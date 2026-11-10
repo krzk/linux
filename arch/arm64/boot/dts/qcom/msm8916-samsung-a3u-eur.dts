@@ -87,6 +87,8 @@
 };
 
 &mdss_dsi0 {
+	status = "okay";
+
 	panel@0 {
 		reg = <0>;
 
@@ -107,6 +109,10 @@
 &mdss_dsi0_out {
 	data-lanes = <0 1>;
 	remote-endpoint = <&panel_in>;
+};
+
+&mdss_dsi0_phy {
+	status = "okay";
 };
 
 &touchkey {

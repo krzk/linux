@@ -337,6 +337,8 @@
 	pinctrl-0 = <&mdss_default>;
 	pinctrl-1 = <&mdss_sleep>;
 
+	status = "okay";
+
 	panel@0 {
 		compatible = "samsung,s6e88a0-ams427ap24";
 		reg = <0>;
@@ -357,6 +359,10 @@
 &mdss_dsi0_out {
 	data-lanes = <0 1>;
 	remote-endpoint = <&panel_in>;
+};
+
+&mdss_dsi0_phy {
+	status = "okay";
 };
 
 &mpss_mem {
