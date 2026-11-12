@@ -795,7 +795,7 @@ static const struct regmap_config video_cc_hawi_regmap_config = {
 	.fast_io = true,
 };
 
-static struct qcom_cc_driver_data video_cc_hawi_driver_data = {
+static const struct qcom_cc_driver_data video_cc_hawi_driver_data = {
 	.alpha_plls = video_cc_hawi_plls,
 	.num_alpha_plls = ARRAY_SIZE(video_cc_hawi_plls),
 	.clk_cbcrs = video_cc_hawi_critical_cbcrs,

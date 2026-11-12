@@ -411,7 +411,7 @@ static struct clk_alpha_pll *gpu_cc_hawi_plls[] = {
 	&gpu_cc_pll0,
 };
 
-static u32 gpu_cc_hawi_critical_cbcrs[] = {
+static const u32 gpu_cc_hawi_critical_cbcrs[] = {
 	0x93a4, /* GPU_CC_CB_CLK */
 	0x9704, /* GPU_CC_MXG_XO_CLK */
 	0x90e4, /* GPU_CC_CXO_CLK */
@@ -429,7 +429,7 @@ static const struct regmap_config gpu_cc_hawi_regmap_config = {
 	.fast_io = true,
 };
 
-static struct qcom_cc_driver_data gpu_cc_hawi_driver_data = {
+static const struct qcom_cc_driver_data gpu_cc_hawi_driver_data = {
 	.alpha_plls = gpu_cc_hawi_plls,
 	.num_alpha_plls = ARRAY_SIZE(gpu_cc_hawi_plls),
 	.clk_cbcrs = gpu_cc_hawi_critical_cbcrs,
