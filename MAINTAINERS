@@ -9868,7 +9868,6 @@ F:	drivers/media/usb/em28xx/
 
 EMMC CMDQ HOST CONTROLLER INTERFACE (CQHCI) DRIVER
 M:	Adrian Hunter <adrian.hunter@intel.com>
-M:	Asutosh Das <quic_asutoshd@quicinc.com>
 R:	Ritesh Harjani <ritesh.list@gmail.com>
 L:	linux-mmc@vger.kernel.org
 S:	Supported
