@@ -97,7 +97,7 @@
 			no-map;
 		};
 
-		ipc_shmem_2: ipc-shmem-2@200C6000{
+		ipc_shmem_2: ipc-shmem-2@200C6000 {
 			compatible = "shared-dma-pool";
 			reg = <0x0 0x200C6000 0x0 0x2000>;
 			no-map;
