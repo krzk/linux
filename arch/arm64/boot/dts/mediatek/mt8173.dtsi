@@ -22,12 +22,6 @@
 	#size-cells = <2>;
 
 	aliases {
-		mdp-rsz0 = &mdp_rsz0;
-		mdp-rsz1 = &mdp_rsz1;
-		mdp-rsz2 = &mdp_rsz2;
-		mdp-wdma0 = &mdp_wdma0;
-		mdp-wrot0 = &mdp_wrot0;
-		mdp-wrot1 = &mdp_wrot1;
 		serial0 = &uart0;
 		serial1 = &uart1;
 		serial2 = &uart2;
