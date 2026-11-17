@@ -24,10 +24,6 @@
 		gpio1 = &gpio1;
 		gpio2 = &gpio2;
 		gpio3 = &gpio3;
-		qsgmii-s2-p1 = &qsgmii_phy_s2_p1;
-		qsgmii-s2-p2 = &qsgmii_phy_s2_p2;
-		qsgmii-s2-p3 = &qsgmii_phy_s2_p3;
-		qsgmii-s2-p4 = &qsgmii_phy_s2_p4;
 		serial0 = &duart0;
 		serial1 = &duart1;
 		serial2 = &duart2;

@@ -20,10 +20,6 @@
 	aliases {
 		crypto = &crypto;
 		rtc1 = &ftm_alarm0;
-		rtic-a = &rtic_a;
-		rtic-b = &rtic_b;
-		rtic-c = &rtic_c;
-		rtic-d = &rtic_d;
 		sec-mon = &sec_mon;
 	};
 

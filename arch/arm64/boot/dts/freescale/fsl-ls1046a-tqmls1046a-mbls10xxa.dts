@@ -18,14 +18,6 @@
 		     "fsl,ls1046a";
 
 	aliases {
-		qsgmii-s1-p1 = &qsgmii1_phy1;
-		qsgmii-s1-p2 = &qsgmii1_phy2;
-		qsgmii-s1-p3 = &qsgmii1_phy3;
-		qsgmii-s1-p4 = &qsgmii1_phy4;
-		qsgmii-s2-p1 = &qsgmii2_phy1;
-		qsgmii-s2-p2 = &qsgmii2_phy2;
-		qsgmii-s2-p3 = &qsgmii2_phy3;
-		qsgmii-s2-p4 = &qsgmii2_phy4;
 		serial0 = &duart0;
 		serial1 = &duart1;
 	};
