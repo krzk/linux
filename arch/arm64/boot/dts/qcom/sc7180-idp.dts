@@ -21,7 +21,6 @@
 
 	aliases {
 		bluetooth0 = &bluetooth;
-		hsuart0 = &uart3;
 		serial0 = &uart8;
 		wifi0 = &wifi;
 	};
