@@ -20,19 +20,6 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
-	aliases {
-		aal0 = &aal0;
-		ccorr0 = &ccorr0;
-		color0 = &color0;
-		dither0 = &dither0;
-		dpi0 = &dpi0;
-		dsi0 = &dsi0;
-		gamma0 = &gamma0;
-		ovl0 = &ovl0;
-		rdma0 = &rdma0;
-		rdma1 = &rdma1;
-	};
-
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;

@@ -23,14 +23,6 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
-	aliases {
-		ovl0 = &ovl0;
-		ovl-2l0 = &ovl_2l0;
-		ovl-2l2 = &ovl_2l2;
-		rdma0 = &rdma0;
-		rdma4 = &rdma4;
-	};
-
 	clk13m: fixed-factor-clock-13m {
 		compatible = "fixed-factor-clock";
 		#clock-cells = <0>;

@@ -23,39 +23,6 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
-	aliases {
-		dp-intf0 = &dp_intf0;
-		dp-intf1 = &dp_intf1;
-		dpi1 = &dpi1;
-		dsc0 = &dsc0;
-		ethdr0 = &ethdr0;
-		gce0 = &gce0;
-		gce1 = &gce1;
-		merge0 = &merge0;
-		merge1 = &merge1;
-		merge2 = &merge2;
-		merge3 = &merge3;
-		merge4 = &merge4;
-		merge5 = &merge5;
-		mutex0 = &mutex0;
-		mutex1 = &mutex1;
-		padding0 = &padding0;
-		padding1 = &padding1;
-		padding2 = &padding2;
-		padding3 = &padding3;
-		padding4 = &padding4;
-		padding5 = &padding5;
-		padding6 = &padding6;
-		padding7 = &padding7;
-		vdo1-rdma0 = &vdo1_rdma0;
-		vdo1-rdma1 = &vdo1_rdma1;
-		vdo1-rdma2 = &vdo1_rdma2;
-		vdo1-rdma3 = &vdo1_rdma3;
-		vdo1-rdma4 = &vdo1_rdma4;
-		vdo1-rdma5 = &vdo1_rdma5;
-		vdo1-rdma6 = &vdo1_rdma6;
-		vdo1-rdma7 = &vdo1_rdma7;
-	};
 
 	cpus {
 		#address-cells = <1>;

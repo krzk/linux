@@ -22,13 +22,6 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
-	aliases {
-		ovl0 = &ovl0;
-		ovl-2l0 = &ovl_2l0;
-		rdma0 = &rdma0;
-		rdma1 = &rdma1;
-	};
-
 	fhctl: fhctl@1000ce00 {
 		compatible = "mediatek,mt8186-fhctl";
 		clocks = <&apmixedsys CLK_APMIXED_TVDPLL>;

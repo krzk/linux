@@ -21,23 +21,6 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
-	aliases {
-		ovl0 = &ovl0;
-		ovl1 = &ovl1;
-		rdma0 = &rdma0;
-		rdma1 = &rdma1;
-		rdma2 = &rdma2;
-		wdma0 = &wdma0;
-		wdma1 = &wdma1;
-		color0 = &color0;
-		color1 = &color1;
-		split0 = &split0;
-		split1 = &split1;
-		dpi0 = &dpi0;
-		dsi0 = &dsi0;
-		dsi1 = &dsi1;
-	};
-
 	psci {
 		compatible = "arm,psci-0.2";
 		method = "smc";
