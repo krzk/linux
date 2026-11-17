@@ -21,7 +21,6 @@
 		serial0 = &uart4;
 		serial1 = &uart2;
 		serial2 = &uart3;
-		sdhc1 = &sdhc_1;
 	};
 
 	chosen {

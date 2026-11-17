@@ -27,7 +27,6 @@
 		serial0 = &blsp_uart1;
 		serial1 = &blsp_uart2;
 		spi0 = &blsp_spi5;
-		usid0 = &pm8916_0;
 	};
 
 	chosen {

@@ -23,7 +23,6 @@
 	qcom,board-id = <11 0>;
 
 	aliases {
-		display0 = &framebuffer;
 		serial0 = &uart9;
 		serial1 = &uart6;
 	};

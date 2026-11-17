@@ -14,7 +14,6 @@
 		serial1 = &uart12;
 		serial2 = &uart17;
 		spi16 = &spi16;
-		ufshc1 = &ufs_mem_hc;
 	};
 
 	chosen {

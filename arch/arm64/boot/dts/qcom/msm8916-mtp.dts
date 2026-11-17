@@ -14,7 +14,6 @@
 
 	aliases {
 		serial0 = &blsp_uart2;
-		usid0 = &pm8916_0;
 	};
 
 	chosen {
