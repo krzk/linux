@@ -10,7 +10,6 @@
 		serial0 = &usart6;
 		serial1 = &uart8;
 		eeprom0 = &eeprom0;
-		eeprom0wl = &eeprom0wl;
 		rtc0 = &rv3032;
 		rtc1 = &rtc;
 	};
