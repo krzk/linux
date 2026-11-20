@@ -65,10 +65,12 @@ properties:
     type: object
     additionalProperties: true
     patternProperties:
-      "^(ethernet-)?port@[0-4]$":
+      "^(ethernet-)?port@":
         type: object
         additionalProperties: true
         properties:
+          reg:
+            maximum: 4
           pcs-handle:
             maxItems: 1
             description:
