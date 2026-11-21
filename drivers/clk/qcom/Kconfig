@@ -807,6 +807,7 @@ config MSM_GCC_8917
 config MSM_GCC_8939
 	tristate "MSM8939 Global Clock Controller"
 	select QCOM_GDSC
+	default ARCH_QCOM if ARM64
 	help
 	  Support for the global clock controller on msm8939 devices.
 	  Say Y if you want to use devices such as UART, SPI i2c, USB,
@@ -852,6 +853,7 @@ config MDM_GCC_9607
 config MDM_GCC_9615
 	tristate "MDM9615 Global Clock Controller"
 	depends on ARM || COMPILE_TEST
+	default ARCH_QCOM
 	help
 	  Support for the global clock controller on mdm9615 devices.
 	  Say Y if you want to use peripheral devices such as UART, SPI,
@@ -1189,6 +1191,7 @@ config SAR_GCC_2130P
 	tristate "SAR2130P Global Clock Controller"
 	select QCOM_GDSC
 	depends on COMMON_CLK_QCOM
+	default ARCH_QCOM
 	help
 	  Support for the global clock controller on SAR2130P devices.
 	  Say Y if you want to use peripheral devices such as UART, SPI,
@@ -1198,6 +1201,7 @@ config SAR_GPUCC_2130P
 	tristate "SAR2130P Graphics clock controller"
 	select QCOM_GDSC
 	select SAR_GCC_2130P
+	default m if ARCH_QCOM
 	help
 	  Support for the graphics clock controller on SAR2130P devices.
 	  Say Y if you want to support graphics controller devices and
@@ -1480,6 +1484,7 @@ config SDX_GCC_65
 	tristate "SDX65 Global Clock Controller"
 	depends on ARM || COMPILE_TEST
 	select QCOM_GDSC
+	default ARCH_QCOM
 	help
 	  Support for the global clock controller on SDX65 devices.
 	  Say Y if you want to use peripheral devices such as UART,
