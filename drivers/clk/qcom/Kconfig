@@ -927,8 +927,9 @@ config MSM_GCC_8994
 
 config MSM_GCC_8996
 	tristate "MSM8996 Global Clock Controller"
+	depends on ARM64 || COMPILE_TEST
 	select QCOM_GDSC
-	default ARCH_QCOM if ARM64
+	default ARCH_QCOM
 	help
 	  Support for the global clock controller on msm8996 devices.
 	  Say Y if you want to use peripheral devices such as UART, SPI,
@@ -936,9 +937,10 @@ config MSM_GCC_8996
 
 config MSM_MMCC_8996
 	tristate "MSM8996 Multimedia Clock Controller"
+	depends on ARM64 || COMPILE_TEST
 	select MSM_GCC_8996
 	select QCOM_GDSC
-	default m if ARCH_QCOM && ARM64
+	default m if ARCH_QCOM
 	help
 	  Support for the multimedia clock controller on msm8996 devices.
 	  Say Y if you want to support multimedia devices such as display,
@@ -1188,6 +1190,7 @@ config SA_GPUCC_8775P
 
 config SAR_GCC_2130P
 	tristate "SAR2130P Global Clock Controller"
+	depends on ARM64 || COMPILE_TEST
 	select QCOM_GDSC
 	depends on COMMON_CLK_QCOM
 	default ARCH_QCOM
@@ -1198,6 +1201,7 @@ config SAR_GCC_2130P
 
 config SAR_GPUCC_2130P
 	tristate "SAR2130P Graphics clock controller"
+	depends on ARM64 || COMPILE_TEST
 	select QCOM_GDSC
 	select SAR_GCC_2130P
 	default m if ARCH_QCOM
