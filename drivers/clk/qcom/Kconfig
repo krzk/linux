@@ -643,7 +643,6 @@ config IPQ_GCC_4019
 
 config IPQ_GCC_5018
 	tristate "IPQ5018 Global Clock Controller"
-	depends on ARM || ARM64 || COMPILE_TEST
 	default ARCH_QCOM && ARM64
 	help
 	  Support for global clock controller on ipq5018 devices.
