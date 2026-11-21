@@ -797,6 +797,7 @@ config MSM_GCC_8917
 	tristate "MSM89(17/37/40)/QM215/SDM439 Global Clock Controller"
 	depends on ARM64 || COMPILE_TEST
 	select QCOM_GDSC
+	default ARCH_QCOM
 	help
 	  Support for the global clock controller on msm8917, msm8937,
 	  msm8940, qm215 and sdm439 devices.
