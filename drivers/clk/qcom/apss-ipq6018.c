@@ -11,9 +11,9 @@
 #include <linux/module.h>
 #include <linux/clk.h>
 #include <linux/soc/qcom/smem.h>
+#include <linux/soc/qcom/socinfo.h>
 
 #include <dt-bindings/clock/qcom,apss-ipq.h>
-#include <dt-bindings/arm/qcom,ids.h>
 
 #include "common.h"
 #include "clk-regmap.h"
