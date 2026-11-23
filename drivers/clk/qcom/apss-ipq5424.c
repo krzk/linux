@@ -13,7 +13,6 @@
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 
-#include <dt-bindings/arm/qcom,ids.h>
 #include <dt-bindings/clock/qcom,apss-ipq.h>
 #include <dt-bindings/interconnect/qcom,ipq5424.h>
 
